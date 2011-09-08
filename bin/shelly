@@ -1,0 +1,3 @@
+#!/usr/bin/env ruby
+require "shelly/cli"
+Shelly::CLI.start
