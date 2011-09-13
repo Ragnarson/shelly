@@ -13,6 +13,12 @@ Gem::Specification.new do |s|
 
   s.rubyforge_project = "shelly"
   s.add_development_dependency "rspec"
+  s.add_development_dependency "guard"
+  s.add_development_dependency "guard-rspec"
+  if RUBY_PLATFORM =~ /darwin/
+    s.add_development_dependency "growl_notify"
+    s.add_development_dependency "rb-fsevent"
+  end
   s.add_development_dependency "fakefs"
   s.add_runtime_dependency "thor"
   s.add_runtime_dependency "rest-client"
