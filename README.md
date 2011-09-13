@@ -3,4 +3,4 @@
 
 ### Running tests
 
-        rake spec
+    rake spec
