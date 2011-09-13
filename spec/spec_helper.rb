@@ -1,4 +1,5 @@
 require "rspec"
+require "shelly"
 require "helpers"
 require "input_faker"
 require "fakefs/safe"
