@@ -1,16 +1,7 @@
 module RSpec
   module Helpers
-    def lib
-      File.expand_path("../../lib")
-    end
-
-    def executable
-      File.expand_path("bin/shelly")
-    end
-
-    def shelly(cmd)
-      cmd = "ruby -I#{lib} #{executable} #{cmd}"
-      IO.popen(cmd).gets.strip
+    def fake_stdin(strings)
+      InputFaker.with_fake_input(strings) { yield }
     end
   end
 end
