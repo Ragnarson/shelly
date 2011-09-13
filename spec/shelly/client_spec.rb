@@ -23,56 +23,51 @@ describe Shelly::Client do
     end
   end
 
-  describe "#request" do
-    it "should make a request to given URL" do
-      RestClient::Request.should_receive(:execute).with(
-        request_parameters("/account", :get)
-      )
-      @client.request("/account", :get)
+  describe "#register_user" do
+    it "should send post request with login and password" do
+      @client.should_receive(:post).with("/users", {:user => {:email => "test@example.com", :password => "secret"}})
+      @client.register_user("test@example.com", "secret")
     end
+  end
 
-    it "should include provided parameters in the request" do
-      RestClient::Request.should_receive(:execute).with(
-        request_parameters("/account", :post, {:name => "test"})
-      )
-      @client.request("/account", :post, :name => "test")
-    end
-
-    it "should include user credentials in the request parameters" do
-      @client = Shelly::Client.new("megan-fox@example.com", "secret")
-      RestClient::Request.should_receive(:execute).with(
-        request_parameters("/account", :get, {:email => "megan-fox@example.com", :password => "secret"})
-      )
-      @client.request("/account", :get)
+  describe "#request_parameters" do
+    it "should return hash of resquest parameters" do
+      expected = {
+        :method => :post,
+        :url => "#{@client.api_url}/account",
+        :headers => @client.headers,
+        :payload => {:name => "bob", :email => "bob@example.com", :password => "secret"}.to_json
+      }
+      @client.request_parameters("/account", :post, :name => "bob").should == expected
     end
 
     it "should not include user credentials when they are blank" do
-      @client = Shelly::Client.new
-      RestClient::Request.should_receive(:execute).with(
-        :method  => :get,
-        :url     => "https://admin.winniecloud.com/apiv2/account",
-        :headers => {:accept => :json, :content_type => :json, "shelly-version" => Shelly::VERSION},
-        :payload => "{}"
-      )
-      @client.request("/account", :get)
+      client = Shelly::Client.new
+      expected = {
+        :method => :get,
+        :url => "#{@client.api_url}/account",
+        :headers => @client.headers,
+        :payload => {}.to_json
+      }
+      client.request("/account", :get)
+    end
+  end
+
+  describe "#request" do
+    it "should get request parameters" do
+      @client.should_receive(:request_parameters)
+        .with("/account", :get, {:sth => "foo"})
+        .and_return({:method => :get})
+      RestClient::Request.should_receive(:execute).with({:method => :get})
+      @client.request("/account", :get, {:sth => "foo"})
     end
 
     it "should pass response to process_response method" do
       response = mock(RestClient::Response)
       request = mock(RestClient::Request)
       @client.should_receive(:process_response).with(response)
-      RestClient::Request.should_receive(:execute).with(
-        request_parameters("/account", :get)
-      ).and_yield(response, request)
-
+      RestClient::Request.stub(:execute).and_yield(response, request)
       @client.request("/account", :get)
-    end
-
-    def request_parameters(path, method, payload = {})
-       {:method  => method,
-        :url     => "https://admin.winniecloud.com/apiv2#{path}",
-        :headers => {:accept => :json, :content_type => :json, "shelly-version" => Shelly::VERSION},
-        :payload => ({:email => "bob@example.com", :password => "secret"}.merge(payload)).to_json}
     end
   end
 
@@ -132,6 +127,17 @@ describe Shelly::Client do
           @client.get("/account")
         }.should raise_error(Shelly::Client::UnsupportedResponseException)
       end
+    end
+  end
+
+  describe "#headers" do
+    it "should return hash of headers" do
+      expected = {
+        :accept          => :json,
+        :content_type    => :json,
+        "shelly-version" => Shelly::VERSION
+      }
+      @client.headers.should == expected
     end
   end
 

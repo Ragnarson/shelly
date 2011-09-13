@@ -41,16 +41,26 @@ module Shelly
     end
 
     def request(path, method, params = {})
+      options = request_parameters(path, method, params)
+      RestClient::Request.execute(options) do |response, request|
+        process_response(response)
+      end
+    end
+
+    def headers
+      {:accept          => :json,
+       :content_type    => :json,
+       "shelly-version" => Shelly::VERSION}
+    end
+
+    def request_parameters(path, method, params = {})
       unless @email.blank? or @password.blank?
         params.merge!(:email => @email, :password => @password)
       end
-
-      RestClient::Request.execute(
-        :method   => method,
-        :url      => "#{api_url}#{path}",
-        :headers  => headers,
-        :payload  => params.to_json
-      ) { |response, request| process_response(response) }
+      {:method   => method,
+       :url      => "#{api_url}#{path}",
+       :headers  => headers,
+       :payload  => params.to_json}
     end
 
     def process_response(response)
@@ -67,12 +77,6 @@ module Shelly
         raise UnauthorizedException.new if e.http_code == 406
         raise UnsupportedResponseException.new(e)
       end
-    end
-
-    def headers
-      {:accept          => :json,
-       :content_type    => :json,
-       "shelly-version" => Shelly::VERSION}
     end
   end
 end

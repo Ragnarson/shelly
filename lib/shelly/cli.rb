@@ -1,9 +1,9 @@
 require "shelly"
+require "shelly/user"
 
 module Shelly
   class CLI < Thor
     include Thor::Actions
-    autoload :User, "shelly/user"
 
     map %w(-v --version) => :version
     desc "version", "Displays shelly version"

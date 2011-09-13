@@ -3,6 +3,7 @@ require "thor"
 require "core_ext/object"
 
 module Shelly
-  autoload :VERSION, "shelly/version"
   autoload :Client, "shelly/client"
+  autoload :User, "shelly/user"
+  autoload :VERSION, "shelly/version"
 end
