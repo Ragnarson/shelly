@@ -55,8 +55,8 @@ describe Shelly::Client do
 
   describe "#request" do
     it "should get request parameters" do
-      @client.should_receive(:request_parameters)
-        .with("/account", :get, {:sth => "foo"})
+      @client.should_receive(:request_parameters)\
+        .with("/account", :get, {:sth => "foo"})\
         .and_return({:method => :get})
       RestClient::Request.should_receive(:execute).with({:method => :get})
       @client.request("/account", :get, {:sth => "foo"})
