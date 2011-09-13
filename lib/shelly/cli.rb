@@ -23,7 +23,9 @@ module Shelly
       end
 
       user = User.new(email, password)
-      say "Check you mailbox for email confirmation" if user.register
+      if user.register
+        say "Successfully registered!\nCheck you mailbox for email confirmation"
+      end
     rescue Client::APIError => e
       if e.message == "Validation Failed"
         e.errors.each { |error| say "#{error.first} #{error.last}" }

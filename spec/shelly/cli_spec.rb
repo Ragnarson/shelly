@@ -68,9 +68,9 @@ describe Shelly::CLI do
     end
 
     context "on successful registration" do
-      it "should notify user about email verification" do
+      it "should display message about registration and email confirmation" do
         @client.stub(:register_user).and_return(true)
-        $stdout.should_receive(:puts).with("Check you mailbox for email confirmation")
+        $stdout.should_receive(:puts).with("Successfully registered!\nCheck you mailbox for email confirmation")
         fake_stdin(["kate@example.com", "pass"]) do
           @cli.register
         end
@@ -78,7 +78,7 @@ describe Shelly::CLI do
     end
 
     context "on unsuccessful registration" do
-      it "should notify user about errors" do
+      it "should display errors" do
         response = {"message" => "Validation Failed", "errors" => [["email", "has been already taken"]]}
         exception = Shelly::Client::APIError.new(response)
         @client.stub(:register_user).and_raise(exception)
