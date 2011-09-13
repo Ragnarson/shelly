@@ -1,3 +1,4 @@
+require "rubygems"
 require "thor"
 require "core_ext/object"
 

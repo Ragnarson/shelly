@@ -1,3 +1,5 @@
+require "shelly"
+
 module Shelly
   class CLI < Thor
     include Thor::Actions
