@@ -4,8 +4,6 @@ require "shelly/cli/main"
 describe Shelly::CLI::Main do
   before do
     @main = Shelly::CLI::Main.new
-    # $stdout.stub(:puts)
-    # $stdout.stub(:print)
   end
 
   describe "#version" do
@@ -27,6 +25,7 @@ describe Shelly::CLI::Main do
       expected = <<-OUT
 Tasks:
   shelly account <command>  # Manages your account
+  shelly apps <command>     # Manages your applications
   shelly help [TASK]        # Describe available tasks or one specific task
   shelly register           # Registers new user account on Shelly Cloud
   shelly version            # Displays shelly version
