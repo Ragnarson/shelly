@@ -38,7 +38,7 @@ module Shelly
       # FIXME: move to helpers
       no_tasks do
         def ask_for_email
-          email_question = User.guess_email.blank? ? "Email:" : "Email (default #{User.guess_email}):"
+          email_question = User.guess_email.blank? ? "Email:" : "Email (#{User.guess_email} - default):"
           email = ask(email_question)
           email.blank? ? User.guess_email : email
         end

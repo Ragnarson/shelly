@@ -28,7 +28,7 @@ describe Shelly::CLI::Account do
 
     it "should suggest email and use it if user enters blank email" do
       Shelly::User.stub(:guess_email).and_return("kate@example.com")
-      $stdout.should_receive(:print).with("Email (default kate@example.com): ")
+      $stdout.should_receive(:print).with("Email (kate@example.com - default): ")
       @client.should_receive(:register_user).with("kate@example.com", "secret", nil)
       fake_stdin(["", "secret"]) do
         @account.register
