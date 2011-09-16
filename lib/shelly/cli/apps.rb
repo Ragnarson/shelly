@@ -11,6 +11,7 @@ module Shelly
         @app.purpose = ask_for_purpose
         @app.code_name = ask_for_code_name
         @app.databases = ask_for_databases
+        @app.add_git_remote
       end
 
       no_tasks do
@@ -26,8 +27,15 @@ module Shelly
         end
 
         def ask_for_databases
-          databases = ask("Which database do you want to use postgresql, mongodb, redis, none (postgresql - default):")
-          databases = databases.split(/[\s,]/)
+          kinds = Shelly::App::DATABASE_KINDS
+          databases = ask("Which database do you want to use #{kinds.join(", ")} (postgresql - default):")
+          begin
+            databases = databases.split(/[\s,]/)
+            valid = databases.all? { |kind| kinds.include?(kind) }
+            break if valid
+            databases = ask("Unknown database kind. Supported are: #{kinds.join(", ")}:")
+          end while not valid
+
           databases.empty? ? ["postgresql"] : databases
         end
       end

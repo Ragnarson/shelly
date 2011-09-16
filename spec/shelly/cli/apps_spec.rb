@@ -12,6 +12,7 @@ describe Shelly::CLI::Apps do
       FileUtils.mkdir_p("/projects/foo")
       Dir.chdir("/projects/foo")
       @app = Shelly::App.new
+      @app.stub(:add_git_remote)
       Shelly::App.stub(:new).and_return(@app)
     end
 
@@ -54,8 +55,16 @@ describe Shelly::CLI::Apps do
 
     it "should use database provided by user (separated by comma or space)" do
       $stdout.should_receive(:print).with("Which database do you want to use postgresql, mongodb, redis, none (postgresql - default): ")
-      @app.should_receive(:databases=).with(["postgresql", "mongo", "redis"])
-      fake_stdin(["staging", "", "postgresql,mongo redis"]) do
+      @app.should_receive(:databases=).with(["postgresql", "mongodb", "redis"])
+      fake_stdin(["staging", "", "postgresql,mongodb redis"]) do
+        @apps.add
+      end
+    end
+
+    it "should validate databases" do
+      $stdout.should_receive(:print).with("Which database do you want to use postgresql, mongodb, redis, none (postgresql - default): ")
+      $stdout.should_receive(:print).with("Unknown database kind. Supported are: postgresql, mongodb, redis, none: ")
+      fake_stdin(["staging", "", "postgresql,doesnt-exist", "none"]) do
         @apps.add
       end
     end
@@ -69,7 +78,12 @@ describe Shelly::CLI::Apps do
       end
     end
 
-    it "should add git remote"
+    it "should add git remote" do
+      @app.should_receive(:add_git_remote)
+      fake_stdin(["staging", "foooo", ""]) do
+        @apps.add
+      end
+    end
 
     it "should create Cloudfile"
 
