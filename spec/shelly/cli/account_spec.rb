@@ -2,8 +2,6 @@ require "spec_helper"
 require "shelly/cli/account"
 
 describe Shelly::CLI::Account do
-  include FakeFS::SpecHelpers
-
   before do
     FileUtils.stub(:chmod)
     @client = mock
@@ -65,6 +63,7 @@ describe Shelly::CLI::Account do
 
     context "ssh key exists" do
       it "should register with ssh-key" do
+        FileUtils.mkdir_p("~/.ssh")
         File.open(@key_path, "w") { |f| f << "key" }
         $stdout.should_receive(:puts).with("Uploading your public SSH key from #{@key_path}")
         fake_stdin(["kate@example.com", "secret"]) do

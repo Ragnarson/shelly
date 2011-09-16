@@ -1,14 +1,13 @@
 require "spec_helper"
 
 describe Shelly::User do
-  include FakeFS::SpecHelpers
-
   before do
+    FileUtils.mkdir_p("~/.ssh")
+    File.open("~/.ssh/id_rsa.pub", "w") { |f| f << "ssh-key AAbbcc" }
     @client = mock
     Shelly::Client.stub(:new).and_return(@client)
     @user = Shelly::User.new("bob@example.com", "secret")
     @user.stub(:set_credentials_permissions)
-    File.open("~/.ssh/id_rsa.pub", "w") { |f| f << "ssh-key AAbbcc" }
   end
 
   describe ".guess_email" do
