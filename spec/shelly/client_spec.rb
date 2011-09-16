@@ -25,8 +25,9 @@ describe Shelly::Client do
 
   describe "#register_user" do
     it "should send post request with login and password" do
-      @client.should_receive(:post).with("/users", {:user => {:email => "test@example.com", :password => "secret"}})
-      @client.register_user("test@example.com", "secret")
+      @client.should_receive(:post).with("/users", {:user => {:email => "test@example.com",
+        :password => "secret", :ssh_key => "ssh-key Abb"}})
+      @client.register_user("test@example.com", "secret", "ssh-key Abb")
     end
   end
 
@@ -36,7 +37,9 @@ describe Shelly::Client do
         :method => :post,
         :url => "#{@client.api_url}/account",
         :headers => @client.headers,
-        :payload => {:name => "bob", :email => "bob@example.com", :password => "secret"}.to_json
+        :payload => {:name => "bob"}.to_json,
+        :username => "bob@example.com",
+        :password => "secret"
       }
       @client.request_parameters("/account", :post, :name => "bob").should == expected
     end
@@ -49,7 +52,7 @@ describe Shelly::Client do
         :headers => @client.headers,
         :payload => {}.to_json
       }
-      client.request("/account", :get)
+      client.request_parameters("/account", :get).should == expected
     end
   end
 

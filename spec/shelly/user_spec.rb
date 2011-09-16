@@ -1,4 +1,3 @@
-require "shelly/user"
 require "spec_helper"
 
 describe Shelly::User do
@@ -9,6 +8,7 @@ describe Shelly::User do
     Shelly::Client.stub(:new).and_return(@client)
     @user = Shelly::User.new("bob@example.com", "secret")
     @user.stub(:set_credentials_permissions)
+    File.open("~/.ssh/id_rsa.pub", "w") { |f| f << "ssh-key AAbbcc" }
   end
 
   describe ".guess_email" do
@@ -25,13 +25,21 @@ describe Shelly::User do
     end
 
     it "should register user at Shelly Cloud" do
-      @client.should_receive(:register_user).with("bob@example.com", "secret")
+      @client.should_receive(:register_user).with("bob@example.com", "secret", "ssh-key AAbbcc")
       @user.register
     end
 
     it "should save credentials after successful registration" do
       @user.should_receive(:save_credentials)
       @user.register
+    end
+
+    context "when ssh key is not available" do
+      it "should register without it" do
+        FileUtils.rm_rf("~/.ssh/id_rsa.pub")
+        @client.should_receive(:register_user).with("bob@example.com", "secret", nil)
+        @user.register
+      end
     end
   end
 
@@ -42,7 +50,7 @@ describe Shelly::User do
       File.read("~/.shelly/credentials").should == "bob@example.com\nsecret"
     end
 
-    it "should create config_dir if doesn't exist" do
+    it "should create config_dir if it doesn't exist" do
       File.exists?("~/.shelly").should be_false
       @user.save_credentials
       File.exists?("~/.shelly").should be_true
@@ -61,10 +69,34 @@ describe Shelly::User do
       config_dir = File.expand_path("~/.shelly")
       FileUtils.mkdir_p(config_dir)
       File.open(File.join(config_dir, "credentials"), "w") { |f| f << "superman@example.com\nkal-el" }
+
       user = Shelly::User.new
       user.load_credentials
       user.email.should == "superman@example.com"
       user.password.should == "kal-el"
+    end
+
+    context "credentials file doesn't exist" do
+      it "should return nil" do
+        user = Shelly::User.new
+        user.load_credentials.should be_nil
+        user.email.should be_nil
+        user.password.should be_nil
+      end
+    end
+  end
+
+  describe "#ssh_key_path" do
+    it "should return path to public ssh key file" do
+      @user.ssh_key_path.should == File.expand_path("~/.ssh/id_rsa.pub")
+    end
+  end
+
+  describe "#ssh_key_exists?" do
+    it "should return true if key exists, false otherwise" do
+      @user.should be_ssh_key_exists
+      FileUtils.rm_rf("~/.ssh/id_rsa.pub")
+      @user.should_not be_ssh_key_exists
     end
   end
 end

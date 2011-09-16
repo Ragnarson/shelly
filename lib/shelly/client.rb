@@ -28,8 +28,8 @@ module Shelly
       ENV["SHELLY_URL"] || "https://admin.winniecloud.com/apiv2"
     end
 
-    def register_user(email, password)
-      post('/users', :user => {:email => email, :password => password})
+    def register_user(email, password, ssh_key)
+      post("/users", :user => {:email => email, :password => password, :ssh_key => ssh_key})
     end
 
     def post(path, params = {})
@@ -53,14 +53,16 @@ module Shelly
        "shelly-version" => Shelly::VERSION}
     end
 
+    def http_basic_auth_options
+      @email ? {:username => @email, :password => @password} : {}
+    end
+
     def request_parameters(path, method, params = {})
-      unless @email.blank? or @password.blank?
-        params.merge!(:email => @email, :password => @password)
-      end
       {:method   => method,
        :url      => "#{api_url}#{path}",
        :headers  => headers,
-       :payload  => params.to_json}
+       :payload  => params.to_json
+      }.merge(http_basic_auth_options)
     end
 
     def process_response(response)
