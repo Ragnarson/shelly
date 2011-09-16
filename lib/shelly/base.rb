@@ -1,9 +1,13 @@
 module Shelly
   class Base
+    def current_user
+      @user = User.new
+      @user.load_credentials
+      @user
+    end
+
     def shelly
-      user = User.new
-      user.load_credentials
-      @shelly ||= Client.new(user.email, user.password)
+      @shelly ||= Client.new(current_user.email, current_user.password)
     end
   end
 end

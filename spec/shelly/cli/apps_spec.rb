@@ -85,7 +85,8 @@ describe Shelly::CLI::Apps do
       end
     end
 
-    it "should create Cloudfile"
+    it "should create Cloudfile" do
+    end
 
     it "should browser window with link to edit billing information"
 

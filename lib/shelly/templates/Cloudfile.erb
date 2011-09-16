@@ -1,0 +1,21 @@
+<%= @code_name %>:
+  ruby: 1.9.2
+  monitoring_email:
+    - <%= @email %>
+  domains:
+    - <%= @code_name %>.winniecloud.com
+
+  servers:
+    app1:
+      size: large
+      web:
+        type: thin
+        count: 3
+      clock:
+        type: cron
+    <% @databases.each_with_index do |kind, index| %>
+    <%= "#{kind}#{index}" %>:
+      size: large
+      database:
+        type: <%= kind %>
+    <% end %>
