@@ -14,6 +14,9 @@ module Shelly
         @app.add_git_remote
         @app.create_cloudfile
         @app.open_billing_page
+
+        info_adding_cloudfile_to_repository
+        info_deploying_to_shellycloud
       end
 
       no_tasks do
@@ -40,7 +43,23 @@ module Shelly
 
           databases.empty? ? ["postgresql"] : databases
         end
+
+        def info_adding_cloudfile_to_repository
+          say("Project is now configured for use with Shell Cloud:")
+          say("You can review changes using")
+          say("  git diff")
+        end
+
+        def info_deploying_to_shellycloud
+          say("When you make sure all settings are correct please issue following commands:")
+          say("  git add .")
+          say('  git commit -m "Application added to Shelly Cloud"')
+          say("  git push")
+          say("Deploy to #{@app.purpose} using:")
+          say("  git push #{@app.purpose} master")
+        end
       end
     end
   end
 end
+

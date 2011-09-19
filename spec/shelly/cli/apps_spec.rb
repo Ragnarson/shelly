@@ -5,6 +5,7 @@ describe Shelly::CLI::Apps do
   before do
     @apps = Shelly::CLI::Apps.new
     $stdout.stub(:print)
+    $stdout.stub(:puts)
   end
 
   describe "#add" do
@@ -102,8 +103,26 @@ describe Shelly::CLI::Apps do
       end
     end
 
-    it "should display info about adding Cloudfile to repository"
-    it "should display info on how to deploy to ShellyCloud"
+    it "should display info about adding Cloudfile to repository" do
+      $stdout.should_receive(:puts).with("Project is now configured for use with Shell Cloud:")
+      $stdout.should_receive(:puts).with("You can review changes using")
+      $stdout.should_receive(:puts).with("  git diff")
+      fake_stdin(["staging", "foooo", "none"]) do
+        @apps.add
+      end
+    end
 
+    it "should display info on how to deploy to ShellyCloud" do
+      $stdout.should_receive(:puts).with("When you make sure all settings are correct please issue following commands:")
+      $stdout.should_receive(:puts).with("  git add .")
+      $stdout.should_receive(:puts).with('  git commit -m "Application added to Shelly Cloud"')
+      $stdout.should_receive(:puts).with("  git push")
+      $stdout.should_receive(:puts).with("Deploy to staging using:")
+      $stdout.should_receive(:puts).with("  git push staging master")
+      fake_stdin(["staging", "foooo", "none"]) do
+        @apps.add
+      end
+    end
   end
 end
+
