@@ -24,6 +24,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency "thor"
   s.add_runtime_dependency "rest-client"
   s.add_runtime_dependency "json"
+  s.add_runtime_dependency "launchy"
 
   s.files         = `git ls-files`.split("\n")
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")

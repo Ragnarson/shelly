@@ -1,4 +1,5 @@
 require 'erb'
+require 'launchy'
 
 module Shelly
   class App < Base
@@ -28,6 +29,11 @@ module Shelly
 
     def self.guess_code_name
       File.basename(Dir.pwd)
+    end
+
+    def open_billing_page
+      url = "#{shelly.api_url}/apps/#{code_name}/edit_billing?api_key=#{current_user.token}"
+      Launchy.open(url)
     end
   end
 end

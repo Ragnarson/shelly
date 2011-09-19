@@ -12,6 +12,10 @@ module Shelly
       save_credentials
     end
 
+    def token
+      shelly.token["token"]
+    end
+
     def load_credentials
       return unless credentials_exists?
       @email, @password = File.read(credentials_path).split("\n")

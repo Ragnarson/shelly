@@ -32,6 +32,10 @@ module Shelly
       post("/users", :user => {:email => email, :password => password, :ssh_key => ssh_key})
     end
 
+    def token
+      get("/token")
+    end
+
     def post(path, params = {})
       request(path, :post, params)
     end

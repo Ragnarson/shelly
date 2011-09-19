@@ -31,6 +31,13 @@ describe Shelly::Client do
     end
   end
 
+  describe "#token" do
+    it "should get authentication token" do
+      @client.should_receive(:get).with("/token")
+      @client.token
+    end
+  end
+
   describe "#request_parameters" do
     it "should return hash of resquest parameters" do
       expected = {

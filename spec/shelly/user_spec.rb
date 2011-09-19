@@ -42,6 +42,13 @@ describe Shelly::User do
     end
   end
 
+  describe "#token" do
+    it "should return token" do
+      @client.should_receive(:token).and_return({"token" => "abc"})
+      @user.token.should == "abc"
+    end
+  end
+
   describe "#save_credentials" do
     it "should save credentials to file" do
       File.exists?("~/.shelly/credentials").should be_false

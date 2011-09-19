@@ -14,6 +14,7 @@ describe Shelly::CLI::Apps do
       @app = Shelly::App.new
       @app.stub(:add_git_remote)
       @app.stub(:generate_cloudfile).and_return("Example Cloudfile")
+      @app.stub(:open_billing_page)
       Shelly::App.stub(:new).and_return(@app)
     end
 
@@ -94,7 +95,12 @@ describe Shelly::CLI::Apps do
       File.read("/projects/foo/Cloudfile").should == "Example Cloudfile"
     end
 
-    it "should browser window with link to edit billing information"
+    it "should browser window with link to edit billing information" do
+      @app.should_receive(:open_billing_page)
+      fake_stdin(["staging", "foooo", ""]) do
+        @apps.add
+      end
+    end
 
     it "should display info about adding Cloudfile to repository"
     it "should display info on how to deploy to ShellyCloud"
