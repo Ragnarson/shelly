@@ -13,8 +13,17 @@ module Shelly
       @email = current_user.email
       @databases = databases
       template = File.read("lib/shelly/templates/Cloudfile.erb")
-      cloudfile = ERB.new(template, 0, "%<>")
+      cloudfile = ERB.new(template, 0, "%<>-")
       cloudfile.result(binding)
+    end
+
+    def create_cloudfile
+      content = generate_cloudfile
+      File.open(cloudfile_path, "a+") { |f| f << content }
+    end
+
+    def cloudfile_path
+      File.join(Dir.pwd, "Cloudfile")
     end
 
     def self.guess_code_name

@@ -12,6 +12,7 @@ module Shelly
         @app.code_name = ask_for_code_name
         @app.databases = ask_for_databases
         @app.add_git_remote
+        @app.create_cloudfile
       end
 
       no_tasks do

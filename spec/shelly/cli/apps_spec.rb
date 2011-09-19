@@ -13,6 +13,7 @@ describe Shelly::CLI::Apps do
       Dir.chdir("/projects/foo")
       @app = Shelly::App.new
       @app.stub(:add_git_remote)
+      @app.stub(:generate_cloudfile).and_return("Example Cloudfile")
       Shelly::App.stub(:new).and_return(@app)
     end
 
@@ -86,6 +87,11 @@ describe Shelly::CLI::Apps do
     end
 
     it "should create Cloudfile" do
+      File.exists?("/projects/foo/Cloudfile").should be_false
+      fake_stdin(["staging", "foooo", ""]) do
+        @apps.add
+      end
+      File.read("/projects/foo/Cloudfile").should == "Example Cloudfile"
     end
 
     it "should browser window with link to edit billing information"

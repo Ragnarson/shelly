@@ -4,7 +4,6 @@
     - <%= @email %>
   domains:
     - <%= @code_name %>.winniecloud.com
-
   servers:
     app1:
       size: large
@@ -13,9 +12,9 @@
         count: 3
       clock:
         type: cron
-    <% @databases.each_with_index do |kind, index| %>
+    <%- @databases.each_with_index do |kind, index| -%>
     <%= "#{kind}#{index}" %>:
       size: large
       database:
         type: <%= kind %>
-    <% end %>
+    <%- end -%>
