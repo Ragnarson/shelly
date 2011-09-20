@@ -18,7 +18,12 @@ module Shelly
 
       desc "register", "Registers new user account on Shelly Cloud"
       def register
-        invoke 'account:register'
+        invoke "account:register"
+      end
+
+      desc "add", "Adds new application to Shelly Cloud"
+      def add
+        invoke "apps:add"
       end
     end
   end

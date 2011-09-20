@@ -5,7 +5,7 @@ module Shelly
     class Apps < Thor
       namespace :apps
 
-      desc "add", "Add new application to Shelly Cloud"
+      desc "add", "Adds new application to Shelly Cloud"
       def add
         @app = Shelly::App.new
         @app.purpose = ask_for_purpose
