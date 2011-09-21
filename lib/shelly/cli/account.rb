@@ -8,15 +8,7 @@ module Shelly
 
       desc "register", "Registers new user account on Shelly Cloud"
       def register
-        email = ask_for_email
-        password = ask_for_password
-
-        # FIXME: ask user in loop, until he enters valid values
-        if email.blank? or password.blank?
-          say "Email and password can't be blank" and exit 1
-        end
-
-        user = User.new(email, password)
+        user = User.new(ask_for_email, ask_for_password)
         user.register
         if user.ssh_key_exists?
           say "Uploading your public SSH key from #{user.ssh_key_path}"
@@ -38,17 +30,30 @@ module Shelly
       # FIXME: move to helpers
       no_tasks do
         def ask_for_email
-          email_question = User.guess_email.blank? ? "Email:" : "Email (#{User.guess_email} - default):"
-          email = ask(email_question)
-          email.blank? ? User.guess_email : email
+          loop do
+            email_question = User.guess_email.blank? ? "Email:" : "Email (#{User.guess_email} - default):"
+            email = ask(email_question)
+            email = email.blank? ? User.guess_email : email
+            return email if email.present?
+            say "Email can't be blank, please type it again"
+          end
         end
 
         def ask_for_password
-          say "Password: "
-          echo_off
-          password = $stdin.gets.strip
-          echo_on
-          password
+          loop do
+            say "Password: "
+            password = echo_disabled { $stdin.gets.strip }
+            say_new_line
+            say "Password confirmation: "
+            password_confirmation = echo_disabled { $stdin.gets.strip }
+            say_new_line
+            if password.present?
+              return password if password == password_confirmation
+              say "Password and password confirmation don't match, please type them again"
+            else
+              say "Password can't be blank"
+            end
+          end
         end
       end
     end

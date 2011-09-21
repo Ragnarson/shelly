@@ -1,11 +1,14 @@
 module Shelly
   module Helpers
-    def echo_off
+    def echo_disabled
       system "stty -echo"
+      value = yield
+      system "stty echo"
+      value
     end
 
-    def echo_on
-      system "stty echo"
+    def say_new_line
+      say "\n"
     end
   end
 end
