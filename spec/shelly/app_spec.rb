@@ -31,7 +31,8 @@ describe Shelly::App do
       FakeFS.deactivate!
       expected = <<-config
 foo-staging:
-  ruby: 1.9.2
+  ruby: 1.9.2 # 1.9.2 or ree
+  environment: production # RAILS_ENV
   monitoring_email:
     - bob@example.com
   domains:
@@ -39,19 +40,17 @@ foo-staging:
   servers:
     app1:
       size: large
-      web:
-        type: thin
-        count: 3
-      clock:
-        type: cron
-    postgresql0:
+      thin: 4
+      # whenever: on
+      # delayed_job: 1
+    postgresql:
       size: large
       database:
-        type: postgresql
-    mongodb1:
+        - postgresql
+    mongodb:
       size: large
       database:
-        type: mongodb
+        - mongodb
 config
       @app.generate_cloudfile.should == expected
     end

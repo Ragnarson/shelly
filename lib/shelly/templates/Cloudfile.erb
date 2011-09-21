@@ -1,5 +1,6 @@
 <%= @code_name %>:
-  ruby: 1.9.2
+  ruby: 1.9.2 # 1.9.2 or ree
+  environment: production # RAILS_ENV
   monitoring_email:
     - <%= @email %>
   domains:
@@ -7,14 +8,12 @@
   servers:
     app1:
       size: large
-      web:
-        type: thin
-        count: 3
-      clock:
-        type: cron
-    <%- @databases.each_with_index do |kind, index| -%>
-    <%= "#{kind}#{index}" %>:
+      thin: 4
+      # whenever: on
+      # delayed_job: 1
+    <%- @databases.each do |kind| -%>
+    <%= kind %>:
       size: large
       database:
-        type: <%= kind %>
+        - <%= kind %>
     <%- end -%>
