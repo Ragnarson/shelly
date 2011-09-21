@@ -86,10 +86,10 @@ describe Shelly::CLI::Account do
     end
 
     context "on successful registration" do
-      it "should display message about registration and email confirmation" do
+      it "should display message about registration and email address confirmation" do
         @client.stub(:register_user).and_return(true)
         $stdout.should_receive(:puts).with("Successfully registered!")
-        $stdout.should_receive(:puts).with("Check you mailbox for email confirmation")
+        $stdout.should_receive(:puts).with("Check you mailbox for email address confirmation")
         fake_stdin(["kate@example.com", "pass", "pass"]) do
           @account.register
         end

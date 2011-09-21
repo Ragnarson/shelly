@@ -14,7 +14,7 @@ module Shelly
           say "Uploading your public SSH key from #{user.ssh_key_path}"
         end
         say "Successfully registered!"
-        say "Check you mailbox for email confirmation"
+        say "Check you mailbox for email address confirmation"
       rescue Client::APIError => e
         if e.message == "Validation Failed"
           e.errors.each { |error| say "#{error.first} #{error.last}" }
