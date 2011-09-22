@@ -13,13 +13,17 @@ module Shelly
         @app.databases = ask_for_databases
         @app.add_git_remote
         @app.create_cloudfile
-        @app.open_billing_page
-
+        open_billing_page
         info_adding_cloudfile_to_repository
         info_deploying_to_shellycloud
       end
 
       no_tasks do
+        def open_billing_page
+          say "Provide billing details. Opening browser..."
+          @app.open_billing_page
+        end
+
         def ask_for_purpose
           purpose = ask("How will you use this system (production - default,staging):")
           purpose.blank? ? "production" : purpose

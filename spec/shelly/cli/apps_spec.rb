@@ -97,6 +97,7 @@ describe Shelly::CLI::Apps do
     end
 
     it "should browser window with link to edit billing information" do
+      $stdout.should_receive(:puts).with("Provide billing details. Opening browser...")
       @app.should_receive(:open_billing_page)
       fake_stdin(["staging", "foooo", ""]) do
         @apps.add
