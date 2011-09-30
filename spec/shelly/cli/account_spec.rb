@@ -43,30 +43,38 @@ describe Shelly::CLI::Account do
       end
     end
 
-    it "should ask for email again if it's blank" do
-      Shelly::User.stub(:guess_email).and_return("")
-      $stdout.should_receive(:puts).with("Email can't be blank, please type it again")
-      fake_stdin(["", "bob@example.com", "only-pass", "only-pass"]) do
-        @account.register
+    context "when user enters blank email" do
+      it "should show error message and exit with 1" do
+        Shelly::User.stub(:guess_email).and_return("")
+        $stdout.should_receive(:puts).with("Email can't be blank, please try again")
+        lambda {
+          fake_stdin(["", "bob@example.com", "only-pass", "only-pass"]) do
+            @account.register
+          end
+        }.should raise_error(SystemExit)
       end
     end
 
-    it "should ask for password again if it's blank" do
-      $stdout.should_receive(:puts).with("Password can't be blank")
-      fake_stdin(["better@example.com", "", "", "secret", "secret"]) do
-        @account.register
+    context "when user enters blank password" do
+      it "should ask for it again" do
+        $stdout.should_receive(:puts).with("Password can't be blank")
+        fake_stdin(["better@example.com", "", "", "secret", "secret"]) do
+          @account.register
+        end
       end
     end
 
-    it "should ask for password and password confirmation again if they don't match each other" do
-      $stdout.should_receive(:puts).with("Password and password confirmation don't match, please type them again")
-      fake_stdin(["better@example.com", "secret", "sec-TYPO-ret", "secret", "secret"]) do
-        @account.register
+    context "when user enters password and password confirmation which don't match each other" do
+      it "should ask for them again" do
+        $stdout.should_receive(:puts).with("Password and password confirmation don't match, please type them again")
+        fake_stdin(["better@example.com", "secret", "sec-TYPO-ret", "secret", "secret"]) do
+          @account.register
+        end
       end
     end
 
-    context "ssh key exists" do
-      it "should register with ssh-key" do
+    context "public SSH key exists" do
+      it "should register with the public SSH key" do
         FileUtils.mkdir_p("~/.ssh")
         File.open(@key_path, "w") { |f| f << "key" }
         $stdout.should_receive(:puts).with("Uploading your public SSH key from #{@key_path}")
@@ -76,8 +84,8 @@ describe Shelly::CLI::Account do
       end
     end
 
-    context "ssh key doesn't exist" do
-      it "should register user without the ssh key" do
+    context "public SSH key doesn't exist" do
+      it "should register user without the public SSH key" do
         $stdout.should_not_receive(:puts).with("Uploading your public SSH key from #{@key_path}")
         fake_stdin(["kate@example.com", "secret", "secret"]) do
           @account.register
@@ -97,14 +105,16 @@ describe Shelly::CLI::Account do
     end
 
     context "on unsuccessful registration" do
-      it "should display errors" do
+      it "should display errors and exit with 1" do
         response = {"message" => "Validation Failed", "errors" => [["email", "has been already taken"]]}
         exception = Shelly::Client::APIError.new(response)
         @client.stub(:register_user).and_raise(exception)
         $stdout.should_receive(:puts).with("email has been already taken")
-        fake_stdin(["kate@example.com", "pass", "pass"]) do
-          @account.register
-        end
+        lambda {
+          fake_stdin(["kate@example.com", "pass", "pass"]) do
+            @account.register
+          end
+        }.should raise_error(SystemExit)
       end
     end
   end

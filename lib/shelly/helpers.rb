@@ -10,5 +10,10 @@ module Shelly
     def say_new_line
       say "\n"
     end
+
+    def say_error(message)
+      say message
+      exit 1
+    end
   end
 end

@@ -18,6 +18,7 @@ module Shelly
       rescue Client::APIError => e
         if e.message == "Validation Failed"
           e.errors.each { |error| say "#{error.first} #{error.last}" }
+          exit 1
         end
       end
 
@@ -30,13 +31,11 @@ module Shelly
       # FIXME: move to helpers
       no_tasks do
         def ask_for_email
-          loop do
-            email_question = User.guess_email.blank? ? "Email:" : "Email (#{User.guess_email} - default):"
-            email = ask(email_question)
-            email = email.blank? ? User.guess_email : email
-            return email if email.present?
-            say "Email can't be blank, please type it again"
-          end
+          email_question = User.guess_email.blank? ? "Email:" : "Email (#{User.guess_email} - default):"
+          email = ask(email_question)
+          email = email.blank? ? User.guess_email : email
+          return email if email.present?
+          say_error "Email can't be blank, please try again"
         end
 
         def ask_for_password
