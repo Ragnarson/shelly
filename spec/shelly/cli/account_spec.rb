@@ -43,6 +43,12 @@ describe Shelly::CLI::Account do
       end
     end
 
+    it "should not ask about email if it's provided as argument" do
+      fake_stdin(["secret", "secret"]) do
+        @account.register("kate@example.com")
+      end
+    end
+
     context "when user enters blank email" do
       it "should show error message and exit with 1" do
         Shelly::User.stub(:guess_email).and_return("")

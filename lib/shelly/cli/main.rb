@@ -16,9 +16,9 @@ module Shelly
         say "shelly version #{Shelly::VERSION}"
       end
 
-      desc "register", "Registers new user account on Shelly Cloud"
-      def register
-        invoke "account:register"
+      desc "register [EMAIL]", "Registers new user account on Shelly Cloud"
+      def register(email = nil)
+        invoke "account:register", email
       end
 
       desc "add", "Adds new application to Shelly Cloud"

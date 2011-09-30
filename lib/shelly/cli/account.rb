@@ -6,9 +6,9 @@ module Shelly
       namespace :account
       include Helpers
 
-      desc "register", "Registers new user account on Shelly Cloud"
-      def register
-        user = User.new(ask_for_email, ask_for_password)
+      desc "register [EMAIL]", "Registers new user account on Shelly Cloud"
+      def register(email = nil)
+        user = User.new(email || ask_for_email, ask_for_password)
         user.register
         if user.ssh_key_exists?
           say "Uploading your public SSH key from #{user.ssh_key_path}"

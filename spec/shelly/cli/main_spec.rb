@@ -15,8 +15,8 @@ describe Shelly::CLI::Main do
 
   describe "#register" do
     it "should invoke account:register command" do
-      @main.should_receive(:invoke).with("account:register")
-      @main.register
+      @main.should_receive(:invoke).with("account:register", "kate@example.com")
+      @main.register("kate@example.com")
     end
   end
 
@@ -27,8 +27,6 @@ describe Shelly::CLI::Main do
     end
   end
 
-
-
   describe "#help" do
     it "should display available commands" do
       expected = <<-OUT
@@ -37,7 +35,7 @@ Tasks:
   shelly add                # Adds new application to Shelly Cloud
   shelly apps <command>     # Manages your applications
   shelly help [TASK]        # Describe available tasks or one specific task
-  shelly register           # Registers new user account on Shelly Cloud
+  shelly register [EMAIL]   # Registers new user account on Shelly Cloud
   shelly version            # Displays shelly version
 OUT
       out = IO.popen("bin/shelly").read.strip
