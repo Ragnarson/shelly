@@ -44,6 +44,7 @@ describe Shelly::CLI::Account do
     end
 
     it "should not ask about email if it's provided as argument" do
+      $stdout.should_receive(:puts).with("Registering with email: kate@example.com")
       fake_stdin(["secret", "secret"]) do
         @account.register("kate@example.com")
       end

@@ -8,6 +8,7 @@ module Shelly
 
       desc "register [EMAIL]", "Registers new user account on Shelly Cloud"
       def register(email = nil)
+        say "Registering with email: #{email}" if email
         user = User.new(email || ask_for_email, ask_for_password)
         user.register
         if user.ssh_key_exists?
