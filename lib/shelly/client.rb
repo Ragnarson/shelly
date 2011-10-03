@@ -19,13 +19,14 @@ module Shelly
       end
     end
 
-    def initialize(email = nil, password = nil)
+    def initialize(email = nil, password = nil, options = {})
       @email = email
       @password = password
+      @options = options
     end
 
     def api_url
-      ENV["SHELLY_URL"] || "https://admin.winniecloud.com/apiv2"
+      @options["shelly_url"] || ENV["SHELLY_URL"] || "https://admin.winniecloud.com/apiv2"
     end
 
     def register_user(email, password, ssh_key)

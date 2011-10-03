@@ -82,7 +82,7 @@ config
 
   describe "#open_billing_page" do
     it "should open browser window" do
-      user = mock(:token => "abc", :email => nil, :password => nil)
+      user = mock(:token => "abc", :email => nil, :password => nil, :config_dir => "~/.shelly")
       @app.stub(:current_user).and_return(user)
       url = "#{@app.shelly.api_url}/apps/foo-staging/edit_billing?api_key=abc"
       Launchy.should_receive(:open).with(url)

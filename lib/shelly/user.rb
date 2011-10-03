@@ -1,6 +1,7 @@
 module Shelly
   class User < Base
     attr_reader :email, :password
+
     def initialize(email = nil, password = nil)
       @email = email
       @password = password
@@ -39,11 +40,11 @@ module Shelly
       @@guess_email ||= IO.popen("git config --get user.email").read.strip
     end
 
-    protected
-      def config_dir
-        File.expand_path("~/.shelly")
-      end
+    def config_dir
+      File.expand_path("~/.shelly")
+    end
 
+    protected
       def credentials_path
         File.join(config_dir, "credentials")
       end
