@@ -4,18 +4,41 @@ require 'launchy'
 module Shelly
   class App < Base
     DATABASE_KINDS = %w(postgresql mongodb redis none)
-    attr_accessor :purpose, :code_name, :databases
+    attr_accessor :purpose, :code_name, :databases, :ruby_version, :environment
+
+    def initialize
+      @ruby_version = "MRI-1.9.2"
+    end
 
     def add_git_remote
-      system("git remote add #{purpose} git@git.shellycloud.com:#{code_name}.git")
+      system("git remote add #{purpose} #{git_url}")
+    end
+
+    def git_url
+      "git@git.shellycloud.com:#{code_name}.git"
     end
 
     def generate_cloudfile
       @email = current_user.email
       @databases = databases
-      template = File.read("lib/shelly/templates/Cloudfile.erb")
+      template = File.read(cloudfile_template_path)
       cloudfile = ERB.new(template, 0, "%<>-")
       cloudfile.result(binding)
+    end
+
+    def cloudfile_template_path
+      File.join(File.dirname(__FILE__), "templates", "Cloudfile.erb")
+    end
+
+    def create
+      attributes = {
+        :name         => code_name,
+        :code_name    => code_name,
+        :environment  => purpose,
+        :ruby_version => ruby_version,
+        :domain_name  => "#{code_name}.shellycloud.com"
+      }
+      shelly.create_app(attributes)
     end
 
     def create_cloudfile

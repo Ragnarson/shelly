@@ -3,6 +3,7 @@ require "shelly/app"
 module Shelly
   module CLI
     class Apps < Thor
+      include Helpers
       namespace :apps
 
       desc "add", "Adds new application to Shelly Cloud"
@@ -11,19 +12,23 @@ module Shelly
         @app.purpose = ask_for_purpose
         @app.code_name = ask_for_code_name
         @app.databases = ask_for_databases
+        @app.create
+        say "Adding remote #{@app.purpose} #{@app.git_url}", :green
         @app.add_git_remote
+        say "Creating Cloudfile", :green
         @app.create_cloudfile
-        open_billing_page
+        say "Provide billing details. Opening browser...", :green
+        @app.open_billing_page
         info_adding_cloudfile_to_repository
         info_deploying_to_shellycloud
+      rescue Client::APIError => e
+        if e.message == "Validation Failed"
+          e.errors.each { |error| say "#{error.first} #{error.last}" }
+          exit 1
+        end
       end
 
       no_tasks do
-        def open_billing_page
-          say "Provide billing details. Opening browser..."
-          @app.open_billing_page
-        end
-
         def ask_for_purpose
           purpose = ask("How will you use this system (production - default,staging):")
           purpose.blank? ? "production" : purpose
@@ -49,18 +54,21 @@ module Shelly
         end
 
         def info_adding_cloudfile_to_repository
-          say("Project is now configured for use with Shell Cloud:")
-          say("You can review changes using")
-          say("  git diff")
+          say_new_line
+          say "Project is now configured for use with Shell Cloud:", :green
+          say "You can review changes using", :green
+          say "  git diff"
         end
 
         def info_deploying_to_shellycloud
-          say("When you make sure all settings are correct please issue following commands:")
-          say("  git add .")
-          say('  git commit -m "Application added to Shelly Cloud"')
-          say("  git push")
-          say("Deploy to #{@app.purpose} using:")
-          say("  git push #{@app.purpose} master")
+          say_new_line
+          say "When you make sure all settings are correct please issue following commands:", :green
+          say "  git add ."
+          say '  git commit -m "Application added to Shelly Cloud"'
+          say "  git push"
+          say_new_line
+          say "Deploy to #{@app.purpose} using:", :green
+          say "  git push #{@app.purpose} master"
         end
       end
     end

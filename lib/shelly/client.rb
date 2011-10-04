@@ -37,6 +37,10 @@ module Shelly
       get("/token")
     end
 
+    def create_app(attributes)
+      post("/apps", :app => attributes)
+    end
+
     def post(path, params = {})
       request(path, :post, params)
     end
@@ -59,7 +63,7 @@ module Shelly
     end
 
     def http_basic_auth_options
-      @email ? {:username => @email, :password => @password} : {}
+      @email ? {:user => @email, :password => @password} : {}
     end
 
     def request_parameters(path, method, params = {})

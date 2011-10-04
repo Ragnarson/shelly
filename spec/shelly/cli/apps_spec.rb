@@ -14,6 +14,7 @@ describe Shelly::CLI::Apps do
       Dir.chdir("/projects/foo")
       @app = Shelly::App.new
       @app.stub(:add_git_remote)
+      @app.stub(:create)
       @app.stub(:generate_cloudfile).and_return("Example Cloudfile")
       @app.stub(:open_billing_page)
       Shelly::App.stub(:new).and_return(@app)
@@ -64,7 +65,7 @@ describe Shelly::CLI::Apps do
       end
     end
 
-    it "should validate databases" do
+    it "should ask again for databases if unsupported kind typed" do
       $stdout.should_receive(:print).with("Which database do you want to use postgresql, mongodb, redis, none (postgresql - default): ")
       $stdout.should_receive(:print).with("Unknown database kind. Supported are: postgresql, mongodb, redis, none: ")
       fake_stdin(["staging", "", "postgresql,doesnt-exist", "none"]) do
@@ -79,6 +80,25 @@ describe Shelly::CLI::Apps do
           @apps.add
         end
       end
+    end
+
+    it "should create the app on shelly cloud" do
+      @app.should_receive(:create)
+      fake_stdin(["", "", ""]) do
+        @apps.add
+      end
+    end
+
+    it "should display validation errors if they are any" do
+      response = {"message" => "Validation Failed", "errors" => [["code_name", "has been already taken"]]}
+      exception = Shelly::Client::APIError.new(response)
+      @app.should_receive(:create).and_raise(exception)
+      $stdout.should_receive(:puts).with("code_name has been already taken")
+      lambda {
+        fake_stdin(["", "", ""]) do
+          @apps.add
+        end
+      }.should raise_error(SystemExit)
     end
 
     it "should add git remote" do
@@ -97,7 +117,7 @@ describe Shelly::CLI::Apps do
     end
 
     it "should browser window with link to edit billing information" do
-      $stdout.should_receive(:puts).with("Provide billing details. Opening browser...")
+      $stdout.should_receive(:puts).with("\e[32mProvide billing details. Opening browser...\e[0m")
       @app.should_receive(:open_billing_page)
       fake_stdin(["staging", "foooo", ""]) do
         @apps.add
@@ -105,8 +125,8 @@ describe Shelly::CLI::Apps do
     end
 
     it "should display info about adding Cloudfile to repository" do
-      $stdout.should_receive(:puts).with("Project is now configured for use with Shell Cloud:")
-      $stdout.should_receive(:puts).with("You can review changes using")
+      $stdout.should_receive(:puts).with("\e[32mProject is now configured for use with Shell Cloud:\e[0m")
+      $stdout.should_receive(:puts).with("\e[32mYou can review changes using\e[0m")
       $stdout.should_receive(:puts).with("  git diff")
       fake_stdin(["staging", "foooo", "none"]) do
         @apps.add
@@ -114,11 +134,11 @@ describe Shelly::CLI::Apps do
     end
 
     it "should display info on how to deploy to ShellyCloud" do
-      $stdout.should_receive(:puts).with("When you make sure all settings are correct please issue following commands:")
+      $stdout.should_receive(:puts).with("\e[32mWhen you make sure all settings are correct please issue following commands:\e[0m")
       $stdout.should_receive(:puts).with("  git add .")
       $stdout.should_receive(:puts).with('  git commit -m "Application added to Shelly Cloud"')
       $stdout.should_receive(:puts).with("  git push")
-      $stdout.should_receive(:puts).with("Deploy to staging using:")
+      $stdout.should_receive(:puts).with("\e[32mDeploy to staging using:\e[0m")
       $stdout.should_receive(:puts).with("  git push staging master")
       fake_stdin(["staging", "foooo", "none"]) do
         @apps.add

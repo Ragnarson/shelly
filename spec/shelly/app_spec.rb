@@ -5,6 +5,8 @@ describe Shelly::App do
   before do
     FileUtils.mkdir_p("/projects/foo")
     Dir.chdir("/projects/foo")
+    @client = mock(:api_url => "https://api.example.com")
+    Shelly::Client.stub(:new).and_return(@client)
     @app = Shelly::App.new
     @app.purpose = "staging"
     @app.code_name = "foo-staging"
@@ -87,6 +89,27 @@ config
       url = "#{@app.shelly.api_url}/apps/foo-staging/edit_billing?api_key=abc"
       Launchy.should_receive(:open).with(url)
       @app.open_billing_page
+    end
+  end
+
+  describe "#git_url" do
+    it "should return URL to git repository on shelly" do
+      @app.git_url.should == "git@git.shellycloud.com:foo-staging.git"
+    end
+  end
+
+  describe "#create" do
+    it "should create the app on shelly cloud via API client" do
+      @app.purpose = "dev"
+      @app.code_name = "fooo"
+      @client.should_receive(:create_app).with({
+        :code_name => "fooo",
+        :name => "fooo",
+        :environment => "dev",
+        :ruby_version => "MRI-1.9.2",
+        :domain_name => "fooo.shellycloud.com"
+      })
+      @app.create
     end
   end
 end

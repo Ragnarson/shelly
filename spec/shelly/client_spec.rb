@@ -45,14 +45,21 @@ describe Shelly::Client do
     end
   end
 
+  describe "#create_app" do
+    it "should send post with app's attributes" do
+      @client.should_receive(:post).with("/apps", :app => {:code_name => "foo", :ruby_version => "1.9.2"})
+      @client.create_app(:code_name => "foo", :ruby_version => "1.9.2")
+    end
+  end
+
   describe "#request_parameters" do
     it "should return hash of resquest parameters" do
       expected = {
-        :method => :post,
-        :url => "#{@client.api_url}/account",
-        :headers => @client.headers,
-        :payload => {:name => "bob"}.to_json,
-        :username => "bob@example.com",
+        :method   => :post,
+        :url      => "#{@client.api_url}/account",
+        :headers  => @client.headers,
+        :payload  => {:name => "bob"}.to_json,
+        :user     => "bob@example.com",
         :password => "secret"
       }
       @client.request_parameters("/account", :post, :name => "bob").should == expected
