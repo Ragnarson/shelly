@@ -8,13 +8,6 @@ describe Shelly::Client do
   end
 
   describe "#api_url" do
-    context "API URL passed with options hash" do
-      it "should use provided value" do
-        client = Shelly::Client.new("bob@example.com", "secret", "shelly_url" => "https://api2.example.com")
-        client.api_url.should == "https://api2.example.com"
-      end
-    end
-
     context "env SHELLY_URL is not set" do
       it "should return default API URL" do
         ENV['SHELLY_URL'].should be_nil

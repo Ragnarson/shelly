@@ -15,21 +15,4 @@ describe Shelly::Base do
       user.password.should == "the-kal-el"
     end
   end
-
-  describe "#config" do
-    context "config file exists" do
-      it "should return loaded config as a Hash" do
-        File.open("~/.shelly/config.yml", "w") { |f| f << "shelly_url: http://api.example.com/v4/\n" }
-        base = Shelly::Base.new
-        base.config.should == {"shelly_url" => "http://api.example.com/v4/"}
-      end
-    end
-
-    context "config file doesn't exist" do
-      it "should return an empty Hash" do
-        base = Shelly::Base.new
-        base.config.should == {}
-      end
-    end
-  end
 end
