@@ -10,8 +10,13 @@ module Shelly
       @ruby_version = "MRI-1.9.2"
     end
 
-    def add_git_remote
+    def add_git_remote(force = false)
+      system("git remote rm #{purpose}") if force
       system("git remote add #{purpose} #{git_url}")
+    end
+
+    def remote_exists?
+      IO.popen("git remote").read.split("\n").include?(purpose)
     end
 
     def git_url

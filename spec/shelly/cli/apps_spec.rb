@@ -17,6 +17,7 @@ describe Shelly::CLI::Apps do
       @app.stub(:create)
       @app.stub(:generate_cloudfile).and_return("Example Cloudfile")
       @app.stub(:open_billing_page)
+      @app.stub(:remote_exists?).and_return(false)
       Shelly::App.stub(:inside_git_repository?).and_return(true)
       Shelly::App.stub(:new).and_return(@app)
     end
@@ -112,10 +113,41 @@ describe Shelly::CLI::Apps do
       }.should raise_error(SystemExit)
     end
 
-    it "should add git remote" do
-      @app.should_receive(:add_git_remote)
-      fake_stdin(["staging", "foooo", ""]) do
-        @apps.add
+    context "git remote doesn't exist" do
+      it "should add git remote" do
+        $stdout.should_receive(:puts).with("\e[32mAdding remote staging git@git.shellycloud.com:foooo.git\e[0m")
+        @app.should_receive(:add_git_remote)
+        fake_stdin(["staging", "foooo", ""]) do
+          @apps.add
+        end
+      end
+    end
+
+    context "git remote exist" do
+      before do
+        @app.stub(:remote_exists?).and_return(true)
+      end
+
+      it "should ask user if he wants to overwrite existing git remote" do
+        $stdout.should_receive(:puts).with("Remote staging already exists")
+        $stdout.should_receive(:print).with("Would you like to overwrite remote staging with git@git.shellycloud.com:foooo.git (Y/N)?: ")
+        fake_stdin(["staging", "foooo", "", "y"]) do
+          @apps.add
+        end
+      end
+
+      it "should overwrite existing git remote on 'yes' from user" do
+        @app.should_receive(:add_git_remote).with(true)
+        fake_stdin(["staging", "foooo", "", "y"]) do
+          @apps.add
+        end
+      end
+
+      it "should not overwrite existing git remote on 'no' from user" do
+        @app.should_not_receive(:add_git_remote).with(true)
+        fake_stdin(["staging", "foooo", "", "n"]) do
+          @apps.add
+        end
       end
     end
 
