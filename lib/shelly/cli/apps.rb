@@ -8,6 +8,7 @@ module Shelly
 
       desc "add", "Adds new application to Shelly Cloud"
       def add
+        say_error "Must be run inside your project git repository" unless App.inside_git_repository?
         @app = Shelly::App.new
         @app.purpose = ask_for_purpose
         @app.code_name = ask_for_code_name

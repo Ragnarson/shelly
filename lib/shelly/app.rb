@@ -58,5 +58,9 @@ module Shelly
       url = "#{shelly.api_url}/apps/#{code_name}/edit_billing?api_key=#{current_user.token}"
       Launchy.open(url)
     end
+
+    def self.inside_git_repository?
+      system("git status &> /dev/null")
+    end
   end
 end

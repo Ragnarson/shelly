@@ -17,7 +17,18 @@ describe Shelly::CLI::Apps do
       @app.stub(:create)
       @app.stub(:generate_cloudfile).and_return("Example Cloudfile")
       @app.stub(:open_billing_page)
+      Shelly::App.stub(:inside_git_repository?).and_return(true)
       Shelly::App.stub(:new).and_return(@app)
+    end
+
+    it "should exit with message if command run outside git repository" do
+      Shelly::App.stub(:inside_git_repository?).and_return(false)
+      $stdout.should_receive(:puts).with("Must be run inside your project git repository")
+      lambda {
+        fake_stdin(["staging", "", ""]) do
+          @apps.add
+        end
+      }.should raise_error(SystemExit)
     end
 
     it "should ask user how he will use application" do
