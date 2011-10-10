@@ -3,6 +3,7 @@ require "shelly/cli/main"
 
 describe Shelly::CLI::Main do
   before do
+    ENV['SHELLY_GIT_HOST'] = nil
     FileUtils.stub(:chmod)
     @main = Shelly::CLI::Main.new
     @client = mock

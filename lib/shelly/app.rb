@@ -19,8 +19,12 @@ module Shelly
       IO.popen("git remote").read.split("\n").include?(purpose)
     end
 
+    def git_host
+      ENV["SHELLY_GIT_HOST"] || "git.shellycloud.com"
+    end
+
     def git_url
-      "git@git.shellycloud.com:#{code_name}.git"
+      "git@#{git_host}:#{code_name}.git"
     end
 
     def generate_cloudfile

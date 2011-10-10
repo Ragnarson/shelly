@@ -136,4 +136,17 @@ config
       end
     end
   end
+
+  describe "#git_host" do
+    it "should return default git host" do
+      @app.git_host.should == "git.shellycloud.com"
+    end
+
+    context "SHELLY_GIT_HOST set" do
+      it "should return value of SHELLY_GIT_HOST env variable" do
+        ENV['SHELLY_GIT_HOST'] = "git.example.com"
+        @app.git_host.should == "git.example.com"
+      end
+    end
+  end
 end
