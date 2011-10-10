@@ -39,7 +39,7 @@ module Shelly
     end
 
     def update_ssh_key(ssh_key)
-      put("/ssh_keys", :ssh_key => ssh_key)
+      put("/ssh_key", :ssh_key => ssh_key)
     end
 
     def post(path, params = {})
