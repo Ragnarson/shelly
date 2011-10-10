@@ -82,6 +82,7 @@ module Shelly
           say_new_line
           say "Deploy to #{@app.purpose} using:", :green
           say "  git push #{@app.purpose} master"
+          say_new_line
         end
       end
     end
