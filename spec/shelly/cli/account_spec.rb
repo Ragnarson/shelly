@@ -7,13 +7,13 @@ describe Shelly::CLI::Account do
     @client = mock
     @account = Shelly::CLI::Account.new
     Shelly::Client.stub(:new).and_return(@client)
+    Shelly::User.stub(:guess_email).and_return("")
     $stdout.stub(:puts)
     $stdout.stub(:print)
   end
 
   describe "#register" do
     before do
-      Shelly::User.stub(:guess_email).and_return("")
       @client.stub(:register_user)
       @key_path = File.expand_path("~/.ssh/id_rsa.pub")
     end
@@ -120,6 +120,53 @@ describe Shelly::CLI::Account do
         lambda {
           fake_stdin(["kate@example.com", "pass", "pass"]) do
             @account.register
+          end
+        }.should raise_error(SystemExit)
+      end
+    end
+  end
+
+  describe "#login" do
+    before do
+      @user = Shelly::User.new
+      @user.stub(:upload_ssh_key)
+      @client.stub(:token).and_return("abc")
+      Shelly::User.stub(:new).and_return(@user)
+    end
+
+    it "should ask about email and password" do
+      fake_stdin(["megan@example.com", "secret"]) do
+        @account.login
+      end
+    end
+
+    context "on successful login" do
+      it "should display message about successful login" do
+        $stdout.should_receive(:puts).with("Login successful")
+        fake_stdin(["megan@example.com", "secret"]) do
+          @account.login
+        end
+      end
+
+      it "should upload user's public SSH key" do
+        @user.should_receive(:upload_ssh_key)
+        $stdout.should_receive(:puts).with("Uploading your public SSH key")
+        fake_stdin(["megan@example.com", "secret"]) do
+          @account.login
+        end
+      end
+
+      it "should display list of applications to which user has access"
+    end
+
+    context "on unauthorized user" do
+      it "should exit with 1 and display error message" do
+        exception = RestClient::Unauthorized.new
+        @client.stub(:token).and_raise(exception)
+        $stdout.should_receive(:puts).with("Wrong email or password or your email is unconfirmend")
+        lambda {
+          fake_stdin(["megan@example.com", "secret"]) do
+            @account.login
           end
         }.should raise_error(SystemExit)
       end

@@ -35,6 +35,7 @@ Tasks:
   shelly add                # Adds new application to Shelly Cloud
   shelly apps <command>     # Manages your applications
   shelly help [TASK]        # Describe available tasks or one specific task
+  shelly login [EMAIL]      # Logins user to Shelly Cloud
   shelly register [EMAIL]   # Registers new user account on Shelly Cloud
   shelly version            # Displays shelly version
 OUT

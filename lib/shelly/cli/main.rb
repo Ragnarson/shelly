@@ -21,6 +21,11 @@ module Shelly
         invoke "account:register", email
       end
 
+      desc "login [EMAIL]", "Logins user to Shelly Cloud"
+      def login(email = nil)
+        invoke "account:login", email
+      end
+
       desc "add", "Adds new application to Shelly Cloud"
       def add
         invoke "apps:add"

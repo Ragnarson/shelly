@@ -13,6 +13,14 @@ module Shelly
       save_credentials
     end
 
+    def login
+      client = Client.new(email, password)
+      # test if credentials are valid
+      # if not RestClient::Unauthorized will be raised
+      client.token
+      save_credentials
+    end
+
     def token
       shelly.token["token"]
     end
@@ -42,6 +50,11 @@ module Shelly
 
     def config_dir
       File.expand_path("~/.shelly")
+    end
+
+    def upload_ssh_key
+      key = File.read(ssh_key_path)
+      shelly.update_ssh_key(key)
     end
 
     protected

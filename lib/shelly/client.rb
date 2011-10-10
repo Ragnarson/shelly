@@ -3,8 +3,6 @@ require "json"
 
 module Shelly
   class Client
-    class UnauthorizedException < Exception; end
-    class UnsupportedResponseException < Exception; end
     class APIError < Exception
       def initialize(response)
         @response = response
@@ -40,8 +38,16 @@ module Shelly
       post("/apps", :app => attributes)
     end
 
+    def update_ssh_key(ssh_key)
+      put("/ssh_keys", :ssh_key => ssh_key)
+    end
+
     def post(path, params = {})
       request(path, :post, params)
+    end
+
+    def put(path, params = {})
+      request(path, :put, params)
     end
 
     def get(path)
@@ -74,19 +80,14 @@ module Shelly
     end
 
     def process_response(response)
-      raise UnauthorizedException.new if response.code == 302
       if [404, 422, 500].include?(response.code)
+        # FIXME: move parsing JSON to APIError class
         error_details = JSON.parse(response.body)
         raise APIError.new(error_details)
       end
 
-      begin
-        response.return!
-        JSON.parse(response.body)
-      rescue RestClient::RequestFailed => e
-        raise UnauthorizedException.new if e.http_code == 406
-        raise UnsupportedResponseException.new(e)
-      end
+      response.return!
+      JSON.parse(response.body)
     end
   end
 end

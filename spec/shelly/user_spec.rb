@@ -105,4 +105,39 @@ describe Shelly::User do
       @user.should_not be_ssh_key_exists
     end
   end
+
+  describe "#upload_ssh_key" do
+    it "should read and upload user's public SSH key" do
+      @client.should_receive(:update_ssh_key).with("ssh-key AAbbcc")
+      @user.upload_ssh_key
+    end
+  end
+
+  describe "#login" do
+    before do
+      @client.stub(:token)
+    end
+
+    it "should try to login with given credentials" do
+      @client.should_receive(:token)
+      @user.login
+    end
+
+    context "on successful authentication" do
+      it "should save user's credentials" do
+        @user.should_receive(:save_credentials)
+        @user.login
+      end
+    end
+
+    context "on unsuccessful authentication" do
+      it "should not save credentials" do
+        @client.stub(:token).and_raise(RestClient::Unauthorized.new)
+        @client.should_not_receive(:save_credentials)
+        lambda {
+          @user.login
+        }.should raise_error
+      end
+    end
+  end
 end

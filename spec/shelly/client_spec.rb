@@ -45,6 +45,13 @@ describe Shelly::Client do
     end
   end
 
+  describe "#update_ssh_key" do
+    it "should send put with give SSH key" do
+      @client.should_receive(:put).with("/ssh_keys", {:ssh_key => "abc"})
+      @client.update_ssh_key("abc")
+    end
+  end
+
   describe "#request_parameters" do
     it "should return hash of resquest parameters" do
       expected = {
@@ -100,27 +107,6 @@ describe Shelly::Client do
       @client.get('/account')
     end
 
-    context "on 302 response code" do
-      it "should raise UnauthorizedException" do
-        @response.stub(:code).and_return(302)
-        lambda {
-          @client.get("/account")
-          }.should raise_error(Shelly::Client::UnauthorizedException)
-      end
-    end
-
-    context "on 406 response code" do
-      it "should raise UnauthorizedException" do
-        exception = RestClient::RequestFailed.new
-        exception.stub(:http_code).and_return(406)
-        @response.should_receive(:return!).and_raise(exception)
-
-        lambda {
-          @client.get("/account")
-        }.should raise_error(Shelly::Client::UnauthorizedException)
-      end
-    end
-
     %w(404 422 500).each do |code|
       context "on #{code} response code" do
         it "should raise APIError" do
@@ -131,18 +117,6 @@ describe Shelly::Client do
             @client.post("/api/apps/flower/command", :body => "puts User.count")
           }.should raise_error(Shelly::Client::APIError, "random error happened")
         end
-      end
-    end
-
-    context "on unsupported response code" do
-      it "should raise UnsupportedResponseException exception" do
-        exception = RestClient::RequestFailed.new
-        exception.stub(:http_code).and_return(409)
-        @response.should_receive(:return!).and_raise(exception)
-
-        lambda {
-          @client.get("/account")
-        }.should raise_error(Shelly::Client::UnsupportedResponseException)
       end
     end
   end
@@ -169,6 +143,13 @@ describe Shelly::Client do
     it "should make POST request to given path with parameters" do
       @client.should_receive(:request).with("/account", :post, :name => "pink-one")
       @client.post("/account", :name => "pink-one")
+    end
+  end
+
+  describe "#put" do
+    it "should make PUT resquest to given path with parameters" do
+      @client.should_receive(:request).with("/account", :put, :name => "new-one")
+      @client.put("/account", :name => "new-one")
     end
   end
 end
