@@ -70,7 +70,7 @@ module Shelly
           say_new_line
           say "Project is now configured for use with Shell Cloud:", :green
           say "You can review changes using", :green
-          say "  git diff"
+          say "  git status"
         end
 
         def info_deploying_to_shellycloud

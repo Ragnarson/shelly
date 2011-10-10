@@ -170,7 +170,7 @@ describe Shelly::CLI::Apps do
     it "should display info about adding Cloudfile to repository" do
       $stdout.should_receive(:puts).with("\e[32mProject is now configured for use with Shell Cloud:\e[0m")
       $stdout.should_receive(:puts).with("\e[32mYou can review changes using\e[0m")
-      $stdout.should_receive(:puts).with("  git diff")
+      $stdout.should_receive(:puts).with("  git status")
       fake_stdin(["staging", "foooo", "none"]) do
         @apps.add
       end
