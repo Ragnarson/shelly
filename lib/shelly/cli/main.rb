@@ -13,11 +13,6 @@ module Shelly
         say "shelly version #{Shelly::VERSION}"
       end
 
-      desc "add", "Adds new application to Shelly Cloud"
-      def add
-        invoke "apps:add"
-      end
-
       desc "register [EMAIL]", "Registers new user account on Shelly Cloud"
       def register(email = nil)
         say "Registering with email: #{email}" if email
