@@ -137,7 +137,7 @@ OUT
     context "on unsuccessful registration" do
       it "should display errors and exit with 1" do
         response = {"message" => "Validation Failed", "errors" => [["email", "has been already taken"]]}
-        exception = Shelly::Client::APIError.new(response)
+        exception = Shelly::Client::APIError.new(response.to_json)
         @client.stub(:register_user).and_raise(exception)
         $stdout.should_receive(:puts).with("email has been already taken")
         lambda {
@@ -154,6 +154,7 @@ OUT
       @user = Shelly::User.new
       @user.stub(:upload_ssh_key)
       @client.stub(:token).and_return("abc")
+      @client.stub(:apps).and_return([{"code_name" => "abc"}, {"code_name" => "fooo"}])
       Shelly::User.stub(:new).and_return(@user)
     end
 
@@ -179,7 +180,14 @@ OUT
         end
       end
 
-      it "should display list of applications to which user has access"
+      it "should display list of applications to which user has access" do
+        $stdout.should_receive(:puts).with("\e[32mYou have following applications available:\e[0m")
+        $stdout.should_receive(:puts).with("  abc")
+        $stdout.should_receive(:puts).with("  fooo")
+        fake_stdin(["megan@example.com", "secret"]) do
+          @main.login
+        end
+      end
     end
 
     context "on unauthorized user" do
@@ -291,7 +299,7 @@ OUT
 
     it "should display validation errors if they are any" do
       response = {"message" => "Validation Failed", "errors" => [["code_name", "has been already taken"]]}
-      exception = Shelly::Client::APIError.new(response)
+      exception = Shelly::Client::APIError.new(response.to_json)
       @app.should_receive(:create).and_raise(exception)
       $stdout.should_receive(:puts).with("code_name has been already taken")
       lambda {

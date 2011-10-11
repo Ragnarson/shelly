@@ -4,8 +4,8 @@ require "json"
 module Shelly
   class Client
     class APIError < Exception
-      def initialize(response)
-        @response = response
+      def initialize(response_body)
+        @response = JSON.parse(response_body)
       end
 
       def message
@@ -14,6 +14,10 @@ module Shelly
 
       def errors
         @response["errors"]
+      end
+
+      def validation?
+        message == "Validation Failed"
       end
     end
 
@@ -40,6 +44,10 @@ module Shelly
 
     def update_ssh_key(ssh_key)
       put("/ssh_key", :ssh_key => ssh_key)
+    end
+
+    def apps
+      get("/apps")
     end
 
     def post(path, params = {})
@@ -81,9 +89,7 @@ module Shelly
 
     def process_response(response)
       if [404, 422, 500].include?(response.code)
-        # FIXME: move parsing JSON to APIError class
-        error_details = JSON.parse(response.body)
-        raise APIError.new(error_details)
+        raise APIError.new(response.body)
       end
 
       response.return!

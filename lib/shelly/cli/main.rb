@@ -24,8 +24,10 @@ module Shelly
         say "Successfully registered!"
         say "Check you mailbox for email address confirmation"
       rescue Client::APIError => e
-        if e.message == "Validation Failed"
-          e.errors.each { |error| say "#{error.first} #{error.last}" }
+        if e.validation?
+          e.errors.each do |error|
+            say "#{error.first} #{error.last}"
+          end
           exit 1
         end
       end
@@ -37,9 +39,18 @@ module Shelly
         say "Login successful"
         say "Uploading your public SSH key"
         user.upload_ssh_key
+        say "You have following applications available:", :green
+        user.apps.each do |app|
+          say "  #{app["code_name"]}"
+        end
       rescue RestClient::Unauthorized
         say "Wrong email or password or your email is unconfirmend"
         exit 1
+      rescue Client::APIError
+        if e.validation?
+          e.errors.each { |error| say "#{error.first} #{error.last}" }
+          exit 1
+        end
       end
 
       desc "add", "Adds new application to Shelly Cloud"
@@ -71,12 +82,11 @@ module Shelly
         info_adding_cloudfile_to_repository
         info_deploying_to_shellycloud
       rescue Client::APIError => e
-        if e.message == "Validation Failed"
+        if e.validation?
           e.errors.each { |error| say "#{error.first} #{error.last}" }
           exit 1
         end
       end
-
 
       # FIXME: move to helpers
       no_tasks do

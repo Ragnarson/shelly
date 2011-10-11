@@ -1,5 +1,36 @@
 require "spec_helper"
 
+describe Shelly::Client::APIError do
+  before do
+    body = {"message" => "something went wrong", "errors" => [{"first" => "foo"}]}
+    @error = Shelly::Client::APIError.new(body.to_json)
+  end
+
+  it "should return error message" do
+    @error.message.should == "something went wrong"
+  end
+
+  it "should return list of errors" do
+    @error.errors.should == [{"first" => "foo"}]
+  end
+
+  describe "#validation?" do
+    context "when error is caused by validation errors" do
+      it "should return true" do
+        body = {"message" => "Validation Failed"}
+        error = Shelly::Client::APIError.new(body.to_json)
+        error.should be_validation
+      end
+    end
+
+    context "when error is not caused by validation errors" do
+      it "should return false" do
+        @error.should_not be_validation
+      end
+    end
+  end
+end
+
 describe Shelly::Client do
   before do
     ENV['SHELLY_URL'] = nil
@@ -49,6 +80,13 @@ describe Shelly::Client do
     it "should send put with give SSH key" do
       @client.should_receive(:put).with("/ssh_key", {:ssh_key => "abc"})
       @client.update_ssh_key("abc")
+    end
+  end
+
+  describe "#apps" do
+    it "should send get requests for user's applications list" do
+      @client.should_receive(:get).with("/apps")
+      @client.apps
     end
   end
 
