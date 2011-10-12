@@ -12,6 +12,16 @@ describe Shelly::App do
     @app.code_name = "foo-staging"
   end
 
+  describe "being initialized" do
+    it "should have default ruby_version: MRI-1.9.2" do
+      @app.ruby_version.should == "MRI-1.9.2"
+    end
+
+    it "should have default environment: production" do
+      @app.environment.should == "production"
+    end
+  end
+
   describe ".guess_code_name" do
     it "should return name of current working directory" do
       Shelly::App.guess_code_name.should == "foo"
@@ -109,7 +119,7 @@ config
       attributes = {
         :code_name => "fooo",
         :name => "fooo",
-        :environment => "dev",
+        :environment => "production",
         :ruby_version => "MRI-1.9.2",
         :domain_name => "fooo.shellycloud.com"
       }

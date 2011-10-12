@@ -8,6 +8,7 @@ module Shelly
 
     def initialize
       @ruby_version = "MRI-1.9.2"
+      @environment = "production"
     end
 
     def add_git_remote(force = false)
@@ -35,7 +36,7 @@ module Shelly
       attributes = {
         :name         => code_name,
         :code_name    => code_name,
-        :environment  => purpose,
+        :environment  => environment,
         :ruby_version => ruby_version,
         :domain_name  => "#{code_name}.shellycloud.com"
       }
