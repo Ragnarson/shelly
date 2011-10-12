@@ -19,7 +19,11 @@ describe Shelly::App do
   end
 
   describe "#add_git_remote" do
-    before { @app.stub(:system) }
+    before do
+      @app.stub(:git_url).and_return("git@git.shellycloud.com:foo-staging.git")
+      @app.stub(:system)
+    end
+
     it "should add git remote with proper name and git repository" do
       @app.should_receive(:system).with("git remote add staging git@git.shellycloud.com:foo-staging.git")
       @app.add_git_remote
@@ -98,24 +102,25 @@ config
     end
   end
 
-  describe "#git_url" do
-    it "should return URL to git repository on shelly" do
-      @app.git_url.should == "git@git.shellycloud.com:foo-staging.git"
-    end
-  end
-
   describe "#create" do
     it "should create the app on shelly cloud via API client" do
       @app.purpose = "dev"
       @app.code_name = "fooo"
-      @client.should_receive(:create_app).with({
+      attributes = {
         :code_name => "fooo",
         :name => "fooo",
         :environment => "dev",
         :ruby_version => "MRI-1.9.2",
         :domain_name => "fooo.shellycloud.com"
-      })
+      }
+      @client.should_receive(:create_app).with(attributes).and_return("git_url" => "git@git.shellycloud.com:fooo.git")
       @app.create
+    end
+
+    it "should assign returned git_url" do
+      @client.stub(:create_app).and_return("git_url" => "git@git.example.com:fooo.git")
+      @app.create
+      @app.git_url.should == "git@git.example.com:fooo.git"
     end
   end
 
@@ -133,19 +138,6 @@ config
         @app.purpose = "shelly"
         IO.stub_chain(:popen, :read => "origin\nshelly-prod\ntest")
         @app.should_not be_remote_exists
-      end
-    end
-  end
-
-  describe "#git_host" do
-    it "should return default git host" do
-      @app.git_host.should == "git.shellycloud.com"
-    end
-
-    context "SHELLY_GIT_HOST set" do
-      it "should return value of SHELLY_GIT_HOST env variable" do
-        ENV['SHELLY_GIT_HOST'] = "git.example.com"
-        @app.git_host.should == "git.example.com"
       end
     end
   end

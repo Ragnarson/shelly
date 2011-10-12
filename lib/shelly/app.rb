@@ -4,7 +4,7 @@ require 'launchy'
 module Shelly
   class App < Base
     DATABASE_KINDS = %w(postgresql mongodb redis none)
-    attr_accessor :purpose, :code_name, :databases, :ruby_version, :environment
+    attr_accessor :purpose, :code_name, :databases, :ruby_version, :environment, :git_url
 
     def initialize
       @ruby_version = "MRI-1.9.2"
@@ -17,14 +17,6 @@ module Shelly
 
     def remote_exists?
       IO.popen("git remote").read.split("\n").include?(purpose)
-    end
-
-    def git_host
-      ENV["SHELLY_GIT_HOST"] || "git.shellycloud.com"
-    end
-
-    def git_url
-      "git@#{git_host}:#{code_name}.git"
     end
 
     def generate_cloudfile
@@ -47,7 +39,8 @@ module Shelly
         :ruby_version => ruby_version,
         :domain_name  => "#{code_name}.shellycloud.com"
       }
-      shelly.create_app(attributes)
+      response = shelly.create_app(attributes)
+      self.git_url = response["git_url"]
     end
 
     def create_cloudfile

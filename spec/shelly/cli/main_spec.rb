@@ -214,6 +214,7 @@ OUT
       @app.stub(:generate_cloudfile).and_return("Example Cloudfile")
       @app.stub(:open_billing_page)
       @app.stub(:remote_exists?).and_return(false)
+      @app.stub(:git_url).and_return("git@git.shellycloud.com:foooo.git")
       Shelly::App.stub(:inside_git_repository?).and_return(true)
       Shelly::App.stub(:new).and_return(@app)
     end
