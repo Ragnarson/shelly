@@ -131,7 +131,7 @@ module Shelly
           kinds = Shelly::App::DATABASE_KINDS
           databases = ask("Which database do you want to use #{kinds.join(", ")} (postgresql - default):")
           begin
-            databases = databases.split(/[\s,]/)
+            databases = databases.split(/[\s,]/).reject(&:blank?)
             valid = databases.all? { |kind| kinds.include?(kind) }
             break if valid
             databases = ask("Unknown database kind. Supported are: #{kinds.join(", ")}:")

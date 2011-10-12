@@ -268,7 +268,7 @@ OUT
     it "should use database provided by user (separated by comma or space)" do
       $stdout.should_receive(:print).with("Which database do you want to use postgresql, mongodb, redis, none (postgresql - default): ")
       @app.should_receive(:databases=).with(["postgresql", "mongodb", "redis"])
-      fake_stdin(["staging", "", "postgresql,mongodb redis"]) do
+      fake_stdin(["staging", "", "postgresql  ,mongodb redis"]) do
         @main.add
       end
     end
