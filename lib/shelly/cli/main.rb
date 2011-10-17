@@ -34,7 +34,7 @@ module Shelly
 
       desc "login [EMAIL]", "Logins user to Shelly Cloud"
       def login(email = nil)
-        user = User.new(email || ask_for_email, ask_for_password(false))
+        user = User.new(email || ask_for_email, ask_for_password(:with_confirmation => false))
         user.login
         say "Login successful"
         say "Uploading your public SSH key"
@@ -98,12 +98,13 @@ module Shelly
           say_error "Email can't be blank, please try again"
         end
 
-        def ask_for_password(with_confirmation = true)
+        def ask_for_password(options = {})
+          options = {:with_confirmation => true}.merge(options)
           loop do
             say "Password: "
             password = echo_disabled { $stdin.gets.strip }
             say_new_line
-            return password unless with_confirmation
+            return password unless options[:with_confirmation]
             say "Password confirmation: "
             password_confirmation = echo_disabled { $stdin.gets.strip }
             say_new_line
