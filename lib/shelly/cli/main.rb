@@ -62,16 +62,8 @@ module Shelly
         @app.code_name = ask_for_code_name
         @app.databases = ask_for_databases
         @app.create
-
-        unless @app.remote_exists?
-          say "Adding remote #{@app.purpose} #{@app.git_url}", :green
-          @app.add_git_remote
-        else
-          say "Remote #{@app.purpose} already exists"
-          if yes?("Would you like to overwrite remote #{@app.purpose} with #{@app.git_url} (Y/N)?:")
-            @app.add_git_remote(true)
-          end
-        end
+        say "Adding remote #{@app.purpose} #{@app.git_url}", :green
+        @app.add_git_remote
 
         say "Creating Cloudfile", :green
         @app.create_cloudfile

@@ -34,14 +34,14 @@ describe Shelly::App do
       @app.stub(:system)
     end
 
-    it "should add git remote with proper name and git repository" do
-      @app.should_receive(:system).with("git remote add staging git@git.shellycloud.com:foo-staging.git")
+    it "should try to remove existing git remote" do
+      @app.should_receive(:system).with("git remote rm staging &> /dev/null")
       @app.add_git_remote
     end
 
-    it "should remove existing git remote first if invoked with true as first argument" do
-      @app.should_receive(:system).with("git remote rm staging")
-      @app.add_git_remote(true)
+    it "should add git remote with proper name and git repository" do
+      @app.should_receive(:system).with("git remote add staging git@git.shellycloud.com:foo-staging.git")
+      @app.add_git_remote
     end
   end
 
@@ -133,23 +133,4 @@ config
       @app.git_url.should == "git@git.example.com:fooo.git"
     end
   end
-
-  describe "#remote_exists?" do
-    context "remote with purpose as name exists" do
-      it "should return true" do
-        @app.purpose = "shelly-prod"
-        IO.stub_chain(:popen, :read => "origin\nshelly-prod\ntest")
-        @app.should be_remote_exists
-      end
-    end
-
-    context "remote with purpose as name doesn't exist" do
-      it "should return false" do
-        @app.purpose = "shelly"
-        IO.stub_chain(:popen, :read => "origin\nshelly-prod\ntest")
-        @app.should_not be_remote_exists
-      end
-    end
-  end
 end
-

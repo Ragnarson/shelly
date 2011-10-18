@@ -11,13 +11,9 @@ module Shelly
       @environment = "production"
     end
 
-    def add_git_remote(force = false)
-      system("git remote rm #{purpose}") if force
+    def add_git_remote
+      system("git remote rm #{purpose} &> /dev/null")
       system("git remote add #{purpose} #{git_url}")
-    end
-
-    def remote_exists?
-      IO.popen("git remote").read.split("\n").include?(purpose)
     end
 
     def generate_cloudfile
