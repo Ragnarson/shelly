@@ -54,6 +54,13 @@ describe Shelly::Client do
     end
   end
 
+  describe "#shellyapp_url" do
+    it "should sent get request" do
+      @client.should_receive(:get).with("/shellyapp").and_return({"url" => "shellyurl"})
+      @client.shellyapp_url.should == "shellyurl"
+    end
+  end
+
   describe "#register_user" do
     it "should send post request with login and password" do
       @client.should_receive(:post).with("/users", {:user => {:email => "test@example.com",
@@ -191,3 +198,4 @@ describe Shelly::Client do
     end
   end
 end
+

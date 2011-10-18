@@ -5,7 +5,7 @@ describe Shelly::App do
   before do
     FileUtils.mkdir_p("/projects/foo")
     Dir.chdir("/projects/foo")
-    @client = mock(:api_url => "https://api.example.com")
+    @client = mock(:api_url => "https://api.example.com", :shellyapp_url => "http://shellyapp.example.com")
     Shelly::Client.stub(:new).and_return(@client)
     @app = Shelly::App.new
     @app.purpose = "staging"
@@ -106,7 +106,7 @@ config
     it "should open browser window" do
       user = mock(:token => "abc", :email => nil, :password => nil, :config_dir => "~/.shelly")
       @app.stub(:current_user).and_return(user)
-      url = "#{@app.shelly.api_url}/apps/foo-staging/edit_billing?api_key=abc"
+      url = "#{@app.shelly.shellyapp_url}/login?api_key=abc&return_to=/apps/foo-staging/edit_billing"
       Launchy.should_receive(:open).with(url)
       @app.open_billing_page
     end
@@ -152,3 +152,4 @@ config
     end
   end
 end
+
