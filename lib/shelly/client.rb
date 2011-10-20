@@ -30,6 +30,10 @@ module Shelly
       ENV["SHELLY_URL"] || "https://admin.winniecloud.com/apiv2"
     end
 
+    def shellyapp_url
+      get("/shellyapp")["url"]
+    end
+
     def register_user(email, password, ssh_key)
       post("/users", :user => {:email => email, :password => password, :ssh_key => ssh_key})
     end
@@ -101,3 +105,4 @@ module Shelly
     end
   end
 end
+

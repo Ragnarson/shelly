@@ -11,13 +11,9 @@ module Shelly
       @environment = "production"
     end
 
-    def add_git_remote(force = false)
-      system("git remote rm #{purpose}") if force
+    def add_git_remote
+      system("git remote rm #{purpose} &> /dev/null")
       system("git remote add #{purpose} #{git_url}")
-    end
-
-    def remote_exists?
-      IO.popen("git remote").read.split("\n").include?(purpose)
     end
 
     def generate_cloudfile
@@ -58,7 +54,7 @@ module Shelly
     end
 
     def open_billing_page
-      url = "#{shelly.api_url}/apps/#{code_name}/edit_billing?api_key=#{current_user.token}"
+      url = "#{shelly.shellyapp_url}/login?api_key=#{current_user.token}&return_to=/apps/#{code_name}/edit_billing"
       Launchy.open(url)
     end
 
@@ -67,3 +63,4 @@ module Shelly
     end
   end
 end
+

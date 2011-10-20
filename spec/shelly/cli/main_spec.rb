@@ -225,7 +225,6 @@ OUT
       @app.stub(:create)
       @app.stub(:generate_cloudfile).and_return("Example Cloudfile")
       @app.stub(:open_billing_page)
-      @app.stub(:remote_exists?).and_return(false)
       @app.stub(:git_url).and_return("git@git.shellycloud.com:foooo.git")
       Shelly::App.stub(:inside_git_repository?).and_return(true)
       Shelly::App.stub(:new).and_return(@app)
@@ -322,41 +321,11 @@ OUT
       }.should raise_error(SystemExit)
     end
 
-    context "git remote doesn't exist" do
-      it "should add git remote" do
-        $stdout.should_receive(:puts).with("\e[32mAdding remote staging git@git.shellycloud.com:foooo.git\e[0m")
-        @app.should_receive(:add_git_remote)
-        fake_stdin(["staging", "foooo", ""]) do
-          @main.add
-        end
-      end
-    end
-
-    context "git remote exist" do
-      before do
-        @app.stub(:remote_exists?).and_return(true)
-      end
-
-      it "should ask user if he wants to overwrite existing git remote" do
-        $stdout.should_receive(:puts).with("Remote staging already exists")
-        $stdout.should_receive(:print).with("Would you like to overwrite remote staging with git@git.shellycloud.com:foooo.git (Y/N)?: ")
-        fake_stdin(["staging", "foooo", "", "y"]) do
-          @main.add
-        end
-      end
-
-      it "should overwrite existing git remote on 'yes' from user" do
-        @app.should_receive(:add_git_remote).with(true)
-        fake_stdin(["staging", "foooo", "", "y"]) do
-          @main.add
-        end
-      end
-
-      it "should not overwrite existing git remote on 'no' from user" do
-        @app.should_not_receive(:add_git_remote).with(true)
-        fake_stdin(["staging", "foooo", "", "n"]) do
-          @main.add
-        end
+    it "should add git remote" do
+      $stdout.should_receive(:puts).with("\e[32mAdding remote staging git@git.shellycloud.com:foooo.git\e[0m")
+      @app.should_receive(:add_git_remote)
+      fake_stdin(["staging", "foooo", ""]) do
+        @main.add
       end
     end
 
@@ -398,3 +367,4 @@ OUT
     end
   end
 end
+

@@ -5,7 +5,7 @@ describe Shelly::App do
   before do
     FileUtils.mkdir_p("/projects/foo")
     Dir.chdir("/projects/foo")
-    @client = mock(:api_url => "https://api.example.com")
+    @client = mock(:api_url => "https://api.example.com", :shellyapp_url => "http://shellyapp.example.com")
     Shelly::Client.stub(:new).and_return(@client)
     @app = Shelly::App.new
     @app.purpose = "staging"
@@ -34,14 +34,14 @@ describe Shelly::App do
       @app.stub(:system)
     end
 
-    it "should add git remote with proper name and git repository" do
-      @app.should_receive(:system).with("git remote add staging git@git.shellycloud.com:foo-staging.git")
+    it "should try to remove existing git remote" do
+      @app.should_receive(:system).with("git remote rm staging &> /dev/null")
       @app.add_git_remote
     end
 
-    it "should remove existing git remote first if invoked with true as first argument" do
-      @app.should_receive(:system).with("git remote rm staging")
-      @app.add_git_remote(true)
+    it "should add git remote with proper name and git repository" do
+      @app.should_receive(:system).with("git remote add staging git@git.shellycloud.com:foo-staging.git")
+      @app.add_git_remote
     end
   end
 
@@ -106,7 +106,7 @@ config
     it "should open browser window" do
       user = mock(:token => "abc", :email => nil, :password => nil, :config_dir => "~/.shelly")
       @app.stub(:current_user).and_return(user)
-      url = "#{@app.shelly.api_url}/apps/foo-staging/edit_billing?api_key=abc"
+      url = "#{@app.shelly.shellyapp_url}/login?api_key=abc&return_to=/apps/foo-staging/edit_billing"
       Launchy.should_receive(:open).with(url)
       @app.open_billing_page
     end
@@ -131,24 +131,6 @@ config
       @client.stub(:create_app).and_return("git_url" => "git@git.example.com:fooo.git")
       @app.create
       @app.git_url.should == "git@git.example.com:fooo.git"
-    end
-  end
-
-  describe "#remote_exists?" do
-    context "remote with purpose as name exists" do
-      it "should return true" do
-        @app.purpose = "shelly-prod"
-        IO.stub_chain(:popen, :read => "origin\nshelly-prod\ntest")
-        @app.should be_remote_exists
-      end
-    end
-
-    context "remote with purpose as name doesn't exist" do
-      it "should return false" do
-        @app.purpose = "shelly"
-        IO.stub_chain(:popen, :read => "origin\nshelly-prod\ntest")
-        @app.should_not be_remote_exists
-      end
     end
   end
 end
