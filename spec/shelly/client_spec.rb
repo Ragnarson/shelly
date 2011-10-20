@@ -89,6 +89,13 @@ describe Shelly::Client do
       @client.apps
     end
   end
+  
+  describe "#ssh_key_available?" do
+    it "should send get request with ssh key" do
+      @client.should_receive(:get).with("/users/new", {:ssh_key => "ssh-key Abb"})
+      @client.ssh_key_available?("ssh-key Abb")
+    end
+  end
 
   describe "#request_parameters" do
     it "should return hash of resquest parameters" do
@@ -172,7 +179,7 @@ describe Shelly::Client do
 
   describe "#get" do
     it "should make GET request to given path" do
-      @client.should_receive(:request).with("/account", :get)
+      @client.should_receive(:request).with("/account", :get, {})
       @client.get("/account")
     end
   end

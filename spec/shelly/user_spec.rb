@@ -105,6 +105,13 @@ describe Shelly::User do
       @user.should_not be_ssh_key_exists
     end
   end
+  
+  describe "#ssh_key_registered?" do
+    it "should read and check if ssh key exists in database" do
+      @client.should_receive(:ssh_key_available?).with('ssh-key AAbbcc')
+      @user.ssh_key_registered?
+    end
+  end
 
   describe "#upload_ssh_key" do
     it "should read and upload user's public SSH key" do

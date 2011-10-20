@@ -1,6 +1,6 @@
 module Shelly
   class User < Base
-    attr_reader :email, :password
+    attr_accessor :email, :password
 
     def initialize(email = nil, password = nil)
       @email = email
@@ -46,6 +46,11 @@ module Shelly
 
     def ssh_key_path
       File.expand_path("~/.ssh/id_rsa.pub")
+    end
+    
+    def ssh_key_registered?
+    	ssh_key = File.read(ssh_key_path).strip
+    	shelly.ssh_key_available?(ssh_key)
     end
 
     def self.guess_email

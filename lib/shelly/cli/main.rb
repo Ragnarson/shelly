@@ -15,8 +15,11 @@ module Shelly
 
       desc "register [EMAIL]", "Registers new user account on Shelly Cloud"
       def register(email = nil)
+      	user = User.new
+      	user.ssh_key_registered?
         say "Registering with email: #{email}" if email
-        user = User.new(email || ask_for_email, ask_for_password)
+				user.email = (email || ask_for_email)
+				user.password = ask_for_password
         user.register
         if user.ssh_key_exists?
           say "Uploading your public SSH key from #{user.ssh_key_path}"
@@ -30,6 +33,10 @@ module Shelly
           end
           exit 1
         end
+       rescue RestClient::Conflict
+       	say "User with your ssh key already exists."
+				say "You can login using: shelly login [EMAIL]"
+				exit 1
       end
 
       desc "login [EMAIL]", "Logins user to Shelly Cloud"
