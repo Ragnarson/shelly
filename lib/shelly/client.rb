@@ -53,6 +53,10 @@ module Shelly
     def apps
       get("/apps")
     end
+    
+    def ssh_key_available?(ssh_key)
+    	get("/users/new", :ssh_key => ssh_key)
+    end
 
     def app_users(apps)
       post("/apps/users", :apps => apps)
@@ -66,8 +70,8 @@ module Shelly
       request(path, :put, params)
     end
 
-    def get(path)
-      request(path, :get)
+    def get(path, params = {})
+      request(path, :get, params)
     end
 
     def request(path, method, params = {})

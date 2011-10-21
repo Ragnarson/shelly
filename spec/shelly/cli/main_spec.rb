@@ -40,8 +40,20 @@ OUT
     before do
       @client.stub(:register_user)
       @key_path = File.expand_path("~/.ssh/id_rsa.pub")
+      @user = Shelly::User.new
+      @user.stub(:ssh_key_registered?)
+      Shelly::User.stub(:new).and_return(@user)
     end
-
+    
+    it "should check ssh key in database" do
+      @user.stub(:ssh_key_registered?).and_raise(RestClient::Conflict)
+      $stdout.should_receive(:puts).with("User with your ssh key already exists.")
+      $stdout.should_receive(:puts).with("You can login using: shelly login [EMAIL]")
+      lambda {
+        @main.register
+      }.should raise_error(SystemExit)
+    end
+ 
     it "should ask for email, password and password confirmation" do
       $stdout.should_receive(:print).with("Email: ")
       $stdout.should_receive(:print).with("Password: ")
