@@ -12,7 +12,7 @@ module Shelly
         say_error "Must be run inside your project git repository" unless App.inside_git_repository?
         code_names = YAML.load(File.open(File.join(Dir.pwd, "Cloudfile"))).keys
         @app = Shelly::App.new
-        response = @app.users(code_names)
+        response = @app.users(code_names.sort)
         response.each do |app|
           app = JSON.parse(app)
           say "Cloud #{app['code_name']}:"
