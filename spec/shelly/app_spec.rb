@@ -28,6 +28,13 @@ describe Shelly::App do
     end
   end
 
+  describe "#users" do
+    it "should " do
+      @client.should_receive(:app_users).with(["staging-foo", "production-foo"])
+      @app.users(["staging-foo", "production-foo"])
+    end
+  end
+
   describe "#add_git_remote" do
     before do
       @app.stub(:git_url).and_return("git@git.shellycloud.com:foo-staging.git")
@@ -134,3 +141,4 @@ config
     end
   end
 end
+

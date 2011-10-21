@@ -28,6 +28,7 @@ Tasks:
   shelly help [TASK]       # Describe available tasks or one specific task
   shelly login [EMAIL]     # Logins user to Shelly Cloud
   shelly register [EMAIL]  # Registers new user account on Shelly Cloud
+  shelly users <command>   # Manages users using this app
   shelly version           # Displays shelly version
 OUT
       out = IO.popen("bin/shelly").read.strip

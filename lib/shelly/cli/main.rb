@@ -1,11 +1,13 @@
 require "shelly"
 require "thor/group"
+require "shelly/cli/users"
 
 module Shelly
   module CLI
     class Main < Thor
       include Thor::Actions
       include Helpers
+      register(Users, "users", "users <command>", "Manages users using this app")
 
       map %w(-v --version) => :version
       desc "version", "Displays shelly version"
@@ -46,7 +48,7 @@ module Shelly
       rescue RestClient::Unauthorized
         say "Wrong email or password or your email is unconfirmend"
         exit 1
-      rescue Client::APIError
+      rescue Client::APIError => e
         if e.validation?
           e.errors.each { |error| say "#{error.first} #{error.last}" }
           exit 1
@@ -155,3 +157,4 @@ module Shelly
     end
   end
 end
+

@@ -54,6 +54,10 @@ module Shelly
       get("/apps")
     end
 
+    def app_users(apps)
+      post("/apps/users", :apps => apps)
+    end
+
     def post(path, params = {})
       request(path, :post, params)
     end
