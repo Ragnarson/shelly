@@ -29,13 +29,13 @@ module Shelly
       rescue Client::APIError => e
         if e.validation?
           e.errors.each do |error|
-            say "#{error.first} #{error.last}"
+            say_error "#{error.first} #{error.last}", :with_exit => false
           end
           exit 1
         end
        rescue RestClient::Conflict
-       	say "User with your ssh key already exists."
-				say "You can login using: shelly login [EMAIL]"
+       	say_error "User with your ssh key already exists.", :with_exit => false
+				say_error "You can login using: shelly login [EMAIL]", :with_exit => false
 				exit 1
       end
 
@@ -51,11 +51,11 @@ module Shelly
           say "  #{app["code_name"]}"
         end
       rescue RestClient::Unauthorized
-        say "Wrong email or password or your email is unconfirmend"
+        say_error "Wrong email or password or your email is unconfirmend"
         exit 1
       rescue Client::APIError
         if e.validation?
-          e.errors.each { |error| say "#{error.first} #{error.last}" }
+          e.errors.each { |error| say_error "#{error.first} #{error.last}", :with_exit => false }
           exit 1
         end
       end
@@ -82,7 +82,7 @@ module Shelly
         info_deploying_to_shellycloud
       rescue Client::APIError => e
         if e.validation?
-          e.errors.each { |error| say "#{error.first} #{error.last}" }
+          e.errors.each { |error| say_error "#{error.first} #{error.last}", :with_exit => false }
           exit 1
         end
       end
@@ -109,9 +109,9 @@ module Shelly
             say_new_line
             if password.present?
               return password if password == password_confirmation
-              say "Password and password confirmation don't match, please type them again"
+              say_error "Password and password confirmation don't match, please type them again"
             else
-              say "Password can't be blank"
+              say_error "Password can't be blank"
             end
           end
         end
