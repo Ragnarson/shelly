@@ -4,7 +4,7 @@ require 'launchy'
 module Shelly
   class App < Base
     DATABASE_KINDS = %w(postgresql mongodb redis none)
-    attr_accessor :purpose, :code_name, :databases, :ruby_version, :environment, :git_url
+    attr_accessor :purpose, :code_name, :databases, :ruby_version, :environment, :git_url, :domains
 
     def initialize
       @ruby_version = "MRI-1.9.2"
@@ -19,6 +19,7 @@ module Shelly
     def generate_cloudfile
       @email = current_user.email
       @databases = databases
+      @domains = domains.nil? ? ["#{code_name}.winniecloud.com"] : domains
       template = File.read(cloudfile_template_path)
       cloudfile = ERB.new(template, 0, "%<>-")
       cloudfile.result(binding)
@@ -63,7 +64,7 @@ module Shelly
     end
 
     def self.inside_git_repository?
-      system("git status &> /dev/null")
+      system("git status > /dev/null 2>&1")
     end
   end
 end

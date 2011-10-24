@@ -4,7 +4,9 @@
   monitoring_email:
     - <%= @email %>
   domains:
-    - <%= @code_name %>.winniecloud.com
+    <%- @domains.each do |domain| -%>
+    - <%= domain %>
+    <%- end -%>
   servers:
     app1:
       size: large
@@ -17,3 +19,4 @@
       database:
         - <%= kind %>
     <%- end -%>
+

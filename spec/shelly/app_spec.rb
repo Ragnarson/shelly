@@ -57,6 +57,7 @@ describe Shelly::App do
       user = mock(:email => "bob@example.com")
       @app.stub(:current_user).and_return(user)
       @app.databases = %w(postgresql mongodb)
+      @app.domains = %w(foo-staging.winniecloud.com foo.example.com)
       FakeFS.deactivate!
       expected = <<-config
 foo-staging:
@@ -66,6 +67,7 @@ foo-staging:
     - bob@example.com
   domains:
     - foo-staging.winniecloud.com
+    - foo.example.com
   servers:
     app1:
       size: large
@@ -81,7 +83,7 @@ foo-staging:
       database:
         - mongodb
 config
-      @app.generate_cloudfile.should == expected
+      @app.generate_cloudfile.strip.should == expected.strip
     end
   end
 
