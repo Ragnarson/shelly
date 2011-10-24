@@ -11,9 +11,10 @@ module Shelly
       say "\n"
     end
 
-    def say_error(message)
-      say message
-      exit 1
+    def say_error(message, options = {})
+      options = {:with_exit => true}.merge(options)
+      say "\033[91m " + message + " \033[0m"
+      return exit 1 if options[:with_exit]
     end
   end
 end

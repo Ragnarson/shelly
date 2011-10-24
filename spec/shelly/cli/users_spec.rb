@@ -24,7 +24,7 @@ describe Shelly::CLI::Users do
 
     it "should exit with message if command run outside git repository" do
       Shelly::App.stub(:inside_git_repository?).and_return(false)
-      $stdout.should_receive(:puts).with("Must be run inside your project git repository")
+      $stdout.should_receive(:puts).with("\e[91m Must be run inside your project git repository \e[0m")
       lambda {
         @users.list
       }.should raise_error(SystemExit)
