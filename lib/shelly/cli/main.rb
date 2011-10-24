@@ -53,7 +53,9 @@ module Shelly
           say "  #{app["code_name"]}"
         end
       rescue RestClient::Unauthorized
-        say_error "Wrong email or password or your email is unconfirmend"
+        say_error "Wrong email or password", :with_exit => false
+        say_error "You can reset password by using link:", :with_exit => false
+        say_error "https://admin.winniecloud.com/users/password/new", :with_exit => false
         exit 1
       rescue Client::APIError => e
         if e.validation?
