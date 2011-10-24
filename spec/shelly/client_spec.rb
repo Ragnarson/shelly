@@ -83,6 +83,13 @@ describe Shelly::Client do
     end
   end
 
+  describe "#app_users" do
+    it "should send post with app code_names" do
+      @client.should_receive(:post).with("/apps/users", {:apps => ["staging-foo", "production-foo"]} )
+      @client.app_users(["staging-foo", "production-foo"])
+    end
+  end
+
   describe "#update_ssh_key" do
     it "should send put with give SSH key" do
       @client.should_receive(:put).with("/ssh_key", {:ssh_key => "abc"})

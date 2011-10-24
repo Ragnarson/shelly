@@ -53,6 +53,10 @@ module Shelly
       File.basename(Dir.pwd)
     end
 
+    def users(apps)
+      shelly.app_users(apps)
+    end
+
     def open_billing_page
       url = "#{shelly.shellyapp_url}/login?api_key=#{current_user.token}&return_to=/apps/#{code_name}/edit_billing"
       Launchy.open(url)
