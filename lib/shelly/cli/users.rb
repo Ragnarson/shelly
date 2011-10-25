@@ -10,6 +10,7 @@ module Shelly
       desc "list", "List users who have access to current application"
       def list
         say_error "Must be run inside your project git repository" unless App.inside_git_repository?
+        # FIXME: Create Cloudfile model, and move parsing and fetching API response to it
         code_names = YAML.load(File.open(File.join(Dir.pwd, "Cloudfile"))).keys
         @app = Shelly::App.new
         response = @app.users(code_names.sort)
