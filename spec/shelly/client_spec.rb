@@ -35,7 +35,7 @@ describe Shelly::Client do
   before do
     ENV['SHELLY_URL'] = nil
     @client = Shelly::Client.new("bob@example.com", "secret")
-    RestClient::Request.stub!(:execute)
+    @url = "https://#{CGI.escape("bob@example.com")}:secret@admin.winniecloud.com/apiv2"
   end
 
   describe "#api_url" do
@@ -85,8 +85,11 @@ describe Shelly::Client do
 
   describe "#app_users" do
     it "should send post with app code_names" do
-      @client.should_receive(:post).with("/apps/users", {:apps => ["staging-foo", "production-foo"]} )
-      @client.app_users(["staging-foo", "production-foo"])
+      FakeWeb.register_uri(:get, @url + "/apps/staging-foo/users", :body => {:code_name => "staging-foo"}.to_json)
+      FakeWeb.register_uri(:get, @url + "/apps/production-foo/users", :body => {:code_name => "production-foo"}.to_json)
+      response = @client.app_users(["staging-foo", "production-foo"])
+      response.should == [{"code_name" => "staging-foo"},
+        {"code_name" => "production-foo"}]
     end
   end
 
@@ -103,7 +106,7 @@ describe Shelly::Client do
       @client.apps
     end
   end
-  
+
   describe "#ssh_key_available?" do
     it "should send get request with ssh key" do
       @client.should_receive(:get).with("/users/new", {:ssh_key => "ssh-key Abb"})

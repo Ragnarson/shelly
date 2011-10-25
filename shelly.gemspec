@@ -21,6 +21,7 @@ Gem::Specification.new do |s|
     s.add_development_dependency "rb-fsevent"
   end
   s.add_development_dependency "fakefs"
+  s.add_development_dependency "fakeweb"
   s.add_runtime_dependency "thor"
   s.add_runtime_dependency "rest-client"
   s.add_runtime_dependency "json"

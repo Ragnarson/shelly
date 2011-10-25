@@ -33,12 +33,12 @@ describe Shelly::CLI::Users do
     context "on success" do
       it "should receive clouds from the Cloudfile" do
         @app.should_receive(:users).with(["foo-production","foo-staging"]).
-          and_return(json_response)
+          and_return(response)
         @users.list
       end
 
       it "should display clouds and users" do
-        @app.stub(:users).and_return(json_response)
+        @app.stub(:users).and_return(response)
         $stdout.should_receive(:puts).with("Cloud foo-staging:")
         $stdout.should_receive(:puts).with("  user@example.com (username)")
         $stdout.should_receive(:puts).with("Cloud foo-production:")
@@ -46,9 +46,9 @@ describe Shelly::CLI::Users do
         @users.list
       end
 
-      def json_response
-        ["{\"code_name\":\"foo-staging\",\"users\":[{\"name\":\"username\",\"email\":\"user@example.com\"}]}",
-         "{\"code_name\":\"foo-production\",\"users\":[{\"name\":\"username2\",\"email\":\"user2@example.com\"}]}"]
+      def response
+        [{'code_name' => 'foo-staging','users' => [{'name' => 'username','email' => 'user@example.com'}]},
+         {'code_name' => 'foo-production','users' => [{'name' => 'username2','email' => 'user2@example.com'}]}]
       end
     end
 

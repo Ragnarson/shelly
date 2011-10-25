@@ -53,13 +53,15 @@ module Shelly
     def apps
       get("/apps")
     end
-    
+
     def ssh_key_available?(ssh_key)
     	get("/users/new", :ssh_key => ssh_key)
     end
 
     def app_users(apps)
-      post("/apps/users", :apps => apps)
+      apps.map do |app|
+        get("/apps/#{app}/users")
+      end
     end
 
     def post(path, params = {})

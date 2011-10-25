@@ -192,7 +192,7 @@ OUT
         $stdout.should_receive(:puts).with("\e[91m Wrong email or password \e[0m")
         $stdout.should_receive(:puts).with("\e[91m You can reset password by using link: \e[0m")
         $stdout.should_receive(:puts).with("\e[91m https://admin.winniecloud.com/users/password/new \e[0m")
-        
+
         lambda {
           fake_stdin(["megan@example.com", "secret"]) do
             @main.login
