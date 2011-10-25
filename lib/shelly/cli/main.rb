@@ -35,10 +35,10 @@ module Shelly
           end
           exit 1
         end
-       rescue RestClient::Conflict
-       	say_error "User with your ssh key already exists.", :with_exit => false
-				say_error "You can login using: shelly login [EMAIL]", :with_exit => false
-				exit 1
+        rescue RestClient::Conflict
+          say_error "User with your ssh key already exists.", :with_exit => false
+          say_error "You can login using: shelly login [EMAIL]", :with_exit => false
+          exit 1
       end
 
       desc "login [EMAIL]", "Logins user to Shelly Cloud"

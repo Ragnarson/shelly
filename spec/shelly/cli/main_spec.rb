@@ -47,8 +47,8 @@ OUT
     
     it "should check ssh key in database" do
       @user.stub(:ssh_key_registered?).and_raise(RestClient::Conflict)
-      $stdout.should_receive(:puts).with("\e[91m User with your ssh key already exists. \e[0m")
-      $stdout.should_receive(:puts).with("\e[91m You can login using: shelly login [EMAIL] \e[0m")
+      $stdout.should_receive(:puts).with("\e[31mUser with your ssh key already exists.\e[0m")
+      $stdout.should_receive(:puts).with("\e[31mYou can login using: shelly login [EMAIL]\e[0m")
       lambda {
         @main.register
       }.should raise_error(SystemExit)
@@ -89,7 +89,7 @@ OUT
     context "when user enters blank email" do
       it "should show error message and exit with 1" do
         Shelly::User.stub(:guess_email).and_return("")
-        $stdout.should_receive(:puts).with("\e[91m Email can't be blank, please try again \e[0m")
+        $stdout.should_receive(:puts).with("\e[31mEmail can't be blank, please try again\e[0m")
         lambda {
           fake_stdin(["", "bob@example.com", "only-pass", "only-pass"]) do
             @main.register
@@ -134,7 +134,7 @@ OUT
         response = {"message" => "Validation Failed", "errors" => [["email", "has been already taken"]]}
         exception = Shelly::Client::APIError.new(response.to_json)
         @client.stub(:register_user).and_raise(exception)
-        $stdout.should_receive(:puts).with("\e[91m email has been already taken \e[0m")
+        $stdout.should_receive(:puts).with("\e[31memail has been already taken\e[0m")
         lambda {
           fake_stdin(["kate@example.com", "pass", "pass"]) do
             @main.register
@@ -189,9 +189,9 @@ OUT
       it "should exit with 1 and display error message" do
         exception = RestClient::Unauthorized.new
         @client.stub(:token).and_raise(exception)
-        $stdout.should_receive(:puts).with("\e[91m Wrong email or password \e[0m")
-        $stdout.should_receive(:puts).with("\e[91m You can reset password by using link: \e[0m")
-        $stdout.should_receive(:puts).with("\e[91m https://admin.winniecloud.com/users/password/new \e[0m")
+        $stdout.should_receive(:puts).with("\e[31mWrong email or password\e[0m")
+        $stdout.should_receive(:puts).with("\e[31mYou can reset password by using link:\e[0m")
+        $stdout.should_receive(:puts).with("\e[31mhttps://admin.winniecloud.com/users/password/new\e[0m")
         
         lambda {
           fake_stdin(["megan@example.com", "secret"]) do
@@ -218,7 +218,7 @@ OUT
 
     it "should exit with message if command run outside git repository" do
       Shelly::App.stub(:inside_git_repository?).and_return(false)
-      $stdout.should_receive(:puts).with("\e[91m Must be run inside your project git repository \e[0m")
+      $stdout.should_receive(:puts).with("\e[31mMust be run inside your project git repository\e[0m")
       lambda {
         fake_stdin(["staging", "", ""]) do
           @main.add
@@ -299,7 +299,7 @@ OUT
       response = {"message" => "Validation Failed", "errors" => [["code_name", "has been already taken"]]}
       exception = Shelly::Client::APIError.new(response.to_json)
       @app.should_receive(:create).and_raise(exception)
-      $stdout.should_receive(:puts).with("\e[91m code_name has been already taken \e[0m")
+      $stdout.should_receive(:puts).with("\e[31mcode_name has been already taken\e[0m")
       lambda {
         fake_stdin(["", "", ""]) do
           @main.add
