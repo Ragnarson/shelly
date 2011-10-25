@@ -44,7 +44,7 @@ OUT
       @user.stub(:ssh_key_registered?)
       Shelly::User.stub(:new).and_return(@user)
     end
-    
+
     it "should check ssh key in database" do
       @user.stub(:ssh_key_registered?).and_raise(RestClient::Conflict)
       $stdout.should_receive(:puts).with("\e[31mUser with your ssh key already exists.\e[0m")
@@ -53,7 +53,7 @@ OUT
         @main.register
       }.should raise_error(SystemExit)
     end
- 
+
     it "should ask for email, password and password confirmation" do
       $stdout.should_receive(:print).with("Email: ")
       $stdout.should_receive(:print).with("Password: ")
@@ -192,7 +192,6 @@ OUT
         $stdout.should_receive(:puts).with("\e[31mWrong email or password\e[0m")
         $stdout.should_receive(:puts).with("\e[31mYou can reset password by using link:\e[0m")
         $stdout.should_receive(:puts).with("\e[31mhttps://admin.winniecloud.com/users/password/new\e[0m")
-        
         lambda {
           fake_stdin(["megan@example.com", "secret"]) do
             @main.login
@@ -231,6 +230,30 @@ OUT
       @app.should_receive(:purpose=).with("staging")
       fake_stdin(["staging", "", ""]) do
         @main.add
+      end
+    end
+
+    context "command line options" do
+      context "invalid params" do
+        it "should show help and exit if not all options are passed" do
+          $stdout.should_receive(:puts).with("Wrong parameters. See 'shelly help add' for further information")
+          @main.options = {"code_name" => "foo"}
+          lambda { @main.add }.should raise_error(SystemExit)
+        end
+
+        it "should exit if databases are not valid" do
+          $stdout.should_receive(:puts).with("Wrong parameters. See 'shelly help add' for further information")
+          @main.options = {"code_name" => "foo", "environment" => "production", "databases" => ["not existing"], "domains" => ["foo.example.com"]}
+          lambda { @main.add }.should raise_error(SystemExit)
+        end
+      end
+
+      context "valid params" do
+        it "should create app on shelly cloud" do
+          @app.should_receive(:create)
+          @main.options = {"code_name" => "foo", "environment" => "production", "databases" => ["postgresql"], "domains" => ["foo.example.com"]}
+          @main.add
+        end
       end
     end
 

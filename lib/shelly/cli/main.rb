@@ -64,15 +64,27 @@ module Shelly
         end
       end
 
+      method_option :code_name, :type => :string, :aliases => "-c",
+        :desc => "Unique code_name of your application"
+      method_option :environment, :type => :string, :aliases => "-e",
+        :desc => "Environment that your application will be running"
+      method_option :databases, :type => :array, :aliases => "-d",
+        :banner => "#{Shelly::App::DATABASE_KINDS.join(' ')}",
+        :desc => "Array of databases of your choice"
+      method_option :domains, :type => :array,
+        :banner => "CODE_NAME.shellycloud.com YOUR_DOMAIN.com",
+        :desc => "Array of your domains"
       desc "add", "Adds new application to Shelly Cloud"
       def add
         say_error "Must be run inside your project git repository" unless App.inside_git_repository?
-
+        check_options(options)
         @app = Shelly::App.new
-        @app.purpose = ask_for_purpose
-        @app.code_name = ask_for_code_name
-        @app.databases = ask_for_databases
+        @app.purpose = options["environment"] || ask_for_purpose
+        @app.code_name = options["code_name"] || ask_for_code_name
+        @app.databases = options["databases"] || ask_for_databases
+        @app.domains = options["domains"]
         @app.create
+
         say "Adding remote #{@app.purpose} #{@app.git_url}", :green
         @app.add_git_remote
 
@@ -93,6 +105,20 @@ module Shelly
 
       # FIXME: move to helpers
       no_tasks do
+        def check_options(options)
+          unless ["environment", "code_name", "databases", "domains"].all? do |option|
+            options.include?(option.to_s) && options[option.to_s] != option.to_s
+          end && valid_databases?(options["databases"])
+            say "Wrong parameters. See 'shelly help add' for further information"
+            exit 1
+          end unless options.empty?
+        end
+
+        def valid_databases?(databases)
+          kinds = Shelly::App::DATABASE_KINDS
+          databases.all? { |kind| kinds.include?(kind) }
+        end
+
         def ask_for_email
           email_question = User.guess_email.blank? ? "Email:" : "Email (#{User.guess_email} - default):"
           email = ask(email_question)
@@ -136,7 +162,7 @@ module Shelly
           databases = ask("Which database do you want to use #{kinds.join(", ")} (postgresql - default):")
           begin
             databases = databases.split(/[\s,]/).reject(&:blank?)
-            valid = databases.all? { |kind| kinds.include?(kind) }
+            valid = valid_databases?(databases)
             break if valid
             databases = ask("Unknown database kind. Supported are: #{kinds.join(", ")}:")
           end while not valid

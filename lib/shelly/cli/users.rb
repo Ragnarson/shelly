@@ -14,7 +14,6 @@ module Shelly
         @app = Shelly::App.new
         response = @app.users(code_names.sort)
         response.each do |app|
-          app = JSON.parse(app)
           say "Cloud #{app['code_name']}:"
           app['users'].each do |user|
             say "  #{user['email']} (#{user['name']})"
