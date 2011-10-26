@@ -66,8 +66,6 @@ module Shelly
 
       method_option :code_name, :type => :string, :aliases => "-c",
         :desc => "Unique code_name of your application"
-      method_option :environment, :type => :string, :aliases => "-e",
-        :desc => "Environment that your application will be running"
       method_option :databases, :type => :array, :aliases => "-d",
         :banner => "#{Shelly::App::DATABASE_KINDS.join(' ')}",
         :desc => "Array of databases of your choice"
@@ -79,13 +77,12 @@ module Shelly
         say_error "Must be run inside your project git repository" unless App.inside_git_repository?
         check_options(options)
         @app = Shelly::App.new
-        @app.purpose = options["environment"] || ask_for_purpose
         @app.code_name = options["code_name"] || ask_for_code_name
         @app.databases = options["databases"] || ask_for_databases
         @app.domains = options["domains"]
         @app.create
 
-        say "Adding remote #{@app.purpose} #{@app.git_url}", :green
+        say "Adding remote production #{@app.git_url}", :green
         @app.add_git_remote
 
         say "Creating Cloudfile", :green
@@ -106,7 +103,7 @@ module Shelly
       # FIXME: move to helpers
       no_tasks do
         def check_options(options)
-          unless ["environment", "code_name", "databases", "domains"].all? do |option|
+          unless ["code_name", "databases", "domains"].all? do |option|
             options.include?(option.to_s) && options[option.to_s] != option.to_s
           end && valid_databases?(options["databases"])
             say "Wrong parameters. See 'shelly help add' for further information"
@@ -146,13 +143,8 @@ module Shelly
           end
         end
 
-        def ask_for_purpose
-          purpose = ask("How will you use this system (production - default,staging):")
-          purpose.blank? ? "production" : purpose
-        end
-
         def ask_for_code_name
-          default_code_name = "#{Shelly::App.guess_code_name}-#{@app.purpose}"
+          default_code_name = "#{Shelly::App.guess_code_name}-production"
           code_name = ask("Application code name (#{default_code_name} - default):")
           code_name.blank? ? default_code_name : code_name
         end
@@ -184,8 +176,8 @@ module Shelly
           say '  git commit -m "Application added to Shelly Cloud"'
           say "  git push"
           say_new_line
-          say "Deploy to #{@app.purpose} using:", :green
-          say "  git push #{@app.purpose} master"
+          say "Deploy to production using:", :green
+          say "  git push production master"
           say_new_line
         end
       end

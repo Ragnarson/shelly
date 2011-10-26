@@ -4,7 +4,7 @@ require 'launchy'
 module Shelly
   class App < Base
     DATABASE_KINDS = %w(postgresql mongodb redis none)
-    attr_accessor :purpose, :code_name, :databases, :ruby_version, :environment, :git_url, :domains
+    attr_accessor :code_name, :databases, :ruby_version, :environment, :git_url, :domains
 
     def initialize
       @ruby_version = "MRI-1.9.2"
@@ -12,8 +12,8 @@ module Shelly
     end
 
     def add_git_remote
-      system("git remote rm #{purpose} &> /dev/null")
-      system("git remote add #{purpose} #{git_url}")
+      system("git remote rm production &> /dev/null")
+      system("git remote add production #{git_url}")
     end
 
     def generate_cloudfile
