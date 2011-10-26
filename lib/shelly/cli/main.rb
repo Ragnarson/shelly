@@ -39,6 +39,9 @@ module Shelly
           say_error "User with your ssh key already exists.", :with_exit => false
           say_error "You can login using: shelly login [EMAIL]", :with_exit => false
           exit 1
+        rescue Errno::ENOENT => e
+          say_error e, :with_exit => false
+          say_error "Use ssh-keygen to generate ssh key pair"
       end
 
       desc "login [EMAIL]", "Logins user to Shelly Cloud"
