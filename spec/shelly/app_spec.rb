@@ -8,7 +8,6 @@ describe Shelly::App do
     @client = mock(:api_url => "https://api.example.com", :shellyapp_url => "http://shellyapp.example.com")
     Shelly::Client.stub(:new).and_return(@client)
     @app = Shelly::App.new
-    @app.purpose = "staging"
     @app.code_name = "foo-staging"
   end
 
@@ -42,12 +41,12 @@ describe Shelly::App do
     end
 
     it "should try to remove existing git remote" do
-      @app.should_receive(:system).with("git remote rm staging &> /dev/null")
+      @app.should_receive(:system).with("git remote rm production &> /dev/null")
       @app.add_git_remote
     end
 
     it "should add git remote with proper name and git repository" do
-      @app.should_receive(:system).with("git remote add staging git@git.shellycloud.com:foo-staging.git")
+      @app.should_receive(:system).with("git remote add production git@git.shellycloud.com:foo-staging.git")
       @app.add_git_remote
     end
   end
@@ -123,7 +122,6 @@ config
 
   describe "#create" do
     it "should create the app on shelly cloud via API client" do
-      @app.purpose = "dev"
       @app.code_name = "fooo"
       attributes = {
         :code_name => "fooo",

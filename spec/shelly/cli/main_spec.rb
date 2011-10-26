@@ -219,18 +219,10 @@ OUT
       Shelly::App.stub(:inside_git_repository?).and_return(false)
       $stdout.should_receive(:puts).with("\e[31mMust be run inside your project git repository\e[0m")
       lambda {
-        fake_stdin(["staging", "", ""]) do
+        fake_stdin(["", ""]) do
           @main.add
         end
       }.should raise_error(SystemExit)
-    end
-
-    it "should ask user how he will use application" do
-      $stdout.should_receive(:print).with("How will you use this system (production - default,staging): ")
-      @app.should_receive(:purpose=).with("staging")
-      fake_stdin(["staging", "", ""]) do
-        @main.add
-      end
     end
 
     context "command line options" do
@@ -243,7 +235,7 @@ OUT
 
         it "should exit if databases are not valid" do
           $stdout.should_receive(:puts).with("Wrong parameters. See 'shelly help add' for further information")
-          @main.options = {"code_name" => "foo", "environment" => "production", "databases" => ["not existing"], "domains" => ["foo.example.com"]}
+          @main.options = {"code_name" => "foo", "databases" => ["not existing"], "domains" => ["foo.example.com"]}
           lambda { @main.add }.should raise_error(SystemExit)
         end
       end
@@ -257,30 +249,19 @@ OUT
       end
     end
 
-    context "when user provided empty purpose" do
-      it "should use 'production' as default" do
-        $stdout.should_receive(:print).with("How will you use this system (production - default,staging): ")
-        @app.should_receive(:purpose=).with("production")
-        fake_stdin(["", "", ""]) do
-          @main.add
-        end
-      end
-    end
-
     it "should use code name provided by user" do
-      $stdout.should_receive(:print).with("How will you use this system (production - default,staging): ")
-      $stdout.should_receive(:print).with("Application code name (foo-staging - default): ")
+      $stdout.should_receive(:print).with("Application code name (foo-production - default): ")
       @app.should_receive(:code_name=).with("mycodename")
-      fake_stdin(["staging", "mycodename", ""]) do
+      fake_stdin(["mycodename", ""]) do
         @main.add
       end
     end
 
     context "when user provided empty code name" do
       it "should use 'current_dirname-purpose' as default" do
-        $stdout.should_receive(:print).with("How will you use this system (production - default,staging): ")
-        $stdout.should_receive(:print).with("Application code name (foo-staging - default): ")
-        fake_stdin(["staging", "", ""]) do
+        $stdout.should_receive(:print).with("Application code name (foo-production - default): ")
+        @app.should_receive(:code_name=).with("foo-production")
+        fake_stdin(["", ""]) do
           @main.add
         end
       end
@@ -289,7 +270,7 @@ OUT
     it "should use database provided by user (separated by comma or space)" do
       $stdout.should_receive(:print).with("Which database do you want to use postgresql, mongodb, redis, none (postgresql - default): ")
       @app.should_receive(:databases=).with(["postgresql", "mongodb", "redis"])
-      fake_stdin(["staging", "", "postgresql  ,mongodb redis"]) do
+      fake_stdin(["", "postgresql  ,mongodb redis"]) do
         @main.add
       end
     end
@@ -297,7 +278,7 @@ OUT
     it "should ask again for databases if unsupported kind typed" do
       $stdout.should_receive(:print).with("Which database do you want to use postgresql, mongodb, redis, none (postgresql - default): ")
       $stdout.should_receive(:print).with("Unknown database kind. Supported are: postgresql, mongodb, redis, none: ")
-      fake_stdin(["staging", "", "postgresql,doesnt-exist", "none"]) do
+      fake_stdin(["", "postgresql,doesnt-exist", "none"]) do
         @main.add
       end
     end
@@ -305,7 +286,7 @@ OUT
     context "when user provided empty database" do
       it "should use 'postgresql' database as default" do
         @app.should_receive(:databases=).with(["postgresql"])
-        fake_stdin(["staging", "", ""]) do
+        fake_stdin(["", ""]) do
           @main.add
         end
       end
@@ -313,7 +294,7 @@ OUT
 
     it "should create the app on shelly cloud" do
       @app.should_receive(:create)
-      fake_stdin(["", "", ""]) do
+      fake_stdin(["", ""]) do
         @main.add
       end
     end
@@ -324,23 +305,23 @@ OUT
       @app.should_receive(:create).and_raise(exception)
       $stdout.should_receive(:puts).with("\e[31mCode name has been already taken\e[0m")
       lambda {
-        fake_stdin(["", "", ""]) do
+        fake_stdin(["", ""]) do
           @main.add
         end
       }.should raise_error(SystemExit)
     end
 
     it "should add git remote" do
-      $stdout.should_receive(:puts).with("\e[32mAdding remote staging git@git.shellycloud.com:foooo.git\e[0m")
+      $stdout.should_receive(:puts).with("\e[32mAdding remote production git@git.shellycloud.com:foooo.git\e[0m")
       @app.should_receive(:add_git_remote)
-      fake_stdin(["staging", "foooo", ""]) do
+      fake_stdin(["foooo", ""]) do
         @main.add
       end
     end
 
     it "should create Cloudfile" do
       File.exists?("/projects/foo/Cloudfile").should be_false
-      fake_stdin(["staging", "foooo", ""]) do
+      fake_stdin(["foooo", ""]) do
         @main.add
       end
       File.read("/projects/foo/Cloudfile").should == "Example Cloudfile"
@@ -349,7 +330,7 @@ OUT
     it "should browser window with link to edit billing information" do
       $stdout.should_receive(:puts).with("\e[32mProvide billing details. Opening browser...\e[0m")
       @app.should_receive(:open_billing_page)
-      fake_stdin(["staging", "foooo", ""]) do
+      fake_stdin(["foooo", ""]) do
         @main.add
       end
     end
@@ -358,7 +339,7 @@ OUT
       $stdout.should_receive(:puts).with("\e[32mProject is now configured for use with Shell Cloud:\e[0m")
       $stdout.should_receive(:puts).with("\e[32mYou can review changes using\e[0m")
       $stdout.should_receive(:puts).with("  git status")
-      fake_stdin(["staging", "foooo", "none"]) do
+      fake_stdin(["foooo", "none"]) do
         @main.add
       end
     end
@@ -368,9 +349,9 @@ OUT
       $stdout.should_receive(:puts).with("  git add .")
       $stdout.should_receive(:puts).with('  git commit -m "Application added to Shelly Cloud"')
       $stdout.should_receive(:puts).with("  git push")
-      $stdout.should_receive(:puts).with("\e[32mDeploy to staging using:\e[0m")
-      $stdout.should_receive(:puts).with("  git push staging master")
-      fake_stdin(["staging", "foooo", "none"]) do
+      $stdout.should_receive(:puts).with("\e[32mDeploy to production using:\e[0m")
+      $stdout.should_receive(:puts).with("  git push production master")
+      fake_stdin(["foooo", "none"]) do
         @main.add
       end
     end
