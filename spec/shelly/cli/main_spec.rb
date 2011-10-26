@@ -134,7 +134,7 @@ OUT
         response = {"message" => "Validation Failed", "errors" => [["email", "has been already taken"]]}
         exception = Shelly::Client::APIError.new(response.to_json)
         @client.stub(:register_user).and_raise(exception)
-        $stdout.should_receive(:puts).with("\e[31memail has been already taken\e[0m")
+        $stdout.should_receive(:puts).with("\e[31mEmail has been already taken\e[0m")
         lambda {
           fake_stdin(["kate@example.com", "pass", "pass"]) do
             @main.register
@@ -303,7 +303,7 @@ OUT
       response = {"message" => "Validation Failed", "errors" => [["code_name", "has been already taken"]]}
       exception = Shelly::Client::APIError.new(response.to_json)
       @app.should_receive(:create).and_raise(exception)
-      $stdout.should_receive(:puts).with("\e[31mcode_name has been already taken\e[0m")
+      $stdout.should_receive(:puts).with("\e[31mCode name has been already taken\e[0m")
       lambda {
         fake_stdin(["", ""]) do
           @main.add
