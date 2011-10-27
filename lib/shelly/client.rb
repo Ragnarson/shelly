@@ -16,7 +16,7 @@ module Shelly
         @response["errors"]
       end
       
-      def urls
+      def url
         @response["url"]
       end
       

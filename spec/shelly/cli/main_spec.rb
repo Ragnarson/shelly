@@ -45,6 +45,16 @@ OUT
       Shelly::User.stub(:new).and_return(@user)
     end
 
+    it "should return false if ssh key don't exist on local hard drive" do
+      @user.stub(:ssh_key_registered?).and_raise(Errno::ENOENT)
+      File.exists?("~/.ssh/id_rsa.pub").should be_false
+      $stdout.should_receive(:puts).with("\e[31mNo such file or directory\e[0m")
+      $stdout.should_receive(:puts).with("\e[31mUse ssh-keygen to generate ssh key pair\e[0m")
+      lambda {
+        @main.register
+      }.should raise_error(SystemExit)
+    end
+
     it "should check ssh key in database" do
       @user.stub(:ssh_key_registered?).and_raise(RestClient::Conflict)
       $stdout.should_receive(:puts).with("\e[31mUser with your ssh key already exists.\e[0m")

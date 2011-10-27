@@ -2,7 +2,7 @@ require "spec_helper"
 
 describe Shelly::Client::APIError do
   before do
-    body = {"message" => "something went wrong", "errors" => [{"first" => "foo"}], "url" => ["url1", "url2"]}
+    body = {"message" => "something went wrong", "errors" => [{"first" => "foo"}], "url" => "https://foo.bar"}
     @error = Shelly::Client::APIError.new(body.to_json)
   end
 
@@ -15,7 +15,7 @@ describe Shelly::Client::APIError do
   end
   
   it "should return list of urls" do
-    @error.urls.should == ["url1","url2"]
+    @error.url.should == "https://foo.bar"
   end
   
   describe "#validation?" do

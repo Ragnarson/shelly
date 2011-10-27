@@ -63,7 +63,7 @@ module Shelly
         if e.unauthorized?
           say_error "Wrong email or password", :with_exit => false
           say_error "You can reset password by using link:", :with_exit => false
-          e.urls.each { |url| say_error "#{url}", :with_exit => false }
+          say_error "#{e.url}", :with_exit => false
           exit 1
         end
       end
