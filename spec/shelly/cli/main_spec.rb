@@ -187,7 +187,8 @@ OUT
 
     context "on unauthorized user" do
       it "should exit with 1 and display error message" do
-        exception = RestClient::Unauthorized.new
+        response = {"message" => "Unauthorized", "url" => [["https://admin.winniecloud.com/users/password/new"]]}
+        exception = Shelly::Client::APIError.new(response.to_json)
         @client.stub(:token).and_raise(exception)
         $stdout.should_receive(:puts).with("\e[31mWrong email or password\e[0m")
         $stdout.should_receive(:puts).with("\e[31mYou can reset password by using link:\e[0m")
