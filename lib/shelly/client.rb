@@ -15,9 +15,17 @@ module Shelly
       def errors
         @response["errors"]
       end
-
+      
+      def url
+        @response["url"]
+      end
+      
       def validation?
         message == "Validation Failed"
+      end
+      
+      def unauthorized?
+        message == "Unauthorized"
       end
     end
 
@@ -102,7 +110,7 @@ module Shelly
     end
 
     def process_response(response)
-      if [404, 422, 500].include?(response.code)
+      if [401, 404, 422, 500].include?(response.code)
         raise APIError.new(response.body)
       end
 

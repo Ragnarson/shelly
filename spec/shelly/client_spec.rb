@@ -2,7 +2,7 @@ require "spec_helper"
 
 describe Shelly::Client::APIError do
   before do
-    body = {"message" => "something went wrong", "errors" => [{"first" => "foo"}]}
+    body = {"message" => "something went wrong", "errors" => [{"first" => "foo"}], "url" => "https://foo.bar"}
     @error = Shelly::Client::APIError.new(body.to_json)
   end
 
@@ -13,7 +13,11 @@ describe Shelly::Client::APIError do
   it "should return list of errors" do
     @error.errors.should == [{"first" => "foo"}]
   end
-
+  
+  it "should return list of urls" do
+    @error.url.should == "https://foo.bar"
+  end
+  
   describe "#validation?" do
     context "when error is caused by validation errors" do
       it "should return true" do
@@ -26,6 +30,22 @@ describe Shelly::Client::APIError do
     context "when error is not caused by validation errors" do
       it "should return false" do
         @error.should_not be_validation
+      end
+    end
+  end
+  
+  describe "#unauthorized?" do
+    context "when error is caused by unauthorized error" do
+      it "should return true" do
+        body = {"message" => "Unauthorized"}
+        error = Shelly::Client::APIError.new(body.to_json)
+        error.should be_unauthorized
+      end
+    end
+
+    context "when error is not caused by unauthorized" do
+      it "should return false" do
+        @error.should_not be_unauthorized
       end
     end
   end
@@ -169,7 +189,7 @@ describe Shelly::Client do
       @client.get('/account')
     end
 
-    %w(404 422 500).each do |code|
+    %w(401, 404 422 500).each do |code|
       context "on #{code} response code" do
         it "should raise APIError" do
           @response.stub(:code).and_return(code.to_i)

@@ -35,10 +35,13 @@ module Shelly
           end
           exit 1
         end
-        rescue RestClient::Conflict
-          say_error "User with your ssh key already exists.", :with_exit => false
-          say_error "You can login using: shelly login [EMAIL]", :with_exit => false
-          exit 1
+      rescue RestClient::Conflict
+        say_error "User with your ssh key already exists.", :with_exit => false
+        say_error "You can login using: shelly login [EMAIL]", :with_exit => false
+        exit 1
+      rescue Errno::ENOENT => e
+        say_error e, :with_exit => false
+        say_error "Use ssh-keygen to generate ssh key pair"
       end
 
       desc "login [EMAIL]", "Logins user to Shelly Cloud"
@@ -52,14 +55,15 @@ module Shelly
         user.apps.each do |app|
           say "  #{app["code_name"]}"
         end
-      rescue RestClient::Unauthorized
-        say_error "Wrong email or password", :with_exit => false
-        say_error "You can reset password by using link:", :with_exit => false
-        say_error "https://admin.winniecloud.com/users/password/new", :with_exit => false
-        exit 1
       rescue Client::APIError => e
         if e.validation?
           e.errors.each_error { |error| say_error "#{error.first} #{error.last}", :with_exit => false }
+          exit 1
+        end
+        if e.unauthorized?
+          say_error "Wrong email or password", :with_exit => false
+          say_error "You can reset password by using link:", :with_exit => false
+          say_error "#{e.url}", :with_exit => false
           exit 1
         end
       end

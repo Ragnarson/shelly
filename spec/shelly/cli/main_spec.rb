@@ -45,6 +45,16 @@ OUT
       Shelly::User.stub(:new).and_return(@user)
     end
 
+    it "should return false if ssh key don't exist on local hard drive" do
+      @user.stub(:ssh_key_registered?).and_raise(Errno::ENOENT)
+      File.exists?("~/.ssh/id_rsa.pub").should be_false
+      $stdout.should_receive(:puts).with("\e[31mNo such file or directory\e[0m")
+      $stdout.should_receive(:puts).with("\e[31mUse ssh-keygen to generate ssh key pair\e[0m")
+      lambda {
+        @main.register
+      }.should raise_error(SystemExit)
+    end
+
     it "should check ssh key in database" do
       @user.stub(:ssh_key_registered?).and_raise(RestClient::Conflict)
       $stdout.should_receive(:puts).with("\e[31mUser with your ssh key already exists.\e[0m")
@@ -187,7 +197,8 @@ OUT
 
     context "on unauthorized user" do
       it "should exit with 1 and display error message" do
-        exception = RestClient::Unauthorized.new
+        response = {"message" => "Unauthorized", "url" => "https://admin.winniecloud.com/users/password/new"}
+        exception = Shelly::Client::APIError.new(response.to_json)
         @client.stub(:token).and_raise(exception)
         $stdout.should_receive(:puts).with("\e[31mWrong email or password\e[0m")
         $stdout.should_receive(:puts).with("\e[31mYou can reset password by using link:\e[0m")
