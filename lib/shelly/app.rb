@@ -19,7 +19,7 @@ module Shelly
     def generate_cloudfile
       @email = current_user.email
       @databases = databases
-      @domains = domains.nil? ? ["#{code_name}.winniecloud.com"] : domains
+      @domains = domains
       template = File.read(cloudfile_template_path)
       cloudfile = ERB.new(template, 0, "%<>-")
       cloudfile.result(binding)
@@ -35,10 +35,11 @@ module Shelly
         :code_name    => code_name,
         :environment  => environment,
         :ruby_version => ruby_version,
-        :domain_name  => "#{code_name}.shellycloud.com"
+        :domain_name  => domains
       }
       response = shelly.create_app(attributes)
       self.git_url = response["git_url"]
+      self.domains = response["domain_name"].split if domains.nil?
     end
 
     def create_cloudfile
@@ -68,4 +69,3 @@ module Shelly
     end
   end
 end
-
