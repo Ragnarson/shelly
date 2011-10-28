@@ -27,7 +27,7 @@ describe Shelly::Cloudfile do
       @cloudfile.write(@hash)
       @client.should_receive(:app_users).and_return(response)
       response = @cloudfile.fetch_users
-      response.should == ["Cloud foo-staging:", "  user@example.com (username)"]
+      response.should == {"foo-staging" => ["user@example.com (username)"]}
     end
 
     def response

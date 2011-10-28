@@ -15,15 +15,15 @@ module Shelly
       def errors
         @response["errors"]
       end
-      
+
       def url
         @response["url"]
       end
-      
+
       def validation?
         message == "Validation Failed"
       end
-      
+
       def unauthorized?
         message == "Unauthorized"
       end
@@ -119,4 +119,3 @@ module Shelly
     end
   end
 end
-

@@ -29,10 +29,9 @@ module Shelly
 
     def fetch_users
       response = shelly.app_users(@content.keys.sort)
-      response.inject([]) do |result, app|
-        result << "Cloud #{app['code_name']}:"
-        app['users'].each do |user|
-          result << "  #{user['email']} (#{user['name']})"
+      response.inject({}) do |result, app|
+        result[app['code_name']] = app['users'].map do |user|
+          "#{user['email']} (#{user['name']})"
         end
         result
       end
