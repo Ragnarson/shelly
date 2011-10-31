@@ -102,7 +102,9 @@ module Shelly
       rescue Client::APIError => e
         if e.validation?
           e.errors.each_error { |error| say_error "#{error.first} #{error.last}", :with_exit => false }
-          exit 1
+          say_new_line
+          say_error "Fix erros in the below command and type it again to create your application" , :with_exit => false
+          say_error "shelly add --code-name=#{@app.code_name} --databases=#{@app.databases.join} --domains=#{@app.code_name}.shellyapp.com"
         end
       end
 
@@ -115,8 +117,7 @@ module Shelly
             unless ["code-name", "databases", "domains"].all? do |option|
               options.include?(option.to_s) && options[option.to_s] != option.to_s
             end && valid_databases?(options["databases"])
-              say "Try 'shelly help add' for more information"
-              exit 1
+              say_error "Try 'shelly help add' for more information"
             end
           end
         end

@@ -238,13 +238,13 @@ OUT
     context "command line options" do
       context "invalid params" do
         it "should show help and exit if not all options are passed" do
-          $stdout.should_receive(:puts).with("Try 'shelly help add' for more information")
+          $stdout.should_receive(:puts).with("\e[31mTry 'shelly help add' for more information\e[0m")
           @main.options = {"code-name" => "foo"}
           lambda { @main.add }.should raise_error(SystemExit)
         end
 
         it "should exit if databases are not valid" do
-          $stdout.should_receive(:puts).with("Try 'shelly help add' for more information")
+          $stdout.should_receive(:puts).with("\e[31mTry 'shelly help add' for more information\e[0m")
           @main.options = {"code-name" => "foo", "databases" => ["not existing"], "domains" => ["foo.example.com"]}
           lambda { @main.add }.should raise_error(SystemExit)
         end
@@ -332,6 +332,8 @@ OUT
       exception = Shelly::Client::APIError.new(response.to_json)
       @app.should_receive(:create).and_raise(exception)
       $stdout.should_receive(:puts).with("\e[31mCode name has been already taken\e[0m")
+      $stdout.should_receive(:puts).with("\e[31mFix erros in the below command and type it again to create your application\e[0m")
+      $stdout.should_receive(:puts).with("\e[31mshelly add --code-name=foo-production --databases=postgresql --domains=foo-production.shellyapp.com\e[0m")
       lambda {
         fake_stdin(["", ""]) do
           @main.add
