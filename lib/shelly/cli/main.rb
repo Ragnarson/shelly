@@ -31,9 +31,7 @@ module Shelly
         say "Check you mailbox for email address confirmation"
       rescue Client::APIError => e
         if e.validation?
-          e.errors.each_error do |error|
-            say_error "#{error.first} #{error.last}", :with_exit => false
-          end
+          e.each_error { |error| say_error "#{error}", :with_exit => false }
           exit 1
         end
       rescue RestClient::Conflict
@@ -58,7 +56,7 @@ module Shelly
         end
       rescue Client::APIError => e
         if e.validation?
-          e.errors.each_error { |error| say_error "#{error.first} #{error.last}", :with_exit => false }
+          e.each_error { |error| say_error "#{error}", :with_exit => false }
           exit 1
         end
         if e.unauthorized?
@@ -101,7 +99,7 @@ module Shelly
 
       rescue Client::APIError => e
         if e.validation?
-          e.errors.each_error { |error| say_error "#{error.first} #{error.last}", :with_exit => false }
+          e.each_error { |error| say_error "#{error}", :with_exit => false }
           say_new_line
           say_error "Fix erros in the below command and type it again to create your application" , :with_exit => false
           say_error "shelly add --code-name=#{@app.code_name} --databases=#{@app.databases.join} --domains=#{@app.code_name}.shellyapp.com"

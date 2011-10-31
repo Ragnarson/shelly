@@ -27,6 +27,12 @@ module Shelly
       def unauthorized?
         message == "Unauthorized"
       end
+      
+      def each_error
+        @response["errors"].each do |index,message|
+          yield index.gsub('_',' ').capitalize + " " + message
+        end
+      end
     end
 
     def initialize(email = nil, password = nil)
