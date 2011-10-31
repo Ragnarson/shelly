@@ -3,7 +3,6 @@ require "shelly/cli/main"
 
 describe Shelly::CLI::Main do
   before do
-    ENV['SHELLY_GIT_HOST'] = nil
     FileUtils.stub(:chmod)
     @main = Shelly::CLI::Main.new
     @client = mock
@@ -239,22 +238,40 @@ OUT
     context "command line options" do
       context "invalid params" do
         it "should show help and exit if not all options are passed" do
-          $stdout.should_receive(:puts).with("Wrong parameters. See 'shelly help add' for further information")
-          @main.options = {"code_name" => "foo"}
+          $stdout.should_receive(:puts).with("Try 'shelly help add' for more information")
+          @main.options = {"code-name" => "foo"}
           lambda { @main.add }.should raise_error(SystemExit)
         end
 
         it "should exit if databases are not valid" do
-          $stdout.should_receive(:puts).with("Wrong parameters. See 'shelly help add' for further information")
-          @main.options = {"code_name" => "foo", "databases" => ["not existing"], "domains" => ["foo.example.com"]}
+          $stdout.should_receive(:puts).with("Try 'shelly help add' for more information")
+          @main.options = {"code-name" => "foo", "databases" => ["not existing"], "domains" => ["foo.example.com"]}
           lambda { @main.add }.should raise_error(SystemExit)
         end
+
+        it "should accept databases separated by comma" do
+          @main.options = {"code-name" => "foo", "databases" => ["postgresql,", "mongodb"], "domains" => ["foo.example.com"]}
+          @app.should_receive(:databases=).with(["postgresql", "mongodb"])
+          @main.add
+        end
+
+        it "should display which parameter was wrong" do
+          expected = "shelly: unrecognized option '--unknown=param'\n" +
+                      "Usage: shelly [COMMAND]... [OPTIONS]\n" +
+                      "Try 'shelly --help' for more information"
+
+          Open3.popen3("bin/shelly add --unknown=param") do |stdin, stdout, stderr, wait_thr|
+            out = stderr.read.strip
+            out.should == expected
+          end
+        end
+
       end
 
       context "valid params" do
         it "should create app on shelly cloud" do
           @app.should_receive(:create)
-          @main.options = {"code_name" => "foo", "environment" => "production", "databases" => ["postgresql"], "domains" => ["foo.example.com"]}
+          @main.options = {"code-name" => "foo", "databases" => ["postgresql"], "domains" => ["foo.example.com"]}
           @main.add
         end
       end

@@ -8,6 +8,7 @@ module Shelly
       include Thor::Actions
       include Helpers
       register(Users, "users", "users <command>", "Manages users using this app")
+      check_unknown_options!
 
       map %w(-v --version) => :version
       desc "version", "Displays shelly version"
@@ -68,20 +69,20 @@ module Shelly
         end
       end
 
-      method_option :code_name, :type => :string, :aliases => "-c",
+      method_option "code-name", :type => :string, :aliases => "-c",
         :desc => "Unique code_name of your application"
       method_option :databases, :type => :array, :aliases => "-d",
         :banner => "#{Shelly::App::DATABASE_KINDS.join(' ')}",
         :desc => "Array of databases of your choice"
       method_option :domains, :type => :array,
-        :banner => "CODE_NAME.shellycloud.com YOUR_DOMAIN.com",
+        :banner => "CODE-NAME.shellyapp.com YOUR-DOMAIN.com",
         :desc => "Array of your domains"
       desc "add", "Adds new application to Shelly Cloud"
       def add
         say_error "Must be run inside your project git repository" unless App.inside_git_repository?
         check_options(options)
         @app = Shelly::App.new
-        @app.code_name = options["code_name"] || ask_for_code_name
+        @app.code_name = options["code-name"] || ask_for_code_name
         @app.databases = options["databases"] || ask_for_databases
         @app.domains = options["domains"]
         @app.create
@@ -97,6 +98,7 @@ module Shelly
 
         info_adding_cloudfile_to_repository
         info_deploying_to_shellycloud
+
       rescue Client::APIError => e
         if e.validation?
           e.errors.each_error { |error| say_error "#{error.first} #{error.last}", :with_exit => false }
@@ -107,12 +109,16 @@ module Shelly
       # FIXME: move to helpers
       no_tasks do
         def check_options(options)
-          unless ["code_name", "databases", "domains"].all? do |option|
-            options.include?(option.to_s) && options[option.to_s] != option.to_s
-          end && valid_databases?(options["databases"])
-            say "Wrong parameters. See 'shelly help add' for further information"
-            exit 1
-          end unless options.empty?
+          unless options.empty?
+            options["domains"].map! {|domain| domain.gsub(",", "") } if options["domains"]
+            options["databases"].map! {|kind| kind.gsub(",", "") } if options["databases"]
+            unless ["code-name", "databases", "domains"].all? do |option|
+              options.include?(option.to_s) && options[option.to_s] != option.to_s
+            end && valid_databases?(options["databases"])
+              say "Try 'shelly help add' for more information"
+              exit 1
+            end
+          end
         end
 
         def valid_databases?(databases)
