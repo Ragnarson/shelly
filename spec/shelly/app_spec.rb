@@ -121,24 +121,52 @@ config
   end
 
   describe "#create" do
-    it "should create the app on shelly cloud via API client" do
-      @app.code_name = "fooo"
-      attributes = {
-        :code_name => "fooo",
-        :name => "fooo",
-        :environment => "production",
-        :ruby_version => "MRI-1.9.2",
-        :domain_name => "fooo.shellycloud.com"
-      }
-      @client.should_receive(:create_app).with(attributes).and_return("git_url" => "git@git.shellycloud.com:fooo.git")
-      @app.create
+    context "without providing domain" do
+      it "should create the app on shelly cloud via API client" do
+        @app.code_name = "fooo"
+        attributes = {
+          :code_name => "fooo",
+          :name => "fooo",
+          :environment => "production",
+          :ruby_version => "MRI-1.9.2",
+          :domain_name => nil
+        }
+        @client.should_receive(:create_app).with(attributes).and_return("git_url" => "git@git.shellycloud.com:fooo.git",
+          "domain_name" => "fooo.shellyapp.com")
+        @app.create
+      end
+
+      it "should assign returned git_url and domain" do
+        @client.stub(:create_app).and_return("git_url" => "git@git.example.com:fooo.git",
+          "domain_name" => "fooo.shellyapp.com")
+        @app.create
+        @app.git_url.should == "git@git.example.com:fooo.git"
+        @app.domains.should == ["fooo.shellyapp.com"]
+      end
     end
 
-    it "should assign returned git_url" do
-      @client.stub(:create_app).and_return("git_url" => "git@git.example.com:fooo.git")
-      @app.create
-      @app.git_url.should == "git@git.example.com:fooo.git"
+    context "with providing domain" do
+      it "should create the app on shelly cloud via API client" do
+        @app.code_name = "boo"
+        @app.domains = ["boo.shellyapp.com", "boo.example.com"]
+        attributes = {
+          :code_name => "boo",
+          :name => "boo",
+          :environment => "production",
+          :ruby_version => "MRI-1.9.2",
+          :domain_name => ["boo.shellyapp.com", "boo.example.com"]
+        }
+        @client.should_receive(:create_app).with(attributes).and_return("git_url" => "git@git.shellycloud.com:fooo.git",
+          "domain_name" => "boo.shellyapp.com boo.example.com")
+        @app.create
+      end
+
+      it "should assign returned git_url and domain" do
+        @client.stub(:create_app).and_return("git_url" => "git@git.example.com:fooo.git",
+          "domain_name" => "boo.shellyapp.com boo.example.com")
+        @app.create
+        @app.domains.should == ["boo.shellyapp.com", "boo.example.com"]
+      end
     end
   end
 end
-

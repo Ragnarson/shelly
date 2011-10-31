@@ -1,5 +1,6 @@
 require "yaml"
 require "shelly/user"
+require "shelly/cloudfile"
 
 module Shelly
   module CLI
@@ -10,15 +11,10 @@ module Shelly
       desc "list", "List users who have access to current application"
       def list
         say_error "Must be run inside your project git repository" unless App.inside_git_repository?
-        # FIXME: Create Cloudfile model, and move parsing and fetching API response to it
-        code_names = YAML.load(File.open(File.join(Dir.pwd, "Cloudfile"))).keys
-        @app = Shelly::App.new
-        response = @app.users(code_names.sort)
-        response.each do |app|
-          say "Cloud #{app['code_name']}:"
-          app['users'].each do |user|
-            say "  #{user['email']} (#{user['name']})"
-          end
+        @cloudfile = Shelly::Cloudfile.new
+        @cloudfile.fetch_users.each do |app, users|
+          say "Cloud #{app}:"
+          users.each { |user| say "  #{user}" }
         end
       rescue Client::APIError => e
         say e.message
@@ -28,4 +24,3 @@ module Shelly
     end
   end
 end
-
