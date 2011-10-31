@@ -30,9 +30,7 @@ module Shelly
         say "Check you mailbox for email address confirmation"
       rescue Client::APIError => e
         if e.validation?
-          e.errors.each_error do |error|
-            say_error "#{error.first} #{error.last}", :with_exit => false
-          end
+          e.each_error { |error| say_error "#{error}", :with_exit => false }
           exit 1
         end
       rescue RestClient::Conflict
@@ -57,7 +55,7 @@ module Shelly
         end
       rescue Client::APIError => e
         if e.validation?
-          e.errors.each_error { |error| say_error "#{error.first} #{error.last}", :with_exit => false }
+          e.each_error { |error| say_error "#{error}", :with_exit => false }
           exit 1
         end
         if e.unauthorized?
@@ -99,7 +97,7 @@ module Shelly
         info_deploying_to_shellycloud
       rescue Client::APIError => e
         if e.validation?
-          e.errors.each_error { |error| say_error "#{error.first} #{error.last}", :with_exit => false }
+          e.each_error { |error| say_error "#{error}", :with_exit => false }
           exit 1
         end
       end
