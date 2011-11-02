@@ -16,5 +16,16 @@ module Shelly
       say  message, :red
       exit 1 if options[:with_exit]
     end
+
+    def ask_for_email(options = {})
+      options = {:guess_email => true}.merge(options)
+      email_question = options[:guess_email] && !User.guess_email.blank? ? "Email (#{User.guess_email} - default):" : "Email:"
+      email = ask(email_question)
+      email = email.blank? ? User.guess_email : email
+      return email if email.present?
+      say_error "Email can't be blank, please try again"
+    end
+
   end
 end
+

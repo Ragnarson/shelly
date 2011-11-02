@@ -21,6 +21,20 @@ module Shelly
         exit 1
       end
 
+      desc "add EMAIL", "Add new developer to applications defined in Cloudfile"
+      def add(email = nil)
+        say_error "Must be run inside your project git repository" unless App.inside_git_repository?
+        user_email = email || ask_for_email({:guess_email => false})
+        @cloudfile = Shelly::Cloudfile.new
+        @user = Shelly::User.new
+        @user.send_invitation(@cloudfile.clouds, user_email)
+        say "Sending invitation to #{user_email}"
+      rescue Client::APIError => e
+        say e.message
+        exit 1
+      end
+
     end
   end
 end
+

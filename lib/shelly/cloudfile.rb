@@ -21,6 +21,10 @@ module Shelly
       end
     end
 
+    def clouds
+      @content.keys.sort
+    end
+
     def yaml(hash)
       string = hash.deep_stringify_keys.to_yaml
       # FIXME: check if it possible to remove sub("---", "") by passing options to_yaml
@@ -28,7 +32,7 @@ module Shelly
     end
 
     def fetch_users
-      response = shelly.app_users(@content.keys.sort)
+      response = shelly.app_users(clouds)
       response.inject({}) do |result, app|
         result[app['code_name']] = app['users'].map do |user|
           "#{user['email']} (#{user['name']})"
@@ -38,3 +42,4 @@ module Shelly
     end
   end
 end
+

@@ -29,6 +29,10 @@ module Shelly
       shelly.token["token"]
     end
 
+    def send_invitation(apps, email)
+      shelly.send_invitation(apps, email)
+    end
+
     def load_credentials
       return unless credentials_exists?
       @email, @password = File.read(credentials_path).split("\n")
@@ -47,7 +51,7 @@ module Shelly
     def ssh_key_path
       File.expand_path("~/.ssh/id_rsa.pub")
     end
-    
+
     def ssh_key_registered?
     	ssh_key = File.read(ssh_key_path).strip
     	shelly.ssh_key_available?(ssh_key)
@@ -81,3 +85,4 @@ module Shelly
       end
     end
 end
+

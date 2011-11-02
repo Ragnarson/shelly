@@ -27,7 +27,7 @@ module Shelly
       def unauthorized?
         message == "Unauthorized"
       end
-      
+
       def each_error
         @response["errors"].each do |index,message|
           yield index.gsub('_',' ').capitalize + " " + message
@@ -54,6 +54,12 @@ module Shelly
 
     def token
       get("/token")
+    end
+
+    def send_invitation(apps, email)
+      apps.map do |app|
+        post("/apps/#{app}/collaborations", :email => email)
+      end
     end
 
     def create_app(attributes)
@@ -125,3 +131,4 @@ module Shelly
     end
   end
 end
+

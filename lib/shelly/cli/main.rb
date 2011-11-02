@@ -125,14 +125,6 @@ module Shelly
           databases.all? { |kind| kinds.include?(kind) }
         end
 
-        def ask_for_email
-          email_question = User.guess_email.blank? ? "Email:" : "Email (#{User.guess_email} - default):"
-          email = ask(email_question)
-          email = email.blank? ? User.guess_email : email
-          return email if email.present?
-          say_error "Email can't be blank, please try again"
-        end
-
         def ask_for_password(options = {})
           options = {:with_confirmation => true}.merge(options)
           loop do

@@ -13,15 +13,15 @@ describe Shelly::Client::APIError do
   it "should return array of errors" do
     @error.errors.should == [["first", "foo"]]
   end
-  
+
   it "should return url" do
     @error.url.should == "https://foo.bar"
   end
-  
+
   it "should return user friendly string" do
-    @error.each_error{|error| error.should == "First foo"} 
+    @error.each_error{|error| error.should == "First foo"}
   end
-  
+
   describe "#validation?" do
     context "when error is caused by validation errors" do
       it "should return true" do
@@ -37,7 +37,7 @@ describe Shelly::Client::APIError do
       end
     end
   end
-  
+
   describe "#unauthorized?" do
     context "when error is caused by unauthorized error" do
       it "should return true" do
@@ -114,6 +114,15 @@ describe Shelly::Client do
       response = @client.app_users(["staging-foo", "production-foo"])
       response.should == [{"code_name" => "staging-foo"},
         {"code_name" => "production-foo"}]
+    end
+  end
+
+  describe "#send_invitation" do
+    it "should send post with developer's email" do
+      FakeWeb.register_uri(:post, @url + "/apps/staging-foo/collaborations", :body => {}.to_json)
+      FakeWeb.register_uri(:post, @url + "/apps/production-foo/collaborations", :body => {}.to_json)
+      response = @client.send_invitation(["staging-foo", "production-foo"], "megan@example.com")
+      response.should == [{}, {}]
     end
   end
 
