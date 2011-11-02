@@ -21,7 +21,7 @@ module Shelly
         exit 1
       end
 
-      desc "add EMAIL", "Add new developer to applications defined in Cloudfile"
+      desc "add [EMAIL]", "Add new developer to applications defined in Cloudfile"
       def add(email = nil)
         say_error "Must be run inside your project git repository" unless App.inside_git_repository?
         user_email = email || ask_for_email({:guess_email => false})

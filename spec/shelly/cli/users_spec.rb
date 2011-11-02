@@ -14,14 +14,10 @@ describe Shelly::CLI::Users do
 
   describe "#help" do
     it "should show help" do
-      expected = <<-OUT
-Tasks:
-  shelly add EMAIL       # Add new developer to applications defined in Cloudfile
-  shelly help [COMMAND]  # Describe subcommands or one specific subcommand
-  shelly list            # List users who have access to current application
-OUT
-      out = IO.popen("bin/shelly users").read.strip
-      out.should == expected.strip
+      $stdout.should_receive(:puts).with("Tasks:")
+      $stdout.should_receive(:puts).with(/add \[EMAIL\]\s+# Add new developer to applications defined in Cloudfile/)
+      $stdout.should_receive(:puts).with(/list\s+# List users who have access to current application/)
+      @users.help
     end
   end
 
