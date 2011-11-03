@@ -35,7 +35,7 @@ module Shelly
         :code_name    => code_name,
         :environment  => environment,
         :ruby_version => ruby_version,
-        :domain_name  => domains
+        :domain_name  => domains ? domains.join(" ") : nil
       }
       response = shelly.create_app(attributes)
       self.git_url = response["git_url"]
@@ -69,3 +69,4 @@ module Shelly
     end
   end
 end
+

@@ -154,7 +154,7 @@ config
           :name => "boo",
           :environment => "production",
           :ruby_version => "MRI-1.9.2",
-          :domain_name => ["boo.shellyapp.com", "boo.example.com"]
+          :domain_name => "boo.shellyapp.com boo.example.com"
         }
         @client.should_receive(:create_app).with(attributes).and_return("git_url" => "git@git.shellycloud.com:fooo.git",
           "domain_name" => "boo.shellyapp.com boo.example.com")
@@ -170,3 +170,4 @@ config
     end
   end
 end
+
