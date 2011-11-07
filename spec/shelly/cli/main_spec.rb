@@ -40,14 +40,16 @@ OUT
       @client.stub(:register_user)
       @key_path = File.expand_path("~/.ssh/id_rsa.pub")
       @user = Shelly::User.new
-      @user.stub(:ssh_key_registered?)
+      FileUtils.mkdir_p("~/.ssh")
+      File.open("~/.ssh/id_rsa.pub", "w") { |f| f << "ssh-key AAbbcc" }
+      @client.stub(:ssh_key_available?)
       Shelly::User.stub(:new).and_return(@user)
     end
 
     it "should return false if ssh key don't exist on local hard drive" do
-      @user.stub(:ssh_key_registered?).and_raise(Errno::ENOENT)
-      File.exists?(File.expand_path("~/.ssh/id_rsa.pub")).should be_false
-      $stdout.should_receive(:puts).with("\e[31mNo such file or directory\e[0m")
+      FileUtils.rm_rf(@key_path)
+      File.exists?(@key_path).should be_false
+      $stdout.should_receive(:puts).with("\e[31mNo such file or directory - " + @key_path + "\e[0m")
       $stdout.should_receive(:puts).with("\e[31mUse ssh-keygen to generate ssh key pair\e[0m")
       lambda {
         @main.register
@@ -75,14 +77,14 @@ OUT
     it "should suggest email and use it if user enters blank email" do
       Shelly::User.stub(:guess_email).and_return("kate@example.com")
       $stdout.should_receive(:print).with("Email (kate@example.com - default): ")
-      @client.should_receive(:register_user).with("kate@example.com", "secret", nil)
+      @client.should_receive(:register_user).with("kate@example.com", "secret", "ssh-key AAbbcc")
       fake_stdin(["", "secret", "secret"]) do
         @main.register
       end
     end
 
     it "should use email provided by user" do
-      @client.should_receive(:register_user).with("better@example.com", "secret", nil)
+      @client.should_receive(:register_user).with("better@example.com", "secret", "ssh-key AAbbcc")
       fake_stdin(["better@example.com", "secret", "secret"]) do
         @main.register
       end
@@ -120,6 +122,8 @@ OUT
 
     context "public SSH key doesn't exist" do
       it "should register user without the public SSH key" do
+        @user.stub(:ssh_key_registered?)
+        FileUtils.rm_rf(@key_path)
         $stdout.should_not_receive(:puts).with("Uploading your public SSH key from #{@key_path}")
         fake_stdin(["kate@example.com", "secret", "secret"]) do
           @main.register
