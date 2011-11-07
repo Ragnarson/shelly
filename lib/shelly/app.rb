@@ -12,7 +12,7 @@ module Shelly
     end
 
     def add_git_remote
-      system("git remote rm production &> /dev/null")
+      system("git remote rm production > /dev/null 2>&1")
       system("git remote add production #{git_url}")
     end
 
