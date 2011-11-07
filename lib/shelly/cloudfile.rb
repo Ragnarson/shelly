@@ -2,6 +2,10 @@ module Shelly
   class Cloudfile < Base
     attr_accessor :content
 
+    def self.present?
+      File.exists?(File.join(Dir.pwd, "Cloudfile"))
+    end
+
     def initialize
       open if File.exists?(path)
     end

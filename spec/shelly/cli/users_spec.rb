@@ -30,9 +30,16 @@ describe Shelly::CLI::Users do
     end
 
     it "should exit with message if command run outside git repository" do
-      @client.stub(:app_users).and_return(response)
       Shelly::App.stub(:inside_git_repository?).and_return(false)
       $stdout.should_receive(:puts).with("\e[31mMust be run inside your project git repository\e[0m")
+      lambda {
+        @users.list
+      }.should raise_error(SystemExit)
+    end
+
+    it "should exit with message if there is no Cloudfile" do
+      File.delete("Cloudfile")
+      $stdout.should_receive(:puts).with("\e[31mNo Cloudfile found\e[0m")
       lambda {
         @users.list
       }.should raise_error(SystemExit)
@@ -81,6 +88,14 @@ describe Shelly::CLI::Users do
       @user = Shelly::User.new
       @client.stub(:apps).and_return([{"code_name" => "abc"}, {"code_name" => "fooo"}])
       Shelly::User.stub(:new).and_return(@user)
+    end
+
+    it "should exit with message if there is no Cloudfile" do
+      File.delete("Cloudfile")
+      $stdout.should_receive(:puts).with("\e[31mNo Cloudfile found\e[0m")
+      lambda {
+        @users.list
+      }.should raise_error(SystemExit)
     end
 
     it "should exit with message if command run outside git repository" do

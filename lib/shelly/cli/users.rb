@@ -11,6 +11,7 @@ module Shelly
       desc "list", "List users who have access to current application"
       def list
         say_error "Must be run inside your project git repository" unless App.inside_git_repository?
+        say_error "No Cloudfile found" unless Cloudfile.present?
         @cloudfile = Shelly::Cloudfile.new
         @cloudfile.fetch_users.each do |app, users|
           say "Cloud #{app}:"
@@ -24,6 +25,7 @@ module Shelly
       desc "add [EMAIL]", "Add new developer to applications defined in Cloudfile"
       def add(email = nil)
         say_error "Must be run inside your project git repository" unless App.inside_git_repository?
+        say_error "No Cloudfile found" unless Cloudfile.present?
         user_email = email || ask_for_email({:guess_email => false})
         @cloudfile = Shelly::Cloudfile.new
         @user = Shelly::User.new
