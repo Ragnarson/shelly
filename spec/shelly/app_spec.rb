@@ -41,7 +41,7 @@ describe Shelly::App do
     end
 
     it "should try to remove existing git remote" do
-      @app.should_receive(:system).with("git remote rm production &> /dev/null")
+      @app.should_receive(:system).with("git remote rm production > /dev/null 2>&1")
       @app.add_git_remote
     end
 
