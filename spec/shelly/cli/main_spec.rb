@@ -240,6 +240,7 @@ OUT
     end
 
     context "command line options" do
+
       context "invalid params" do
         it "should show help and exit if not all options are passed" do
           $stdout.should_receive(:puts).with("\e[31mTry 'shelly help add' for more information\e[0m")
@@ -251,12 +252,6 @@ OUT
           $stdout.should_receive(:puts).with("\e[31mTry 'shelly help add' for more information\e[0m")
           @main.options = {"code-name" => "foo", "databases" => ["not existing"], "domains" => ["foo.example.com"]}
           lambda { @main.add }.should raise_error(SystemExit)
-        end
-
-        it "should accept databases separated by comma" do
-          @main.options = {"code-name" => "foo", "databases" => ["postgresql,", "mongodb"], "domains" => ["foo.example.com"]}
-          @app.should_receive(:databases=).with(["postgresql", "mongodb"])
-          @main.add
         end
 
         it "should display which parameter was wrong" do

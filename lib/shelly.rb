@@ -5,6 +5,7 @@ require "core_ext/hash"
 require "shelly/helpers"
 require "shelly/base"
 require "thor/options"
+require "thor/arguments"
 
 module Shelly
   autoload :App, "shelly/app"

@@ -70,10 +70,10 @@ module Shelly
       method_option "code-name", :type => :string, :aliases => "-c",
         :desc => "Unique code_name of your application"
       method_option :databases, :type => :array, :aliases => "-d",
-        :banner => "#{Shelly::App::DATABASE_KINDS.join(' ')}",
+        :banner => "#{Shelly::App::DATABASE_KINDS.join(', ')}",
         :desc => "Array of databases of your choice"
       method_option :domains, :type => :array,
-        :banner => "CODE-NAME.shellyapp.com YOUR-DOMAIN.com",
+        :banner => "CODE-NAME.shellyapp.com, YOUR-DOMAIN.com",
         :desc => "Array of your domains"
       desc "add", "Adds new application to Shelly Cloud"
       def add
@@ -110,8 +110,6 @@ module Shelly
       no_tasks do
         def check_options(options)
           unless options.empty?
-            options["domains"].map! {|domain| domain.gsub(",", "") } if options["domains"]
-            options["databases"].map! {|kind| kind.gsub(",", "") } if options["databases"]
             unless ["code-name", "databases", "domains"].all? do |option|
               options.include?(option.to_s) && options[option.to_s] != option.to_s
             end && valid_databases?(options["databases"])
