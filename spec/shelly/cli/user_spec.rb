@@ -1,10 +1,10 @@
 require "spec_helper"
-require "shelly/cli/users"
+require "shelly/cli/user"
 
-describe Shelly::CLI::Users do
+describe Shelly::CLI::User do
   before do
     FileUtils.stub(:chmod)
-    @users = Shelly::CLI::Users.new
+    @users = Shelly::CLI::User.new
     @client = mock
     Shelly::Client.stub(:new).and_return(@client)
     Shelly::User.stub(:guess_email).and_return("")

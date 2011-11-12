@@ -4,7 +4,7 @@ require "shelly/cloudfile"
 
 module Shelly
   module CLI
-    class Users < Thor
+    class User < Thor
       namespace :users
       include Helpers
 
@@ -32,8 +32,10 @@ module Shelly
         @user.send_invitation(@cloudfile.clouds, user_email)
         say "Sending invitation to #{user_email}"
       rescue Client::APIError => e
-        say e.message
-        exit 1
+        if e.validation?
+          e.each_error { |error| say_error error =~ /already in the project/ ? error.gsub("Email", "User") : error, :with_exit => false }
+          exit 1
+        end
       end
 
     end

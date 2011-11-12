@@ -1,13 +1,13 @@
 require "shelly"
 require "thor/group"
-require "shelly/cli/users"
+require "shelly/cli/user"
 
 module Shelly
   module CLI
     class Main < Thor
       include Thor::Actions
       include Helpers
-      register(Users, "users", "users <command>", "Manages users using this app")
+      register(User, "user", "user <command>", "Manages users using this app")
       check_unknown_options!
 
       map %w(-v --version) => :version
@@ -18,7 +18,7 @@ module Shelly
 
       desc "register [EMAIL]", "Registers new user account on Shelly Cloud"
       def register(email = nil)
-      	user = User.new
+      	user = Shelly::User.new
       	user.ssh_key_registered?
         say "Registering with email: #{email}" if email
 				user.email = (email || ask_for_email)
@@ -45,7 +45,7 @@ module Shelly
 
       desc "login [EMAIL]", "Logins user to Shelly Cloud"
       def login(email = nil)
-        user = User.new(email || ask_for_email, ask_for_password(:with_confirmation => false))
+        user = Shelly::User.new(email || ask_for_email, ask_for_password(:with_confirmation => false))
         user.login
         say "Login successful"
         say "Uploading your public SSH key"
