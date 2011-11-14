@@ -50,7 +50,7 @@ describe Shelly::App do
       FakeFS.deactivate!
       expected = <<-config
 foo-staging:
-  ruby: 1.9.2 # 1.9.2 or ree
+  ruby_version: 1.9.2 # 1.9.2 or ree
   environment: production # RAILS_ENV
   monitoring_email:
     - bob@example.com
