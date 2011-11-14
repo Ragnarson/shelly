@@ -6,11 +6,6 @@ module Shelly
     DATABASE_KINDS = %w(postgresql mongodb redis none)
     attr_accessor :code_name, :databases, :ruby_version, :environment, :git_url, :domains
 
-    def initialize
-      @ruby_version = "MRI-1.9.2"
-      @environment = "production"
-    end
-
     def add_git_remote
       system("git remote rm production > /dev/null 2>&1")
       system("git remote add production #{git_url}")
@@ -30,16 +25,12 @@ module Shelly
     end
 
     def create
-      attributes = {
-        :name         => code_name,
-        :code_name    => code_name,
-        :environment  => environment,
-        :ruby_version => ruby_version,
-        :domain_name  => domains ? domains.join(" ") : nil
-      }
+      attributes = {:name => code_name, :code_name => code_name, :domains => domains}
       response = shelly.create_app(attributes)
       self.git_url = response["git_url"]
-      self.domains = response["domain_name"].split if domains.nil?
+      self.domains = response["domains"]
+      self.ruby_version = response["ruby_version"]
+      self.environment = response["environment"]
     end
 
     def create_cloudfile
