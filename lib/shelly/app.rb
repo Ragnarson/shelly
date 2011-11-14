@@ -4,7 +4,8 @@ require 'launchy'
 module Shelly
   class App < Base
     DATABASE_KINDS = %w(postgresql mongodb redis none)
-    attr_accessor :code_name, :databases, :ruby_version, :environment, :git_url, :domains
+    attr_accessor :code_name, :databases, :ruby_version, :environment,
+      :git_url, :domains
 
     def add_git_remote
       system("git remote rm production > /dev/null 2>&1")
@@ -13,8 +14,6 @@ module Shelly
 
     def generate_cloudfile
       @email = current_user.email
-      @databases = databases
-      @domains = domains
       template = File.read(cloudfile_template_path)
       cloudfile = ERB.new(template, 0, "%<>-")
       cloudfile.result(binding)
