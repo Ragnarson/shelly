@@ -11,16 +11,6 @@ describe Shelly::App do
     @app.code_name = "foo-staging"
   end
 
-  describe "being initialized" do
-    it "should have default ruby_version: MRI-1.9.2" do
-      @app.ruby_version.should == "MRI-1.9.2"
-    end
-
-    it "should have default environment: production" do
-      @app.environment.should == "production"
-    end
-  end
-
   describe ".guess_code_name" do
     it "should return name of current working directory" do
       Shelly::App.guess_code_name.should == "foo"
@@ -127,21 +117,21 @@ config
         attributes = {
           :code_name => "fooo",
           :name => "fooo",
-          :environment => "production",
-          :ruby_version => "MRI-1.9.2",
-          :domain_name => nil
+          :domains => nil
         }
         @client.should_receive(:create_app).with(attributes).and_return("git_url" => "git@git.shellycloud.com:fooo.git",
-          "domain_name" => "fooo.shellyapp.com")
+          "domains" => %w(fooo.shellyapp.com))
         @app.create
       end
 
-      it "should assign returned git_url and domain" do
+      it "should assign returned git_url, domains, ruby_version and environment" do
         @client.stub(:create_app).and_return("git_url" => "git@git.example.com:fooo.git",
-          "domain_name" => "fooo.shellyapp.com")
+          "domains" => ["fooo.shellyapp.com"], "ruby_version" => "1.9.2", "environment" => "production")
         @app.create
         @app.git_url.should == "git@git.example.com:fooo.git"
         @app.domains.should == ["fooo.shellyapp.com"]
+        @app.ruby_version.should == "1.9.2"
+        @app.environment.should == "production"
       end
     end
 
@@ -152,20 +142,18 @@ config
         attributes = {
           :code_name => "boo",
           :name => "boo",
-          :environment => "production",
-          :ruby_version => "MRI-1.9.2",
-          :domain_name => "boo.shellyapp.com boo.example.com"
+          :domains => %w(boo.shellyapp.com boo.example.com)
         }
         @client.should_receive(:create_app).with(attributes).and_return("git_url" => "git@git.shellycloud.com:fooo.git",
-          "domain_name" => "boo.shellyapp.com boo.example.com")
+          "domains" => %w(boo.shellyapp.com boo.example.com))
         @app.create
       end
 
       it "should assign returned git_url and domain" do
         @client.stub(:create_app).and_return("git_url" => "git@git.example.com:fooo.git",
-          "domain_name" => "boo.shellyapp.com boo.example.com")
+          "domains" => %w(boo.shellyapp.com boo.example.com))
         @app.create
-        @app.domains.should == ["boo.shellyapp.com", "boo.example.com"]
+        @app.domains.should == %w(boo.shellyapp.com boo.example.com)
       end
     end
   end
