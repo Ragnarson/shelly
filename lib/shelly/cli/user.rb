@@ -8,7 +8,7 @@ module Shelly
       namespace :user
       include Helpers
 
-      desc "list", "List users who have access to clouds defined in Cloudfile"
+      desc "list", "List users with access to clouds defined in Cloudfile"
       def list
         say_error "Must be run inside your project git repository" unless App.inside_git_repository?
         say_error "No Cloudfile found" unless Cloudfile.present?

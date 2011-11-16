@@ -43,7 +43,7 @@ module Shelly
         say_error "Use ssh-keygen to generate ssh key pair"
       end
 
-      desc "login [EMAIL]", "Logins user to Shelly Cloud"
+      desc "login [EMAIL]", "Logs user in to Shelly Cloud"
       def login(email = nil)
         user = Shelly::User.new(email || ask_for_email, ask_for_password(:with_confirmation => false))
         user.login
