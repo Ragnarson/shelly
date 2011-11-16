@@ -94,8 +94,8 @@ describe Shelly::User do
 
   describe "#send_invitation" do
     it "should send invitation" do
-      @client.should_receive(:send_invitation).with(["foo-staging"], "megan@example.com")
-      @user.send_invitation(["foo-staging"], "megan@example.com")
+      @client.should_receive(:send_invitation).with("foo-staging", "megan@example.com")
+      @user.send_invitation("foo-staging", "megan@example.com")
     end
   end
 

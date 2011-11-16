@@ -29,8 +29,8 @@ module Shelly
       shelly.token["token"]
     end
 
-    def send_invitation(apps, email)
-      shelly.send_invitation(apps, email)
+    def send_invitation(cloud, email)
+      shelly.send_invitation(cloud, email)
     end
 
     def load_credentials

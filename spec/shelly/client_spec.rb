@@ -111,9 +111,8 @@ describe Shelly::Client do
     it "should send post with app code_names" do
       FakeWeb.register_uri(:get, @url + "/apps/staging-foo/users", :body => {:code_name => "staging-foo"}.to_json)
       FakeWeb.register_uri(:get, @url + "/apps/production-foo/users", :body => {:code_name => "production-foo"}.to_json)
-      response = @client.app_users(["staging-foo", "production-foo"])
-      response.should == [{"code_name" => "staging-foo"},
-        {"code_name" => "production-foo"}]
+      response = @client.apps_users(["staging-foo", "production-foo"])
+      response.should == [{"code_name" => "staging-foo"}, {"code_name" => "production-foo"}]
     end
   end
 
@@ -121,8 +120,8 @@ describe Shelly::Client do
     it "should send post with developer's email" do
       FakeWeb.register_uri(:post, @url + "/apps/staging-foo/collaborations", :body => {}.to_json)
       FakeWeb.register_uri(:post, @url + "/apps/production-foo/collaborations", :body => {}.to_json)
-      response = @client.send_invitation(["staging-foo", "production-foo"], "megan@example.com")
-      response.should == [{}, {}]
+      response = @client.send_invitation("staging-foo", "megan@example.com")
+      response.should == {}
     end
   end
 

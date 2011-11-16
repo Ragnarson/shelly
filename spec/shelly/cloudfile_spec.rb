@@ -16,7 +16,7 @@ describe Shelly::Cloudfile do
       @cloudfile.yaml(@hash).should == "code_name:\n  code: test"
     end
 
-    it "should conver a hash to yaml format" do
+    it "should convert a hash to yaml format" do
       @cloudfile.write(@hash)
       @cloudfile.open.should == {"code_name" => {"code" => "test"}}
     end
@@ -25,7 +25,7 @@ describe Shelly::Cloudfile do
   describe "#fetch_users" do
     it "should return array to display with clouds and users" do
       @cloudfile.write(@hash)
-      @client.should_receive(:app_users).and_return(response)
+      @client.should_receive(:apps_users).and_return(response)
       response = @cloudfile.fetch_users
       response.should == {"foo-staging" => ["user@example.com (username)"]}
     end

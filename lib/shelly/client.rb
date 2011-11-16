@@ -56,10 +56,8 @@ module Shelly
       get("/token")
     end
 
-    def send_invitation(apps, email)
-      apps.map do |app|
-        post("/apps/#{app}/collaborations", :email => email)
-      end
+    def send_invitation(cloud, email)
+      post("/apps/#{cloud}/collaborations", :email => email)
     end
 
     def create_app(attributes)
@@ -78,7 +76,7 @@ module Shelly
     	get("/users/new", :ssh_key => ssh_key)
     end
 
-    def app_users(apps)
+    def apps_users(apps)
       apps.map do |app|
         get("/apps/#{app}/users")
       end

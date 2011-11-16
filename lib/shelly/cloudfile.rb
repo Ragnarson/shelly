@@ -36,7 +36,7 @@ module Shelly
     end
 
     def fetch_users
-      response = shelly.app_users(clouds)
+      response = shelly.apps_users(clouds)
       response.inject({}) do |result, app|
         result[app['code_name']] = app['users'].map do |user|
           "#{user['email']} (#{user['name']})"

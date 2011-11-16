@@ -4,7 +4,7 @@ require "shelly/cli/user"
 describe Shelly::CLI::User do
   before do
     FileUtils.stub(:chmod)
-    @users = Shelly::CLI::User.new
+    @cli_user = Shelly::CLI::User.new
     @client = mock
     Shelly::Client.stub(:new).and_return(@client)
     Shelly::User.stub(:guess_email).and_return("")
@@ -15,9 +15,9 @@ describe Shelly::CLI::User do
   describe "#help" do
     it "should show help" do
       $stdout.should_receive(:puts).with("Tasks:")
-      $stdout.should_receive(:puts).with(/add \[EMAIL\]\s+# Add new developer to applications defined in Cloudfile/)
-      $stdout.should_receive(:puts).with(/list\s+# List users who have access to current application/)
-      @users.help
+      $stdout.should_receive(:puts).with(/add \[EMAIL\]\s+# Add new developer to clouds defined in Cloudfile/)
+      $stdout.should_receive(:puts).with(/list\s+# List users who have access to clouds defined in Cloudfile/)
+      @cli_user.help
     end
   end
 
@@ -33,7 +33,7 @@ describe Shelly::CLI::User do
       Shelly::App.stub(:inside_git_repository?).and_return(false)
       $stdout.should_receive(:puts).with("\e[31mMust be run inside your project git repository\e[0m")
       lambda {
-        @users.list
+        @cli_user.list
       }.should raise_error(SystemExit)
     end
 
@@ -41,39 +41,39 @@ describe Shelly::CLI::User do
       File.delete("Cloudfile")
       $stdout.should_receive(:puts).with("\e[31mNo Cloudfile found\e[0m")
       lambda {
-        @users.list
+        @cli_user.list
       }.should raise_error(SystemExit)
     end
 
     context "on success" do
       it "should receive clouds from the Cloudfile" do
-        @client.should_receive(:app_users).with(["foo-production", "foo-staging"]).
-          and_return(response)
-        @users.list
+        @client.should_receive(:apps).and_return([{"code_name" => "foo-production"}, {"code_name" => "foo-staging"}])
+        @client.should_receive(:apps_users).and_return(response)
+        @cli_user.list
       end
 
       it "should display clouds and users" do
-        @client.stub(:app_users).and_return(response)
-        $stdout.should_receive(:puts).with("Cloud foo-staging:")
-        $stdout.should_receive(:puts).with("  user@example.com (username)")
+        @client.should_receive(:apps).and_return([{"code_name" => "foo-production"}, {"code_name" => "foo-staging"}])
+        @client.stub(:apps_users).and_return(response)
         $stdout.should_receive(:puts).with("Cloud foo-production:")
+        $stdout.should_receive(:puts).with("  user@example.com (username)")
+        $stdout.should_receive(:puts).with("Cloud foo-staging:")
         $stdout.should_receive(:puts).with("  user2@example.com (username2)")
-        @users.list
+        @cli_user.list
       end
     end
 
     def response
-      [{'code_name' => 'foo-staging','users' => [{'name' => 'username','email' => 'user@example.com'}]},
-       {'code_name' => 'foo-production','users' => [{'name' => 'username2','email' => 'user2@example.com'}]}]
+      [{'code_name' => 'foo-production', 'users' => [{'name' => 'username','email' => 'user@example.com'}]},
+       {'code_name' => 'foo-staging', 'users' => [{'name' => 'username2','email' => 'user2@example.com'}]}]
     end
 
     context "on failure" do
-      it "should raise an error if user does not have access to any app" do
-        response = {"message" => "You do not have access to this app"}
-        exception = Shelly::Client::APIError.new(response.to_json)
-        @client.stub(:app_users).and_raise(exception)
-        $stdout.should_receive(:puts).with("You do not have access to this app")
-        lambda { @users.list }.should raise_error(SystemExit)
+      it "should raise an error if user does not have access to cloud" do
+        @client.should_receive(:apps).and_return([{"code_name" => "foo-production"}])
+        @client.stub(:apps_users).and_return(response)
+        $stdout.should_receive(:puts).with("\e[31mYou have no access to 'foo-staging' cloud defined in Cloudfile\e[0m")
+        lambda { @cli_user.list }.should raise_error(SystemExit)
       end
     end
   end
@@ -94,7 +94,7 @@ describe Shelly::CLI::User do
       File.delete("Cloudfile")
       $stdout.should_receive(:puts).with("\e[31mNo Cloudfile found\e[0m")
       lambda {
-        @users.list
+        @cli_user.list
       }.should raise_error(SystemExit)
     end
 
@@ -102,32 +102,39 @@ describe Shelly::CLI::User do
       Shelly::App.stub(:inside_git_repository?).and_return(false)
       $stdout.should_receive(:puts).with("\e[31mMust be run inside your project git repository\e[0m")
       lambda {
-        @users.add
+        @cli_user.add
       }.should raise_error(SystemExit)
     end
 
     context "on success" do
       before do
-        @client.should_receive(:send_invitation).with(["foo-production", "foo-staging"], "megan@example.com")
+        @client.should_receive(:send_invitation).with("foo-production", "megan@example.com")
+        @client.should_receive(:send_invitation).with("foo-staging", "megan@example.com")
+        @client.should_receive(:apps).and_return([{"code_name" => "foo-production"}, {"code_name" => "foo-staging"}])
       end
 
       it "should ask about email" do
         fake_stdin(["megan@example.com"]) do
-          @users.add
+          @cli_user.add
         end
       end
 
       it "should receive clouds from the Cloudfile" do
-        @users.add("megan@example.com")
+        @cli_user.add("megan@example.com")
       end
 
       it "should receive clouds from the Cloudfile" do
-        $stdout.should_receive(:puts).with("Sending invitation to megan@example.com")
-        @users.add("megan@example.com")
+        $stdout.should_receive(:puts).with("\e[32mSending invitation to megan@example.com to work on foo-production\e[0m")
+        @cli_user.add("megan@example.com")
       end
     end
 
+    context "on failure" do
+      it "should raise error if user doesnt have access to cloud" do
+        @client.should_receive(:apps).and_return([{"code_name" => "foo-production"}])
+        $stdout.should_receive(:puts).with("\e[31mYou have no access to 'foo-staging' cloud defined in Cloudfile\e[0m")
+        lambda { @cli_user.add("megan@example.com") }.should raise_error(SystemExit)
+      end
+    end
   end
-
 end
-
