@@ -70,7 +70,7 @@ module Shelly
       method_option "code-name", :type => :string, :aliases => "-c",
         :desc => "Unique code-name of your cloud"
       method_option :databases, :type => :array, :aliases => "-d",
-        :banner => "#{Shelly::App::DATABASE_KINDS.join(', ')}",
+        :banner => Shelly::App::DATABASE_KINDS.join(', '),
         :desc => "Array of databases of your choice"
       method_option :domains, :type => :array,
         :banner => "CODE-NAME.shellyapp.com, YOUR-DOMAIN.com",

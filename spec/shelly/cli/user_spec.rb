@@ -16,7 +16,7 @@ describe Shelly::CLI::User do
     it "should show help" do
       $stdout.should_receive(:puts).with("Tasks:")
       $stdout.should_receive(:puts).with(/add \[EMAIL\]\s+# Add new developer to clouds defined in Cloudfile/)
-      $stdout.should_receive(:puts).with(/list\s+# List users with access to clouds defined in Cloudfile/)
+        $stdout.should_receive(:puts).with(/list\s+# List users with access to clouds defined in Cloudfile/)
       @cli_user.help
     end
   end
@@ -56,7 +56,7 @@ describe Shelly::CLI::User do
         @client.should_receive(:apps).and_return([{"code_name" => "foo-production"}, {"code_name" => "foo-staging"}])
         @client.stub(:apps_users).and_return(response)
         $stdout.should_receive(:puts).with("Cloud foo-production:")
-        $stdout.should_receive(:puts).with("  user@example.com (username)")
+        $stdout.should_receive(:puts).with("  user@example.com")
         $stdout.should_receive(:puts).with("Cloud foo-staging:")
         $stdout.should_receive(:puts).with("  user2@example.com (username2)")
         @cli_user.list
@@ -64,7 +64,7 @@ describe Shelly::CLI::User do
     end
 
     def response
-      [{'code_name' => 'foo-production', 'users' => [{'name' => 'username','email' => 'user@example.com'}]},
+      [{'code_name' => 'foo-production', 'users' => [{'email' => 'user@example.com'}]},
        {'code_name' => 'foo-staging', 'users' => [{'name' => 'username2','email' => 'user2@example.com'}]}]
     end
 
