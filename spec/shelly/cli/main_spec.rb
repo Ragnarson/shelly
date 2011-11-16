@@ -23,11 +23,11 @@ describe Shelly::CLI::Main do
     it "should display available commands" do
       expected = <<-OUT
 Tasks:
-  shelly add               # Adds new application to Shelly Cloud
+  shelly add               # Adds new cloud to Shelly Cloud
   shelly help [TASK]       # Describe available tasks or one specific task
   shelly login [EMAIL]     # Logs user in to Shelly Cloud
   shelly register [EMAIL]  # Registers new user account on Shelly Cloud
-  shelly user <command>    # Manages users using this app
+  shelly user <command>    # Manages users using this cloud
   shelly version           # Displays shelly version
 OUT
       out = IO.popen("bin/shelly").read.strip
@@ -189,7 +189,7 @@ OUT
       end
 
       it "should display list of applications to which user has access" do
-        $stdout.should_receive(:puts).with("\e[32mYou have following applications available:\e[0m")
+        $stdout.should_receive(:puts).with("\e[32mYou have following clouds available:\e[0m")
         $stdout.should_receive(:puts).with("  abc")
         $stdout.should_receive(:puts).with("  fooo")
         fake_stdin(["megan@example.com", "secret"]) do
@@ -277,7 +277,7 @@ OUT
     end
 
     it "should use code name provided by user" do
-      $stdout.should_receive(:print).with("Application code name (foo-production - default): ")
+      $stdout.should_receive(:print).with("Cloud code name (foo-production - default): ")
       @app.should_receive(:code_name=).with("mycodename")
       fake_stdin(["mycodename", ""]) do
         @main.add
@@ -286,7 +286,7 @@ OUT
 
     context "when user provided empty code name" do
       it "should use 'current_dirname-purpose' as default" do
-        $stdout.should_receive(:print).with("Application code name (foo-production - default): ")
+        $stdout.should_receive(:print).with("Cloud code name (foo-production - default): ")
         @app.should_receive(:code_name=).with("foo-production")
         fake_stdin(["", ""]) do
           @main.add
@@ -331,7 +331,7 @@ OUT
       exception = Shelly::Client::APIError.new(response.to_json)
       @app.should_receive(:create).and_raise(exception)
       $stdout.should_receive(:puts).with("\e[31mCode name has been already taken\e[0m")
-      $stdout.should_receive(:puts).with("\e[31mFix erros in the below command and type it again to create your application\e[0m")
+      $stdout.should_receive(:puts).with("\e[31mFix erros in the below command and type it again to create your cloud\e[0m")
       $stdout.should_receive(:puts).with("\e[31mshelly add --code-name=foo-production --databases=postgresql --domains=foo-production.shellyapp.com\e[0m")
       lambda {
         fake_stdin(["", ""]) do

@@ -7,7 +7,7 @@ module Shelly
     class Main < Thor
       include Thor::Actions
       include Helpers
-      register(User, "user", "user <command>", "Manages users using this app")
+      register(User, "user", "user <command>", "Manages users using this cloud")
       check_unknown_options!
 
       map %w(-v --version) => :version
@@ -50,7 +50,7 @@ module Shelly
         say "Login successful"
         say "Uploading your public SSH key"
         user.upload_ssh_key
-        say "You have following applications available:", :green
+        say "You have following clouds available:", :green
         user.apps.each do |app|
           say "  #{app["code_name"]}"
         end
@@ -68,14 +68,14 @@ module Shelly
       end
 
       method_option "code-name", :type => :string, :aliases => "-c",
-        :desc => "Unique code_name of your application"
+        :desc => "Unique code-name of your cloud"
       method_option :databases, :type => :array, :aliases => "-d",
         :banner => "#{Shelly::App::DATABASE_KINDS.join(', ')}",
         :desc => "Array of databases of your choice"
       method_option :domains, :type => :array,
         :banner => "CODE-NAME.shellyapp.com, YOUR-DOMAIN.com",
         :desc => "Array of your domains"
-      desc "add", "Adds new application to Shelly Cloud"
+      desc "add", "Adds new cloud to Shelly Cloud"
       def add
         say_error "Must be run inside your project git repository" unless App.inside_git_repository?
         check_options(options)
@@ -101,7 +101,7 @@ module Shelly
         if e.validation?
           e.each_error { |error| say_error "#{error}", :with_exit => false }
           say_new_line
-          say_error "Fix erros in the below command and type it again to create your application" , :with_exit => false
+          say_error "Fix erros in the below command and type it again to create your cloud" , :with_exit => false
           say_error "shelly add --code-name=#{@app.code_name} --databases=#{@app.databases.join} --domains=#{@app.code_name}.shellyapp.com"
         end
       end
@@ -144,7 +144,7 @@ module Shelly
 
         def ask_for_code_name
           default_code_name = "#{Shelly::App.guess_code_name}-production"
-          code_name = ask("Application code name (#{default_code_name} - default):")
+          code_name = ask("Cloud code name (#{default_code_name} - default):")
           code_name.blank? ? default_code_name : code_name
         end
 
