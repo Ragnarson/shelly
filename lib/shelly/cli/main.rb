@@ -48,8 +48,8 @@ module Shelly
         user = Shelly::User.new(email || ask_for_email, ask_for_password(:with_confirmation => false))
         user.login
         say "Login successful"
-        say "Uploading your public SSH key"
         user.upload_ssh_key
+        say "Uploading your public SSH key"
         say "You have following applications available:", :green
         user.apps.each do |app|
           say "  #{app["code_name"]}"
@@ -57,14 +57,19 @@ module Shelly
       rescue Client::APIError => e
         if e.validation?
           e.each_error { |error| say_error "#{error}", :with_exit => false }
-          exit 1
         end
         if e.unauthorized?
           say_error "Wrong email or password", :with_exit => false
           say_error "You can reset password by using link:", :with_exit => false
           say_error "#{e.url}", :with_exit => false
-          exit 1
         end
+        exit 1
+      rescue RestClient::Conflict
+        say "You have following applications available:", :green
+        user.apps.each do |app|
+          say "  #{app["code_name"]}"
+        end
+        exit 1
       end
 
       method_option "code-name", :type => :string, :aliases => "-c",

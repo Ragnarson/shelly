@@ -125,10 +125,10 @@ describe Shelly::Client do
     end
   end
 
-  describe "#update_ssh_key" do
+  describe "#add_ssh_key" do
     it "should send put with give SSH key" do
-      @client.should_receive(:put).with("/ssh_key", {:ssh_key => "abc"})
-      @client.update_ssh_key("abc")
+      @client.should_receive(:post).with("/ssh_key", {:ssh_key => "abc"})
+      @client.add_ssh_key("abc")
     end
   end
 

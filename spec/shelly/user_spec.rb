@@ -122,7 +122,7 @@ describe Shelly::User do
 
   describe "#upload_ssh_key" do
     it "should read and upload user's public SSH key" do
-      @client.should_receive(:update_ssh_key).with("ssh-key AAbbcc")
+      @client.should_receive(:add_ssh_key).with("ssh-key AAbbcc")
       @user.upload_ssh_key
     end
   end

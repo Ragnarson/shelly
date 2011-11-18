@@ -64,8 +64,8 @@ module Shelly
       post("/apps", :app => attributes)
     end
 
-    def update_ssh_key(ssh_key)
-      put("/ssh_key", :ssh_key => ssh_key)
+    def add_ssh_key(ssh_key)
+      post("/ssh_key", :ssh_key => ssh_key)
     end
 
     def apps
