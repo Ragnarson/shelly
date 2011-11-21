@@ -22,7 +22,7 @@ Gem::Specification.new do |s|
   end
   s.add_development_dependency "fakefs"
   s.add_development_dependency "fakeweb"
-  s.add_runtime_dependency "wijet-thor"
+  s.add_runtime_dependency "wijet-thor", "~> 0.14.7"
   s.add_runtime_dependency "rest-client"
   s.add_runtime_dependency "json"
   s.add_runtime_dependency "launchy"
