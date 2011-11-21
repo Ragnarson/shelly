@@ -1,5 +1,3 @@
-require "shelly"
-require "thor/group"
 require "shelly/cli/command"
 require "shelly/cli/user"
 

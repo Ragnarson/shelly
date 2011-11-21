@@ -1,3 +1,9 @@
+require "shelly"
+require "thor"
+require "thor/group"
+require "thor/options"
+require "thor/arguments"
+
 module Shelly
   module CLI
     class Command < Thor

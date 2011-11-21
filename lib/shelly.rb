@@ -1,11 +1,8 @@
 require "rubygems"
-require "thor"
 require "core_ext/object"
 require "core_ext/hash"
 require "shelly/helpers"
 require "shelly/model"
-require "thor/options"
-require "thor/arguments"
 
 module Shelly
   autoload :App, "shelly/app"
@@ -14,4 +11,3 @@ module Shelly
   autoload :User, "shelly/user"
   autoload :VERSION, "shelly/version"
 end
-

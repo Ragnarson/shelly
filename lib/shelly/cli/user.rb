@@ -1,7 +1,3 @@
-require "yaml"
-require "shelly/user"
-require "shelly/cloudfile"
-
 module Shelly
   module CLI
     class User < Command
