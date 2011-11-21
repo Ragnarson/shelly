@@ -1,6 +1,6 @@
 module Shelly
   module CLI
-    class AbstractCommand < Thor
+    class Command < Thor
       class_option :debug, :type => :boolean, :desc => "Show debug information"
     end
   end

@@ -4,7 +4,7 @@ require "shelly/cloudfile"
 
 module Shelly
   module CLI
-    class User < AbstractCommand
+    class User < Command
       namespace :user
       include Helpers
 
