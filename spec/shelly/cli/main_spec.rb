@@ -29,6 +29,9 @@ Tasks:
   shelly register [EMAIL]  # Registers new user account on Shelly Cloud
   shelly user <command>    # Manages users using this cloud
   shelly version           # Displays shelly version
+
+Options:
+  [--debug]  # Show debug information
 OUT
       out = IO.popen("bin/shelly").read.strip
       out.should == expected.strip

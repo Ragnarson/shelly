@@ -1,3 +1,4 @@
 #!/usr/bin/env ruby
-require "shelly/cli/main"
-Shelly::CLI::Main.start
+require "shelly/cli/runner"
+runner = Shelly::CLI::Runner.new(ARGV)
+runner.start

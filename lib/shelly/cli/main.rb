@@ -1,10 +1,11 @@
 require "shelly"
 require "thor/group"
+require "shelly/cli/abstract_command"
 require "shelly/cli/user"
 
 module Shelly
   module CLI
-    class Main < Thor
+    class Main < AbstractCommand
       include Thor::Actions
       include Helpers
       register(User, "user", "user <command>", "Manages users using this cloud")
