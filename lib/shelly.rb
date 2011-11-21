@@ -3,7 +3,7 @@ require "thor"
 require "core_ext/object"
 require "core_ext/hash"
 require "shelly/helpers"
-require "shelly/base"
+require "shelly/model"
 require "thor/options"
 require "thor/arguments"
 

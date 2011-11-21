@@ -1,5 +1,5 @@
 module Shelly
-  class User < Base
+  class User < Model
     attr_accessor :email, :password
 
     def initialize(email = nil, password = nil)

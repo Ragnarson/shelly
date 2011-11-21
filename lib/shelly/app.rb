@@ -2,7 +2,7 @@ require 'erb'
 require 'launchy'
 
 module Shelly
-  class App < Base
+  class App < Model
     DATABASE_KINDS = %w(postgresql mongodb redis none)
     attr_accessor :code_name, :databases, :ruby_version, :environment, :git_url, :domains
 

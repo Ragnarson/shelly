@@ -1,5 +1,5 @@
 module Shelly
-  class Base
+  class Model
     def current_user
       @user = User.new
       @user.load_credentials

@@ -1,5 +1,5 @@
 module Shelly
-  class Cloudfile < Base
+  class Cloudfile < Model
     attr_accessor :content
 
     def self.present?
