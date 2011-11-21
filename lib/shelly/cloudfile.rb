@@ -1,3 +1,5 @@
+require "yaml"
+
 module Shelly
   class Cloudfile < Model
     attr_accessor :content
