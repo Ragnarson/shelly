@@ -100,7 +100,7 @@ module Shelly
 
       rescue Client::APIError => e
         if e.validation?
-          e.each_error { |error| say_error "#{error}", :with_exit => false }
+          e.each_error { |error| say_error error, :with_exit => false }
           say_new_line
           say_error "Fix erros in the below command and type it again to create your cloud" , :with_exit => false
           say_error "shelly add --code-name=#{@app.code_name} --databases=#{@app.databases.join} --domains=#{@app.code_name}.shellyapp.com"
