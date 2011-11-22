@@ -191,6 +191,14 @@ OUT
         end
       end
 
+      it "should upload user's public SSH key and raise HTTP status 409 Conflict when SSH key exists in database" do
+        @user.should_receive(:upload_ssh_key).and_raise(RestClient::Conflict)
+        $stdout.should_receive(:puts).with("\e[32mYou have following clouds available:\e[0m")
+        fake_stdin(["megan@example.com", "secret"]) do
+          @main.login
+        end
+      end
+
       it "should display list of applications to which user has access" do
         $stdout.should_receive(:puts).with("\e[32mYou have following clouds available:\e[0m")
         $stdout.should_receive(:puts).with("  abc")

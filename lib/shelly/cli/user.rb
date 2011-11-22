@@ -1,3 +1,5 @@
+require "shelly/cli/command"
+
 module Shelly
   module CLI
     class User < Command

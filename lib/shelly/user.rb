@@ -66,8 +66,8 @@ module Shelly
     end
 
     def upload_ssh_key
-      key = File.read(ssh_key_path)
-      shelly.update_ssh_key(key)
+      key = File.read(ssh_key_path).strip
+      shelly.add_ssh_key(key)
     end
 
     protected
