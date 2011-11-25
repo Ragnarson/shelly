@@ -27,11 +27,11 @@ describe Shelly::Cloudfile do
       @cloudfile.write(@hash)
       @client.should_receive(:apps_users).and_return(response)
       response = @cloudfile.fetch_users
-      response.should == {"foo-staging" => ["user@example.com (username)"]}
+      response.should == {"foo-staging" => ["user@example.com"]}
     end
 
     def response
-      [{'code_name' => 'foo-staging','users' => [{'name' => 'username','email' => 'user@example.com'}]}]
+      [{'code_name' => 'foo-staging','users' => [{'email' => 'user@example.com'}]}]
     end
   end
 
