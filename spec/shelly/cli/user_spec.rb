@@ -58,7 +58,7 @@ describe Shelly::CLI::User do
         $stdout.should_receive(:puts).with("Cloud foo-production:")
         $stdout.should_receive(:puts).with("  user@example.com")
         $stdout.should_receive(:puts).with("Cloud foo-staging:")
-        $stdout.should_receive(:puts).with("  user2@example.com")
+        $stdout.should_receive(:puts).with("  user2@example.com (username2)")
         @cli_user.list
       end
     end

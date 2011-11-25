@@ -41,8 +41,7 @@ module Shelly
       response = shelly.apps_users(clouds)
       response.inject({}) do |result, app|
         result[app['code_name']] = app['users'].map do |user|
-          #user['name'] ? "#{user['email']} (#{user['name']})" : user['email']
-          user['email']
+          user['name'] ? "#{user['email']} (#{user['name']})" : user['email']
         end
         result
       end
