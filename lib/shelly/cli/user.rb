@@ -4,15 +4,12 @@ module Shelly
   module CLI
     class User < Command
       namespace :user
+      include Helpers
 
-      before_hook :logged_in?, :only => [:list, :add]
-      before_hook :inside_git_repository?, :only => [:list, :add]
-      before_hook :cloudfile_present?, :only => [:list, :add]
-
-      method_option "code-name", :type => :string, :aliases => "-c",
-        :desc => "Unique code-name of your cloud"
       desc "list", "List users with access to clouds defined in Cloudfile"
       def list
+        say_error "Must be run inside your project git repository" unless App.inside_git_repository?
+        say_error "No Cloudfile found" unless Cloudfile.present?
         @cloudfile = check_clouds.first
         @cloudfile.fetch_users.each do |cloud, users|
           say "Cloud #{cloud}:"
@@ -29,6 +26,8 @@ module Shelly
 
       desc "add [EMAIL]", "Add new developer to clouds defined in Cloudfile"
       def add(email = nil)
+        say_error "Must be run inside your project git repository" unless App.inside_git_repository?
+        say_error "No Cloudfile found" unless Cloudfile.present?
         @cloudfile, @user = check_clouds
         user_email = email || ask_for_email({:guess_email => false})
         @cloudfile.clouds.each do |cloud|
