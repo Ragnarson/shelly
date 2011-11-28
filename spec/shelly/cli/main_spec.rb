@@ -15,7 +15,7 @@ describe Shelly::CLI::Main do
   describe "#version" do
     it "should return shelly's version" do
       $stdout.should_receive(:puts).with("shelly version #{Shelly::VERSION}")
-      @main.version
+      invoke(@main, :version)
     end
   end
 
@@ -33,7 +33,7 @@ Tasks:
 Options:
   [--debug]  # Show debug information
 OUT
-      out = IO.popen("bin/shelly").read.strip
+      out = IO.popen("bin/shelly --debug").read.strip
       out.should == expected.strip
     end
   end
@@ -55,7 +55,7 @@ OUT
       $stdout.should_receive(:puts).with("\e[31mNo such file or directory - " + @key_path + "\e[0m")
       $stdout.should_receive(:puts).with("\e[31mUse ssh-keygen to generate ssh key pair\e[0m")
       lambda {
-        @main.register
+        invoke(@main, :register)
       }.should raise_error(SystemExit)
     end
 
@@ -64,7 +64,7 @@ OUT
       $stdout.should_receive(:puts).with("\e[31mUser with your ssh key already exists.\e[0m")
       $stdout.should_receive(:puts).with("\e[31mYou can login using: shelly login [EMAIL]\e[0m")
       lambda {
-        @main.register
+        invoke(@main, :register)
       }.should raise_error(SystemExit)
     end
 
@@ -73,7 +73,7 @@ OUT
       $stdout.should_receive(:print).with("Password: ")
       $stdout.should_receive(:print).with("Password confirmation: ")
       fake_stdin(["better@example.com", "secret", "secret"]) do
-        @main.register
+        invoke(@main, :register)
       end
     end
 
@@ -82,21 +82,21 @@ OUT
       $stdout.should_receive(:print).with("Email (kate@example.com - default): ")
       @client.should_receive(:register_user).with("kate@example.com", "secret", "ssh-key AAbbcc")
       fake_stdin(["", "secret", "secret"]) do
-        @main.register
+        invoke(@main, :register)
       end
     end
 
     it "should use email provided by user" do
       @client.should_receive(:register_user).with("better@example.com", "secret", "ssh-key AAbbcc")
       fake_stdin(["better@example.com", "secret", "secret"]) do
-        @main.register
+        invoke(@main, :register)
       end
     end
 
     it "should not ask about email if it's provided as argument" do
       $stdout.should_receive(:puts).with("Registering with email: kate@example.com")
       fake_stdin(["secret", "secret"]) do
-        @main.register("kate@example.com")
+        invoke(@main, :register, "kate@example.com")
       end
     end
 
@@ -106,7 +106,7 @@ OUT
         $stdout.should_receive(:puts).with("\e[31mEmail can't be blank, please try again\e[0m")
         lambda {
           fake_stdin(["", "bob@example.com", "only-pass", "only-pass"]) do
-            @main.register
+            invoke(@main, :register)
           end
         }.should raise_error(SystemExit)
       end
@@ -118,7 +118,7 @@ OUT
         File.open(@key_path, "w") { |f| f << "key" }
         $stdout.should_receive(:puts).with("Uploading your public SSH key from #{@key_path}")
         fake_stdin(["kate@example.com", "secret", "secret"]) do
-          @main.register
+          invoke(@main, :register)
         end
       end
     end
@@ -129,7 +129,7 @@ OUT
         FileUtils.rm_rf(@key_path)
         $stdout.should_not_receive(:puts).with("Uploading your public SSH key from #{@key_path}")
         fake_stdin(["kate@example.com", "secret", "secret"]) do
-          @main.register
+          invoke(@main, :register)
         end
       end
     end
@@ -140,7 +140,7 @@ OUT
         $stdout.should_receive(:puts).with("Successfully registered!")
         $stdout.should_receive(:puts).with("Check you mailbox for email address confirmation")
         fake_stdin(["kate@example.com", "pass", "pass"]) do
-          @main.register
+          invoke(@main, :register)
         end
       end
     end
@@ -153,7 +153,7 @@ OUT
         $stdout.should_receive(:puts).with("\e[31mEmail has been already taken\e[0m")
         lambda {
           fake_stdin(["kate@example.com", "pass", "pass"]) do
-            @main.register
+            invoke(@main, :register)
           end
         }.should raise_error(SystemExit)
       end
@@ -171,7 +171,7 @@ OUT
 
     it "should ask about email and password" do
       fake_stdin(["megan@example.com", "secret"]) do
-        @main.login
+        invoke(@main, :login)
       end
     end
 
@@ -179,7 +179,7 @@ OUT
       it "should display message about successful login" do
         $stdout.should_receive(:puts).with("Login successful")
         fake_stdin(["megan@example.com", "secret"]) do
-          @main.login
+          invoke(@main, :login)
         end
       end
 
@@ -187,7 +187,7 @@ OUT
         @user.should_receive(:upload_ssh_key)
         $stdout.should_receive(:puts).with("Uploading your public SSH key")
         fake_stdin(["megan@example.com", "secret"]) do
-          @main.login
+          invoke(@main, :login)
         end
       end
 
@@ -195,7 +195,7 @@ OUT
         @user.should_receive(:upload_ssh_key).and_raise(RestClient::Conflict)
         $stdout.should_receive(:puts).with("\e[32mYou have following clouds available:\e[0m")
         fake_stdin(["megan@example.com", "secret"]) do
-          @main.login
+          invoke(@main, :login)
         end
       end
 
@@ -204,7 +204,7 @@ OUT
         $stdout.should_receive(:puts).with("  abc")
         $stdout.should_receive(:puts).with("  fooo")
         fake_stdin(["megan@example.com", "secret"]) do
-          @main.login
+          invoke(@main, :login)
         end
       end
     end
@@ -219,7 +219,7 @@ OUT
         $stdout.should_receive(:puts).with("\e[31mhttps://admin.winniecloud.com/users/password/new\e[0m")
         lambda {
           fake_stdin(["megan@example.com", "secret"]) do
-            @main.login
+            invoke(@main, :login)
           end
         }.should raise_error(SystemExit)
       end
@@ -238,6 +238,8 @@ OUT
       @app.stub(:git_url).and_return("git@git.shellycloud.com:foooo.git")
       Shelly::App.stub(:inside_git_repository?).and_return(true)
       Shelly::App.stub(:new).and_return(@app)
+
+      @client.stub(:token).and_return("abc")
     end
 
     it "should exit with message if command run outside git repository" do
@@ -245,7 +247,7 @@ OUT
       $stdout.should_receive(:puts).with("\e[31mMust be run inside your project git repository\e[0m")
       lambda {
         fake_stdin(["", ""]) do
-          @main.add
+          invoke(@main, :add)
         end
       }.should raise_error(SystemExit)
     end
@@ -256,7 +258,9 @@ OUT
         it "should show help and exit if not all options are passed" do
           $stdout.should_receive(:puts).with("\e[31mTry 'shelly help add' for more information\e[0m")
           @main.options = {"code-name" => "foo"}
-          lambda { @main.add }.should raise_error(SystemExit)
+          lambda {
+            @main.add
+          }.should raise_error(SystemExit)
         end
 
         it "should exit if databases are not valid" do
@@ -264,18 +268,6 @@ OUT
           @main.options = {"code-name" => "foo", "databases" => ["not existing"], "domains" => ["foo.example.com"]}
           lambda { @main.add }.should raise_error(SystemExit)
         end
-
-        it "should display which parameter was wrong" do
-          expected = "shelly: unrecognized option '--unknown=param'\n" +
-                      "Usage: shelly [COMMAND]... [OPTIONS]\n" +
-                      "Try 'shelly --help' for more information"
-
-          Open3.popen3("bin/shelly add --unknown=param") do |stdin, stdout, stderr, wait_thr|
-            out = stderr.read.strip
-            out.should == expected
-          end
-        end
-
       end
 
       context "valid params" do
@@ -291,7 +283,7 @@ OUT
       $stdout.should_receive(:print).with("Cloud code name (foo-production - default): ")
       @app.should_receive(:code_name=).with("mycodename")
       fake_stdin(["mycodename", ""]) do
-        @main.add
+        invoke(@main, :add)
       end
     end
 
@@ -300,7 +292,7 @@ OUT
         $stdout.should_receive(:print).with("Cloud code name (foo-production - default): ")
         @app.should_receive(:code_name=).with("foo-production")
         fake_stdin(["", ""]) do
-          @main.add
+          invoke(@main, :add)
         end
       end
     end
@@ -309,7 +301,7 @@ OUT
       $stdout.should_receive(:print).with("Which database do you want to use postgresql, mongodb, redis, none (postgresql - default): ")
       @app.should_receive(:databases=).with(["postgresql", "mongodb", "redis"])
       fake_stdin(["", "postgresql  ,mongodb redis"]) do
-        @main.add
+        invoke(@main, :add)
       end
     end
 
@@ -317,7 +309,7 @@ OUT
       $stdout.should_receive(:print).with("Which database do you want to use postgresql, mongodb, redis, none (postgresql - default): ")
       $stdout.should_receive(:print).with("Unknown database kind. Supported are: postgresql, mongodb, redis, none: ")
       fake_stdin(["", "postgresql,doesnt-exist", "none"]) do
-        @main.add
+        invoke(@main, :add)
       end
     end
 
@@ -325,7 +317,7 @@ OUT
       it "should use 'postgresql' database as default" do
         @app.should_receive(:databases=).with(["postgresql"])
         fake_stdin(["", ""]) do
-          @main.add
+          invoke(@main, :add)
         end
       end
     end
@@ -333,7 +325,7 @@ OUT
     it "should create the app on shelly cloud" do
       @app.should_receive(:create)
       fake_stdin(["", ""]) do
-        @main.add
+        invoke(@main, :add)
       end
     end
 
@@ -346,7 +338,7 @@ OUT
       $stdout.should_receive(:puts).with("\e[31mshelly add --code-name=foo-production --databases=postgresql --domains=foo-production.shellyapp.com\e[0m")
       lambda {
         fake_stdin(["", ""]) do
-          @main.add
+          invoke(@main, :add)
         end
       }.should raise_error(SystemExit)
     end
@@ -355,14 +347,14 @@ OUT
       $stdout.should_receive(:puts).with("\e[32mAdding remote production git@git.shellycloud.com:foooo.git\e[0m")
       @app.should_receive(:add_git_remote)
       fake_stdin(["foooo", ""]) do
-        @main.add
+        invoke(@main, :add)
       end
     end
 
     it "should create Cloudfile" do
       File.exists?("/projects/foo/Cloudfile").should be_false
       fake_stdin(["foooo", ""]) do
-        @main.add
+        invoke(@main, :add)
       end
       File.read("/projects/foo/Cloudfile").should == "Example Cloudfile"
     end
@@ -371,7 +363,7 @@ OUT
       $stdout.should_receive(:puts).with("\e[32mProvide billing details. Opening browser...\e[0m")
       @app.should_receive(:open_billing_page)
       fake_stdin(["foooo", ""]) do
-        @main.add
+        invoke(@main, :add)
       end
     end
 
@@ -380,7 +372,7 @@ OUT
       $stdout.should_receive(:puts).with("\e[32mYou can review changes using\e[0m")
       $stdout.should_receive(:puts).with("  git status")
       fake_stdin(["foooo", "none"]) do
-        @main.add
+        invoke(@main, :add)
       end
     end
 
@@ -392,7 +384,7 @@ OUT
       $stdout.should_receive(:puts).with("\e[32mDeploy to production using:\e[0m")
       $stdout.should_receive(:puts).with("  git push production master")
       fake_stdin(["foooo", "none"]) do
-        @main.add
+        invoke(@main, :add)
       end
     end
   end

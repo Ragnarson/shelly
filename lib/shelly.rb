@@ -2,6 +2,7 @@ require "rubygems"
 require "core_ext/object"
 require "core_ext/hash"
 require "shelly/helpers"
+require "shelly/hook"
 require "shelly/model"
 
 module Shelly
