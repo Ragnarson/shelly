@@ -27,6 +27,21 @@ module Shelly
       say_error "Email can't be blank, please try again"
     end
 
+    def logged_in?
+      user = Shelly::User.new
+      user.load_credentials
+      user.login
+    rescue Client::APIError => e
+      say_error "You are not logged in, use `shelly login` to log in"
+    end
+
+    def inside_git_repository?
+      say_error "Must be run inside your project git repository" unless App.inside_git_repository?
+    end
+
+    def cloudfile_present?
+      say_error "No Cloudfile found" unless Cloudfile.present?
+    end
+
   end
 end
-

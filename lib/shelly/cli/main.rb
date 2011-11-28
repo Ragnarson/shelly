@@ -5,9 +5,11 @@ module Shelly
   module CLI
     class Main < Command
       include Thor::Actions
-      include Helpers
       register(User, "user", "user <command>", "Manages users using this cloud")
       check_unknown_options!
+
+      before_hook :logged_in?, :only => [:add]
+      before_hook :inside_git_repository?, :only => [:add]
 
       map %w(-v --version) => :version
       desc "version", "Displays shelly version"
@@ -17,11 +19,11 @@ module Shelly
 
       desc "register [EMAIL]", "Registers new user account on Shelly Cloud"
       def register(email = nil)
-      	user = Shelly::User.new
-      	user.ssh_key_registered?
+        user = Shelly::User.new
+        user.ssh_key_registered?
         say "Registering with email: #{email}" if email
-				user.email = (email || ask_for_email)
-				user.password = ask_for_password
+        user.email = (email || ask_for_email)
+        user.password = ask_for_password
         user.register
         if user.ssh_key_exists?
           say "Uploading your public SSH key from #{user.ssh_key_path}"
@@ -79,7 +81,6 @@ module Shelly
         :desc => "Array of your domains"
       desc "add", "Adds new cloud to Shelly Cloud"
       def add
-        say_error "Must be run inside your project git repository" unless App.inside_git_repository?
         check_options(options)
         @app = Shelly::App.new
         @app.code_name = options["code-name"] || ask_for_code_name
