@@ -25,6 +25,7 @@ describe Shelly::CLI::Main do
 Tasks:
   shelly add               # Adds new cloud to Shelly Cloud
   shelly help [TASK]       # Describe available tasks or one specific task
+  shelly list              # Lists all your clouds
   shelly login [EMAIL]     # Logs user in to Shelly Cloud
   shelly register [EMAIL]  # Registers new user account on Shelly Cloud
   shelly user <command>    # Manages users using this cloud
@@ -165,7 +166,8 @@ OUT
       @user = Shelly::User.new
       @user.stub(:upload_ssh_key)
       @client.stub(:token).and_return("abc")
-      @client.stub(:apps).and_return([{"code_name" => "abc"}, {"code_name" => "fooo"}])
+      @client.stub(:apps).and_return([{"code_name" => "abc", "state" => "running"},
+        {"code_name" => "fooo", "state" => "no_code"},])
       Shelly::User.stub(:new).and_return(@user)
     end
 
@@ -201,8 +203,8 @@ OUT
 
       it "should display list of applications to which user has access" do
         $stdout.should_receive(:puts).with("\e[32mYou have following clouds available:\e[0m")
-        $stdout.should_receive(:puts).with("  abc")
-        $stdout.should_receive(:puts).with("  fooo")
+        $stdout.should_receive(:puts).with(/  abc\s+\|  running/)
+        $stdout.should_receive(:puts).with(/  fooo\s+\|  no code/)
         fake_stdin(["megan@example.com", "secret"]) do
           @main.login
         end
@@ -395,6 +397,48 @@ OUT
         @main.add
       end
     end
+  end
+
+  describe "#list" do
+    before do
+      @user = Shelly::User.new
+      @client.stub(:token).and_return("abc")
+      @client.stub(:apps).and_return([{"code_name" => "abc", "state" => "running"},
+         {"code_name" => "fooo", "state" => "deploy_failed"}])
+      Shelly::User.stub(:new).and_return(@user)
+    end
+
+    it "should display user's clouds" do
+      $stdout.should_receive(:puts).with("\e[32mYou have following clouds available:\e[0m")
+      $stdout.should_receive(:puts).with(/abc\s+\|  running/)
+      $stdout.should_receive(:puts).with(/fooo\s+\|  deploy failed \(Support has been notified\)/)
+      @main.list
+    end
+
+    it "should display info that user has no clouds" do
+      @client.stub(:apps).and_return([])
+      $stdout.should_receive(:puts).with("\e[32mYou have no clouds yet\e[0m")
+      @main.list
+    end
+
+    it "should have a 'status' alias" do
+      @client.stub(:apps).and_return([])
+      $stdout.should_receive(:puts).with("\e[32mYou have no clouds yet\e[0m")
+      Shelly::CLI::Main.start(["status"])
+    end
+
+    context "on failure" do
+      it "should display info that user is not logged in" do
+        body = {"message" => "Unauthorized"}
+        error = Shelly::Client::APIError.new(body.to_json)
+        @client.stub(:token).and_raise(error)
+        $stdout.should_receive(:puts).with("\e[31mYou are not logged in, use `shelly login`\e[0m")
+        lambda {
+          @main.list
+        }.should raise_error(SystemExit)
+      end
+    end
+
   end
 end
 

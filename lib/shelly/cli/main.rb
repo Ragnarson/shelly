@@ -53,10 +53,7 @@ module Shelly
           conflict = true
         end
         say "Uploading your public SSH key" if conflict == false
-        say "You have following clouds available:", :green
-        user.apps.each do |app|
-          say "  #{app["code_name"]}"
-        end
+        invoke :list
       rescue Client::APIError => e
         if e.validation?
           e.each_error { |error| say_error "#{error}", :with_exit => false }
@@ -107,6 +104,27 @@ module Shelly
           say_error "shelly add --code-name=#{@app.code_name} --databases=#{@app.databases.join} --domains=#{@app.code_name}.shellyapp.com"
         end
       end
+
+      desc "list", "Lists all your clouds"
+      def list
+        user = Shelly::User.new
+        user.token
+        apps = user.apps
+        unless apps.empty?
+          say "You have following clouds available:", :green
+          apps.each do |app|
+            state = app["state"] == "deploy_failed" ? " (Support has been notified)" : ""
+            say "  #{app["code_name"]}\t|  #{app["state"].gsub('_',' ')}" + state
+          end
+        else
+          say "You have no clouds yet", :green
+        end
+      rescue Client::APIError => e
+        if e.unauthorized?
+          say_error "You are not logged in, use `shelly login`"
+        end
+      end
+      map "status" => :list
 
       # FIXME: move to helpers
       no_tasks do
