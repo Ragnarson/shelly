@@ -112,10 +112,10 @@ module Shelly
         apps = user.apps
         unless apps.empty?
           say "You have following clouds available:", :green
-          apps.each do |app|
+          print_table(apps.map do |app|
             state = app["state"] == "deploy_failed" ? " (Support has been notified)" : ""
-            say "  #{app["code_name"]}\t|  #{app["state"].gsub('_',' ')}" + state
-          end
+            [app["code_name"], "|  #{app["state"].gsub("_", " ")}#{state}"]
+          end, :ident => 2)
         else
           say "You have no clouds yet", :green
         end
