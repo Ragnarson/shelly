@@ -126,8 +126,8 @@ module Shelly
       end
       map "status" => :list
 
-      desc "ips", "Lists clouds IP's"
-      def ips
+      desc "ip", "Lists clouds IP's"
+      def ip
         say_error "Must be run inside your project git repository" unless App.inside_git_repository?
         say_error "No Cloudfile found" unless Cloudfile.present?
         @cloudfile = check_clouds.first
