@@ -126,6 +126,26 @@ module Shelly
       end
       map "status" => :list
 
+      desc "ips", "Lists clouds IP's"
+      def ips
+        say_error "Must be run inside your project git repository" unless App.inside_git_repository?
+        say_error "No Cloudfile found" unless Cloudfile.present?
+        @cloudfile = check_clouds.first
+        @cloudfile.fetch_ips.each do |server|
+          say "Cloud #{server['code_name']}:"
+          say "Web server IP : #{server['web_server_ip']}"
+          say "Mail server IP: #{server['mail_server_ip']}"
+        end
+      rescue Client::APIError => e
+        if e.unauthorized?
+          e.errors.each { |error| say_error error, :with_exit => false}
+          exit 1
+        else
+          say_error e.message
+        end
+      end
+
+
       # FIXME: move to helpers
       no_tasks do
         def check_options(options)
