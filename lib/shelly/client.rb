@@ -82,6 +82,12 @@ module Shelly
       end
     end
 
+    def apps_ips(apps)
+      apps.map do |app|
+        get("/apps/#{app}/ips")
+      end
+    end
+
     def post(path, params = {})
       request(path, :post, params)
     end

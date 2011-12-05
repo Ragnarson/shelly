@@ -12,7 +12,7 @@
 
 ## Running tests
 
-    rake spec
+    bundle exec rake
 
 or
 

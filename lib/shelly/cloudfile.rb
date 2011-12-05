@@ -46,6 +46,13 @@ module Shelly
         result
       end
     end
+
+    def fetch_ips
+      response = shelly.apps_ips(clouds)
+      response.each do |result|
+        result
+      end
+    end
   end
 end
 
