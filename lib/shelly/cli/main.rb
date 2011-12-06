@@ -53,7 +53,8 @@ module Shelly
           conflict = true
         end
         say "Uploading your public SSH key" if conflict == false
-        invoke :list
+        email = nil
+        list
       rescue Client::APIError => e
         if e.validation?
           e.each_error { |error| say_error "#{error}", :with_exit => false }
