@@ -468,9 +468,9 @@ OUT
       it "should display mail and web server ip's" do
         @client.should_receive(:apps).and_return([{"code_name" => "foo-production"},{"code_name" => "foo-staging"}])
         @client.stub(:apps_ips).and_return(response)
-        $stdout.should_receive(:puts).with("Cloud foo-production:")
-        $stdout.should_receive(:puts).with("Web server IP : 22.22.22.22")
-        $stdout.should_receive(:puts).with("Mail server IP: 11.11.11.11")
+        $stdout.should_receive(:puts).with("\e[32mCloud foo-production:\e[0m")
+        $stdout.should_receive(:puts).with("  Web server IP: 22.22.22.22")
+        $stdout.should_receive(:puts).with("  Mail server IP: 11.11.11.11")
         @main.ip
       end
     end

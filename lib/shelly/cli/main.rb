@@ -132,9 +132,9 @@ module Shelly
         say_error "No Cloudfile found" unless Cloudfile.present?
         @cloudfile = check_clouds.first
         @cloudfile.fetch_ips.each do |server|
-          say "Cloud #{server['code_name']}:"
-          say "Web server IP : #{server['web_server_ip']}"
-          say "Mail server IP: #{server['mail_server_ip']}"
+          say "Cloud #{server['code_name']}:", :green
+          print_table "Web server IP: #{server['web_server_ip']}", :ident => 2
+          print_table("Mail server IP: #{server['mail_server_ip']}", :ident => 2)
         end
       rescue Client::APIError => e
         if e.unauthorized?
