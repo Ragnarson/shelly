@@ -134,8 +134,8 @@ module Shelly
         @cloudfile = check_clouds.first
         @cloudfile.fetch_ips.each do |server|
           say "Cloud #{server['code_name']}:", :green
-          print_table "Web server IP: #{server['web_server_ip']}", :ident => 2
-          print_table("Mail server IP: #{server['mail_server_ip']}", :ident => 2)
+          print_wrapped "Web server IP: #{server['web_server_ip']}", :ident => 2
+          print_wrapped "Mail server IP: #{server['mail_server_ip']}", :ident => 2
         end
       rescue Client::APIError => e
         if e.unauthorized?
