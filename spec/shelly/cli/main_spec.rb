@@ -165,6 +165,9 @@ OUT
   describe "#login" do
     before do
       @user = Shelly::User.new
+      @key_path = File.expand_path("~/.ssh/id_rsa.pub")
+      FileUtils.mkdir_p("~/.ssh")
+      File.open("~/.ssh/id_rsa.pub", "w") { |f| f << "ssh-key AAbbcc" }
       @user.stub(:upload_ssh_key)
       @client.stub(:token).and_return("abc")
       @client.stub(:apps).and_return([{"code_name" => "abc", "state" => "running"},
@@ -209,6 +212,18 @@ OUT
         fake_stdin(["megan@example.com", "secret"]) do
           @main.login
         end
+      end
+    end
+
+    context "when local ssh key doesn't exists" do
+      it "should display error message and return exit with 1" do
+        FileUtils.rm_rf(@key_path)
+        File.exists?(@key_path).should be_false
+        $stdout.should_receive(:puts).with("\e[31mNo such file or directory - " + @key_path + "\e[0m")
+        $stdout.should_receive(:puts).with("\e[31mUse ssh-keygen to generate ssh key pair\e[0m")
+        lambda {
+          @main.login
+        }.should raise_error(SystemExit)
       end
     end
 

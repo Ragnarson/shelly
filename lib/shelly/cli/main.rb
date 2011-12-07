@@ -44,7 +44,11 @@ module Shelly
 
       desc "login [EMAIL]", "Logs user in to Shelly Cloud"
       def login(email = nil)
-        user = Shelly::User.new(email || ask_for_email, ask_for_password(:with_confirmation => false))
+        user = Shelly::User.new
+      	raise Errno::ENOENT, user.ssh_key_path unless user.ssh_key_exists?
+        #user = Shelly::User.new(email || ask_for_email, ask_for_password(:with_confirmation => false))
+        user.email = email || ask_for_email
+        user.password = ask_for_password(:with_confirmation => false)
         user.login
         say "Login successful"
         begin user.upload_ssh_key
@@ -65,6 +69,9 @@ module Shelly
           say_error "#{e.url}", :with_exit => false
         end
         exit 1
+      rescue Errno::ENOENT => e
+        say_error e, :with_exit => false
+        say_error "Use ssh-keygen to generate ssh key pair"
       end
 
       method_option "code-name", :type => :string, :aliases => "-c",
