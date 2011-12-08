@@ -38,6 +38,14 @@ module Shelly
       File.open(cloudfile_path, "a+") { |f| f << content }
     end
 
+    def start
+      shelly.start_cloud(self.code_name)
+    end
+
+    def stop
+      shelly.stop_cloud(self.code_name)
+    end
+
     def cloudfile_path
       File.join(Dir.pwd, "Cloudfile")
     end

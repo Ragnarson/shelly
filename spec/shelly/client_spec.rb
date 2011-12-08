@@ -139,6 +139,22 @@ describe Shelly::Client do
     end
   end
 
+  describe "#start_cloud" do
+    it "should sent post request with cloud's code_name" do
+      FakeWeb.register_uri(:post, @url + "/apps/staging-foo/start", :body => {}.to_json)
+      response = @client.start_cloud("staging-foo")
+      response.should == {}
+    end
+  end
+
+  describe "#stop_cloud" do
+    it "should sent delete request with cloud's code_name" do
+      FakeWeb.register_uri(:delete, @url + "/apps/staging-foo/stop", :body => {}.to_json)
+      response = @client.stop_cloud("staging-foo")
+      response.should == {}
+    end
+  end
+
   describe "#ssh_key_available?" do
     it "should send get request with ssh key" do
       @client.should_receive(:get).with("/users/new", {:ssh_key => "ssh-key Abb"})
@@ -244,6 +260,13 @@ describe Shelly::Client do
     it "should make PUT resquest to given path with parameters" do
       @client.should_receive(:request).with("/account", :put, :name => "new-one")
       @client.put("/account", :name => "new-one")
+    end
+  end
+
+  describe "#delete" do
+    it "should make DELETE request to given path with parameters" do
+      @client.should_receive(:request).with("/account", :delete, :name => "new-one")
+      @client.delete("/account", :name => "new-one")
     end
   end
 end

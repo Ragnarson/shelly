@@ -110,6 +110,18 @@ config
     end
   end
 
+  describe "#start & #stop" do
+    it "should start cloud" do
+      @client.should_receive(:start_cloud).with("foo-staging")
+      @app.start
+    end
+
+    it "should stop cloud" do
+      @client.should_receive(:stop_cloud).with("foo-staging")
+      @app.stop
+    end
+  end
+
   describe "#create" do
     context "without providing domain" do
       it "should create the app on shelly cloud via API client" do

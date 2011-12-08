@@ -68,6 +68,14 @@ module Shelly
       post("/ssh_key", :ssh_key => ssh_key)
     end
 
+    def start_cloud(cloud)
+      post("/apps/#{cloud}/start")
+    end
+
+    def stop_cloud(cloud)
+      delete("/apps/#{cloud}/stop")
+    end
+
     def apps
       get("/apps")
     end
@@ -98,6 +106,10 @@ module Shelly
 
     def get(path, params = {})
       request(path, :get, params)
+    end
+
+    def delete(path, params = {})
+      request(path, :delete, params)
     end
 
     def request(path, method, params = {})

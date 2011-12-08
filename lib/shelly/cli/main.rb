@@ -48,7 +48,7 @@ module Shelly
         user.login
         say "Login successful"
         begin user.upload_ssh_key
-        conflict = false
+          conflict = false
         rescue RestClient::Conflict
           conflict = true
         end
@@ -146,9 +146,73 @@ module Shelly
         end
       end
 
+      desc "start [CODE-NAME]", "Starts specific cloud"
+      def start(cloud = nil)
+        logged_in?
+        say_error "No Cloudfile found" unless Cloudfile.present?
+        cloudfile, user = check_clouds
+        multiple_clouds(cloudfile.clouds, cloud)
+        @app.start
+        say "Starting cloud #{@app.code_name}. Check status with:", :green
+        say "  shelly list"
+      rescue RestClient::Conflict => e
+        response =  JSON.parse(e.response)
+        case response['state']
+        when "running"
+          say_error "Not starting: cloud '#{@app.code_name}' is already running"
+        when "deploying", "configuring"
+          say_error "Not starting: cloud '#{@app.code_name}' is currently deploying"
+        when "no_code"
+          say_error "Not starting: no source code provided", :with_exit => false
+          say_error "Push source code using:", :with_exit => false
+          say       "  git push production master"
+        when "deploy_failed", "configuration_failed"
+          say_error "Not starting: deployment failed", :with_exit => false
+          say_error "Support has been notified", :with_exit => false
+          say_error "See #{response['link']} for reasons of failure"
+        when "no_billing"
+          say_error "Please fill in billing details to start foo-production. Opening browser.", :with_exit => false
+          @app.open_billing_page
+        end
+        exit 1
+      rescue Client::APIError => e
+        if e.unauthorized?
+          e.errors.each { |error| say_error error, :with_exit => false}
+          exit 1
+        end
+      end
+
+      desc "stop [CODE-NAME]", "Stops specific cloud"
+      def stop(cloud = nil)
+        logged_in?
+        say_error "No Cloudfile found" unless Cloudfile.present?
+        cloudfile, user = check_clouds
+        multiple_clouds(cloudfile.clouds, cloud, "stop")
+        @app.stop
+        say "Cloud '#{@app.code_name}' stopped"
+      rescue Client::APIError => e
+        if e.unauthorized?
+          e.errors.each { |error| say_error error, :with_exit => false}
+          exit 1
+        end
+      end
 
       # FIXME: move to helpers
       no_tasks do
+        def multiple_clouds(clouds, cloud, action = "start")
+          if clouds.count > 1 && cloud.nil?
+            say "You have multiple clouds in Cloudfile. Select which to #{action} using:"
+            say "  shelly #{action} #{clouds.first}"
+            say "Available clouds:"
+            clouds.each do |cloud|
+              say " * #{cloud}"
+            end
+            exit 1
+          end
+          @app = Shelly::App.new
+          @app.code_name = cloud.nil? ? clouds.first : cloud
+        end
+
         def check_options(options)
           unless options.empty?
             unless ["code-name", "databases", "domains"].all? do |option|
