@@ -44,7 +44,11 @@ module Shelly
 
       desc "login [EMAIL]", "Logs user in to Shelly Cloud"
       def login(email = nil)
-        user = Shelly::User.new(email || ask_for_email, ask_for_password(:with_confirmation => false))
+        user = Shelly::User.new
+      	raise Errno::ENOENT, user.ssh_key_path unless user.ssh_key_exists?
+        #user = Shelly::User.new(email || ask_for_email, ask_for_password(:with_confirmation => false))
+        user.email = email || ask_for_email
+        user.password = ask_for_password(:with_confirmation => false)
         user.login
         say "Login successful"
         begin user.upload_ssh_key
@@ -65,6 +69,9 @@ module Shelly
           say_error "#{e.url}", :with_exit => false
         end
         exit 1
+      rescue Errno::ENOENT => e
+        say_error e, :with_exit => false
+        say_error "Use ssh-keygen to generate ssh key pair"
       end
 
       method_option "code-name", :type => :string, :aliases => "-c",
@@ -133,9 +140,9 @@ module Shelly
         say_error "No Cloudfile found" unless Cloudfile.present?
         @cloudfile = check_clouds.first
         @cloudfile.fetch_ips.each do |server|
-          say "Cloud #{server['code_name']}:"
-          say "Web server IP : #{server['web_server_ip']}"
-          say "Mail server IP: #{server['mail_server_ip']}"
+          say "Cloud #{server['code_name']}:", :green
+          print_wrapped "Web server IP: #{server['web_server_ip']}", :ident => 2
+          print_wrapped "Mail server IP: #{server['mail_server_ip']}", :ident => 2
         end
       rescue Client::APIError => e
         if e.unauthorized?

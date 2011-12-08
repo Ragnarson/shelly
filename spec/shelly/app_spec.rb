@@ -65,11 +65,11 @@ foo-staging:
       # delayed_job: 1
     postgresql:
       size: large
-      database:
+      databases:
         - postgresql
     mongodb:
       size: large
-      database:
+      databases:
         - mongodb
 config
       @app.generate_cloudfile.strip.should == expected.strip

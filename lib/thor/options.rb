@@ -9,4 +9,3 @@ class Thor
 
   end
 end
-
