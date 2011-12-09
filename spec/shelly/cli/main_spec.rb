@@ -24,6 +24,7 @@ describe Shelly::CLI::Main do
       expected = <<-OUT
 Tasks:
   shelly add                # Adds new cloud to Shelly Cloud
+  shelly delete CODE-NAME   # Delete cloud from Shelly Cloud
   shelly help [TASK]        # Describe available tasks or one specific task
   shelly ip                 # Lists clouds IP's
   shelly list               # Lists all your clouds
@@ -638,8 +639,6 @@ OUT
         @main.stop("foo-staging")
       end
     end
-
-
   end
 
   describe "#ips" do
@@ -691,6 +690,76 @@ OUT
         @client.stub(:apps_users).and_return(response)
         $stdout.should_receive(:puts).with("\e[31mYou have no access to 'foo-staging' cloud defined in Cloudfile\e[0m")
         lambda { @main.ip }.should raise_error(SystemExit)
+      end
+    end
+  end
+
+  describe "#delete" do
+    before  do
+      Shelly::App.stub(:inside_git_repository?).and_return(true)
+      @user =  Shelly::User.new
+      @app =  Shelly::App.new
+      @client.stub(:token).and_return("abc")
+      @app.stub(:delete)
+      Shelly::User.stub(:new).and_return(@user)
+      Shelly::App.stub(:new).and_return(@app)
+    end
+
+    context "when code_name is not nil" do
+      it "should ask about delete application parts" do
+        $stdout.should_receive(:puts).with("You are about to delete application: foo-bar.")
+        $stdout.should_receive(:puts).with("Press Control-C at any moment to cancel.")
+        $stdout.should_receive(:puts).with("Please confirm each question by typing yes and pressing Enter.")
+        $stdout.should_receive(:puts).with("\n")
+        $stdout.should_receive(:print).with("I want to delete all files stored on Shelly Cloud (yes/no): ")
+        $stdout.should_receive(:print).with("I want to delete all database data stored on Shelly Cloud (yes/no): ")
+        $stdout.should_receive(:print).with("I want to delete the application (yes/no): ")
+        $stdout.should_receive(:puts).with("\n")
+        $stdout.should_receive(:puts).with("Scheduling application delete - done")
+        $stdout.should_receive(:puts).with("Removing git remote - done")
+        fake_stdin(["yes", "yes", "yes"]) do
+          @main.delete("foo-bar")
+        end
+      end
+
+      it "should return exit 1 when user doesn't type 'yes'" do
+        lambda{
+          fake_stdin(["yes", "yes", "no"]) do
+            @main.delete("foo-bar")
+          end
+        }.should raise_error(SystemExit)
+      end
+    end
+
+    context "when git repository doesn't exist" do
+      it "should say that Git remote missing" do
+        Shelly::App.stub(:inside_git_repository?).and_return(false)
+        $stdout.should_receive(:puts).with("Missing git remote")
+        fake_stdin(["yes", "yes", "yes"]) do
+          @main.delete("foo-bar")
+        end
+      end
+    end
+
+    context "when application with CODE-NAME doesn't exist" do
+      it "should raise Client::APIError" do
+        response = {:message => "Application not found"}
+        exception = Shelly::Client::APIError.new(response.to_json)
+        @app.stub(:delete).and_raise(exception)
+        $stdout.should_receive(:puts).with("\e[31mApplication not found\e[0m")
+        lambda{
+          fake_stdin(["yes", "yes", "yes"]) do
+            @main.delete("foo-bar")
+          end
+        }.should raise_error(SystemExit)
+      end
+    end
+
+    context "when code_name is nil" do
+      it "should display error when no code_name" do
+        $stdout.should_receive(:puts).with("\e[31mMissing CODE-NAME\e[0m")
+        $stdout.should_receive(:puts).with("\e[31mUse: shelly delete CODE-NAME\e[0m")
+        lambda{ @main.delete }.should raise_error(SystemExit)
       end
     end
   end

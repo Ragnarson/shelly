@@ -94,7 +94,7 @@ describe Shelly::CLI::User do
       File.delete("Cloudfile")
       $stdout.should_receive(:puts).with("\e[31mNo Cloudfile found\e[0m")
       lambda {
-        @cli_user.list
+        @cli_user.add
       }.should raise_error(SystemExit)
     end
 

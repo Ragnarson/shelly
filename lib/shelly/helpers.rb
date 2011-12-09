@@ -27,6 +27,24 @@ module Shelly
       say_error "Email can't be blank, please try again"
     end
 
+    def ask_to_delete_files
+      delete_files_question = "I want to delete all files stored on Shelly Cloud (yes/no):"
+      delete_files = ask(delete_files_question)
+      exit 1 unless delete_files == "yes"
+    end
+
+    def ask_to_delete_database
+      delete_database_question = "I want to delete all database data stored on Shelly Cloud (yes/no):"
+      delete_database = ask(delete_database_question)
+      exit 1 unless delete_database == "yes"
+    end
+
+    def ask_to_delete_application
+      delete_application_question = "I want to delete the application (yes/no):"
+      delete_application = ask(delete_application_question)
+      exit 1 unless delete_application == "yes"
+    end
+
     def check_clouds
       @cloudfile = Shelly::Cloudfile.new
       @user = Shelly::User.new

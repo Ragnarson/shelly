@@ -46,7 +46,6 @@ module Shelly
       def login(email = nil)
         user = Shelly::User.new
       	raise Errno::ENOENT, user.ssh_key_path unless user.ssh_key_exists?
-        #user = Shelly::User.new(email || ask_for_email, ask_for_password(:with_confirmation => false))
         user.email = email || ask_for_email
         user.password = ask_for_password(:with_confirmation => false)
         user.login
@@ -202,6 +201,36 @@ module Shelly
           e.errors.each { |error| say_error error, :with_exit => false}
           exit 1
         end
+      end
+
+      desc "delete CODE-NAME", "Delete cloud from Shelly Cloud"
+      def delete(code_name = nil)
+        user = Shelly::User.new
+        user.token
+        if code_name.present?
+          app = Shelly::App.new
+          say "You are about to delete application: #{code_name}."
+          say "Press Control-C at any moment to cancel."
+          say "Please confirm each question by typing yes and pressing Enter."
+          say_new_line
+          ask_to_delete_files
+          ask_to_delete_database
+          ask_to_delete_application
+          app.delete(code_name)
+          say_new_line
+          say "Scheduling application delete - done"
+          if App.inside_git_repository?
+            app.remove_git_remote
+            say "Removing git remote - done"
+          else
+            say "Missing git remote"
+          end
+        else
+          say_error "Missing CODE-NAME", :with_exit => false
+          say_error "Use: shelly delete CODE-NAME"
+        end
+      rescue Client::APIError => e
+        say_error e.message
       end
 
       # FIXME: move to helpers
