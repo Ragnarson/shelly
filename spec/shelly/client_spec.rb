@@ -268,6 +268,11 @@ describe Shelly::Client do
       @client.should_receive(:request).with("/account", :delete, :name => "new-one")
       @client.delete("/account", :name => "new-one")
     end
+
+    it "should make DELETE request to apps with parameters" do
+      @client.should_receive(:request).with("/apps/new-one", :delete, {})
+      @client.delete("/apps/new-one")
+    end
   end
 end
 

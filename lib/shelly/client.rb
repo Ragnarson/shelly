@@ -65,7 +65,7 @@ module Shelly
     end
 
     def delete_app(code_name)
-      delete("/apps/delete", :code_name => code_name)
+      delete("/apps/#{code_name}")
     end
 
     def add_ssh_key(ssh_key)
