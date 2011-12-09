@@ -191,6 +191,13 @@ OUT
         end
       end
 
+      it "should accept email as parameter" do
+        $stdout.should_receive(:puts).with("Login successful")
+        fake_stdin(["secret"]) do
+          @main.login("megan@example.com")
+        end
+      end
+
       it "should upload user's public SSH key" do
         @user.should_receive(:upload_ssh_key)
         $stdout.should_receive(:puts).with("Uploading your public SSH key")
@@ -480,7 +487,9 @@ OUT
     end
 
     it "should exit if user doesn't have access to clouds in Cloudfile" do
-      @client.stub(:apps).and_return([{"code_name" => "no-access"}])
+      response = {"message" => "Cloud foo-staging not found"}
+      exception = Shelly::Client::APIError.new(response.to_json)
+      @client.stub(:start_cloud).and_raise(exception)
       $stdout.should_receive(:puts).with(red "You have no access to 'foo-production' cloud defined in Cloudfile")
       lambda { @main.start }.should raise_error(SystemExit)
     end
@@ -570,7 +579,6 @@ OUT
         exception.stub(:response).and_return(options.to_json)
         @client.stub(:start_cloud).and_raise(exception)
       end
-
     end
   end
 
@@ -596,7 +604,9 @@ OUT
     end
 
     it "should exit if user doesn't have access to clouds in Cloudfile" do
-      @client.stub(:apps).and_return([{"code_name" => "no-access"}])
+      response = {"message" => "Cloud foo-staging not found"}
+      exception = Shelly::Client::APIError.new(response.to_json)
+      @client.stub(:stop_cloud).and_raise(exception)
       $stdout.should_receive(:puts).with(red "You have no access to 'foo-production' cloud defined in Cloudfile")
       lambda { @main.stop }.should raise_error(SystemExit)
     end
@@ -666,8 +676,7 @@ OUT
 
     context "on success" do
       it "should display mail and web server ip's" do
-        @client.should_receive(:apps).and_return([{"code_name" => "foo-production"},{"code_name" => "foo-staging"}])
-        @client.stub(:apps_ips).and_return(response)
+        @client.stub(:app_ips).and_return(response)
         $stdout.should_receive(:puts).with("\e[32mCloud foo-production:\e[0m")
         $stdout.should_receive(:puts).with("  Web server IP: 22.22.22.22")
         $stdout.should_receive(:puts).with("  Mail server IP: 11.11.11.11")
@@ -676,7 +685,7 @@ OUT
     end
 
     def response
-      [{'code_name' => 'foo-production', 'mail_server_ip' => '11.11.11.11', 'web_server_ip' => '22.22.22.22'}]
+      {'mail_server_ip' => '11.11.11.11', 'web_server_ip' => '22.22.22.22'}
     end
 
     context "on failure" do
@@ -687,12 +696,12 @@ OUT
       end
 
       it "should raise an error if user does not have access to cloud" do
-        @client.should_receive(:apps).and_return([{"code_name" => "foo-production"}])
-        @client.stub(:apps_users).and_return(response)
-        $stdout.should_receive(:puts).with("\e[31mYou have no access to 'foo-staging' cloud defined in Cloudfile\e[0m")
-        lambda { @main.ip }.should raise_error(SystemExit)
+        response = {"message" => "Cloud foo-staging not found"}
+        exception = Shelly::Client::APIError.new(response.to_json)
+        @client.stub(:app_ips).and_raise(exception)
+        $stdout.should_receive(:puts).with(red "You have no access to 'foo-staging' cloud defined in Cloudfile")
+        @main.ip
       end
     end
   end
 end
-

@@ -18,9 +18,16 @@ describe Shelly::App do
   end
 
   describe "#users" do
-    it "should " do
-      @client.should_receive(:app_users).with(["staging-foo", "production-foo"])
-      @app.users(["staging-foo", "production-foo"])
+    it "should fetch app's users" do
+      @client.should_receive(:app_users).with("foo-staging")
+      @app.users
+    end
+  end
+
+  describe "#ips" do
+    it "should get app's ips" do
+      @client.should_receive(:app_ips).with("foo-staging")
+      @app.ips
     end
   end
 

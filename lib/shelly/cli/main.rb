@@ -51,13 +51,13 @@ module Shelly
         user.password = ask_for_password(:with_confirmation => false)
         user.login
         say "Login successful"
+        # FIXME: remove conflict boolean, move it to rescue block
         begin user.upload_ssh_key
           conflict = false
         rescue RestClient::Conflict
           conflict = true
         end
         say "Uploading your public SSH key" if conflict == false
-        email = nil
         list
       rescue Client::APIError => e
         if e.validation?
@@ -138,18 +138,21 @@ module Shelly
       def ip
         say_error "Must be run inside your project git repository" unless App.inside_git_repository?
         say_error "No Cloudfile found" unless Cloudfile.present?
-        @cloudfile = check_clouds.first
-        @cloudfile.fetch_ips.each do |server|
-          say "Cloud #{server['code_name']}:", :green
-          print_wrapped "Web server IP: #{server['web_server_ip']}", :ident => 2
-          print_wrapped "Mail server IP: #{server['mail_server_ip']}", :ident => 2
-        end
-      rescue Client::APIError => e
-        if e.unauthorized?
-          e.errors.each { |error| say_error error, :with_exit => false}
-          exit 1
-        else
-          say_error e.message
+        @cloudfile = Cloudfile.new
+        @cloudfile.clouds.each do |cloud|
+          begin
+            @app = App.new(cloud)
+            say "Cloud #{cloud}:", :green
+            ips = @app.ips
+            print_wrapped "Web server IP: #{ips['web_server_ip']}", :ident => 2
+            print_wrapped "Mail server IP: #{ips['mail_server_ip']}", :ident => 2
+          rescue Client::APIError => e
+            if e.unauthorized?
+              say_error "You have no access to '#{cloud}' cloud defined in Cloudfile", :with_exit => false
+            else
+              say_error e.message, :with_exit => false
+            end
+          end
         end
       end
 
@@ -157,7 +160,7 @@ module Shelly
       def start(cloud = nil)
         logged_in?
         say_error "No Cloudfile found" unless Cloudfile.present?
-        cloudfile, user = check_clouds
+        cloudfile = Cloudfile.new
         multiple_clouds(cloudfile.clouds, cloud)
         @app.start
         say "Starting cloud #{@app.code_name}. Check status with:", :green
@@ -184,8 +187,7 @@ module Shelly
         exit 1
       rescue Client::APIError => e
         if e.unauthorized?
-          e.errors.each { |error| say_error error, :with_exit => false}
-          exit 1
+          say_error "You have no access to '#{@app.code_name}' cloud defined in Cloudfile"
         end
       end
 
@@ -193,14 +195,13 @@ module Shelly
       def stop(cloud = nil)
         logged_in?
         say_error "No Cloudfile found" unless Cloudfile.present?
-        cloudfile, user = check_clouds
+        cloudfile = Cloudfile.new
         multiple_clouds(cloudfile.clouds, cloud, "stop")
         @app.stop
         say "Cloud '#{@app.code_name}' stopped"
       rescue Client::APIError => e
         if e.unauthorized?
-          e.errors.each { |error| say_error error, :with_exit => false}
-          exit 1
+          say_error "You have no access to '#{@app.code_name}' cloud defined in Cloudfile"
         end
       end
 
@@ -295,4 +296,3 @@ module Shelly
     end
   end
 end
-

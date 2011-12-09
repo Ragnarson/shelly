@@ -25,7 +25,7 @@ module Shelly
       end
 
       def unauthorized?
-        message == "Unauthorized"
+        message == "Unauthorized" || message =~ /Cloud .+ not found/
       end
 
       def each_error
@@ -69,11 +69,11 @@ module Shelly
     end
 
     def start_cloud(cloud)
-      post("/apps/#{cloud}/start")
+      put("/apps/#{cloud}/start")
     end
 
     def stop_cloud(cloud)
-      delete("/apps/#{cloud}/stop")
+      put("/apps/#{cloud}/stop")
     end
 
     def apps
@@ -84,16 +84,12 @@ module Shelly
     	get("/users/new", :ssh_key => ssh_key)
     end
 
-    def apps_users(apps)
-      apps.map do |app|
-        get("/apps/#{app}/users")
-      end
+    def app_users(cloud)
+      get("/apps/#{cloud}/users")
     end
 
-    def apps_ips(apps)
-      apps.map do |app|
-        get("/apps/#{app}/ips")
-      end
+    def app_ips(cloud)
+      get("/apps/#{cloud}/ips")
     end
 
     def post(path, params = {})
@@ -106,10 +102,6 @@ module Shelly
 
     def get(path, params = {})
       request(path, :get, params)
-    end
-
-    def delete(path, params = {})
-      request(path, :delete, params)
     end
 
     def request(path, method, params = {})

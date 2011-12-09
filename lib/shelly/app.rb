@@ -8,6 +8,10 @@ module Shelly
     attr_accessor :code_name, :databases, :ruby_version, :environment,
       :git_url, :domains
 
+    def initialize(code_name = nil)
+      self.code_name = code_name
+    end
+
     def add_git_remote
       system("git remote rm production > /dev/null 2>&1")
       system("git remote add production #{git_url}")
@@ -54,8 +58,12 @@ module Shelly
       File.basename(Dir.pwd)
     end
 
-    def users(apps)
-      shelly.app_users(apps)
+    def ips
+      shelly.app_ips(self.code_name)
+    end
+
+    def users
+      shelly.app_users(self.code_name)
     end
 
     def open_billing_page

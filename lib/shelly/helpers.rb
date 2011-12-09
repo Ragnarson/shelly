@@ -27,20 +27,6 @@ module Shelly
       say_error "Email can't be blank, please try again"
     end
 
-    def check_clouds
-      @cloudfile = Shelly::Cloudfile.new
-      @user = Shelly::User.new
-      user_apps = @user.apps.map { |cloud| cloud['code_name'] }
-      unless @cloudfile.clouds.all? { |cloud| user_apps.include?(cloud) }
-        errors = (@cloudfile.clouds - user_apps).map do |cloud|
-          "You have no access to '#{cloud}' cloud defined in Cloudfile"
-        end
-        raise Shelly::Client::APIError.new({:message => "Unauthorized",
-          :errors => errors}.to_json)
-      end
-      [@cloudfile, @user]
-    end
-
     def logged_in?
       user = Shelly::User.new
       user.token
