@@ -17,6 +17,10 @@ module Shelly
       system("git remote add production #{git_url}")
     end
 
+    def remove_git_remote
+      system("git remote rm production > /dev/null 2>&1")
+    end
+
     def generate_cloudfile
       @email = current_user.email
       template = File.read(cloudfile_template_path)
@@ -35,6 +39,10 @@ module Shelly
       self.domains = response["domains"]
       self.ruby_version = response["ruby_version"]
       self.environment = response["environment"]
+    end
+
+    def delete(code_name)
+      response = shelly.delete_app(code_name)
     end
 
     def create_cloudfile
