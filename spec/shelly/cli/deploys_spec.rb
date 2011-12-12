@@ -50,7 +50,7 @@ describe Shelly::CLI::Deploys do
       end
 
       it "should take cloud from command line for which to show logs" do
-        @client.should_receive(:cloud_logs).with("foo-staging").and_return([{"failed" => false, "created_at" => "2011-12-12 14:14:59 +0100"}])
+        @client.should_receive(:cloud_logs).with("foo-staging").and_return([{"failed" => false, "created_at" => "2011-12-12-14-14-59"}])
         $stdout.should_receive(:puts).with(green "Available deploy logs")
         $stdout.should_receive(:puts).with(" * 2011-12-12-14-14-59")
         @deploys.list("foo-staging")
@@ -59,7 +59,7 @@ describe Shelly::CLI::Deploys do
 
     context "single cloud" do
       it "should display available logs" do
-        @client.should_receive(:cloud_logs).with("foo-staging").and_return([{"failed" => false, "created_at" => "2011-12-12 14:14:59 +0100"}, {"failed" => true, "created_at" => "2011-12-12 15:14:59 +0100"}])
+        @client.should_receive(:cloud_logs).with("foo-staging").and_return([{"failed" => false, "created_at" => "2011-12-12-14-14-59"}, {"failed" => true, "created_at" => "2011-12-12-15-14-59"}])
         $stdout.should_receive(:puts).with(green "Available deploy logs")
         $stdout.should_receive(:puts).with(" * 2011-12-12-14-14-59")
         $stdout.should_receive(:puts).with(" * 2011-12-12-15-14-59 (failed)")

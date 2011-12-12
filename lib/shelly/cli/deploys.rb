@@ -16,8 +16,7 @@ module Shelly
         unless logs.empty?
           say "Available deploy logs", :green
           logs.each do |log|
-            created_at = Time.parse(log["created_at"]).strftime("%Y-%m-%d-%H-%M-%S")
-            log["failed"] ? say(" * #{created_at} (failed)") : say(" * #{created_at}")
+            log["failed"] ? say(" * #{log["created_at"]} (failed)") : say(" * #{log["created_at"]}")
           end
         else
           say "No deploy logs available"
