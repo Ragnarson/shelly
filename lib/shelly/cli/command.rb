@@ -1,5 +1,6 @@
 require "shelly"
 require "thor"
+require "thor/thor"
 require "thor/group"
 require "thor/options"
 require "thor/arguments"
