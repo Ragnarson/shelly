@@ -57,6 +57,21 @@ module Shelly
       end
     end
 
+    def multiple_clouds(cloud, action, message)
+      clouds = Cloudfile.new.clouds
+      if clouds.count > 1 && cloud.nil?
+        say "You have multiple clouds in Cloudfile. #{message}"
+        say "  shelly #{action} #{clouds.first}"
+        say "Available clouds:"
+        clouds.each do |cloud|
+          say " * #{cloud}"
+        end
+        exit 1
+      end
+      @app = Shelly::App.new
+      @app.code_name = cloud.nil? ? clouds.first : cloud
+    end
+
   end
 end
 

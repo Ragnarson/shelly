@@ -1,5 +1,6 @@
 require "shelly/cli/command"
 require "shelly/cli/user"
+require "shelly/cli/deploys"
 
 module Shelly
   module CLI
@@ -7,6 +8,7 @@ module Shelly
       include Thor::Actions
       include Helpers
       register(User, "user", "user <command>", "Manages users using this cloud")
+      register(Deploys, "deploys", "deploys <command>", "View cloud deploy logs")
       check_unknown_options!
 
       map %w(-v --version) => :version
@@ -17,11 +19,11 @@ module Shelly
 
       desc "register [EMAIL]", "Registers new user account on Shelly Cloud"
       def register(email = nil)
-      	user = Shelly::User.new
-      	user.ssh_key_registered?
+        user = Shelly::User.new
+        user.ssh_key_registered?
         say "Registering with email: #{email}" if email
-				user.email = (email || ask_for_email)
-				user.password = ask_for_password
+        user.email = (email || ask_for_email)
+        user.password = ask_for_password
         user.register
         if user.ssh_key_exists?
           say "Uploading your public SSH key from #{user.ssh_key_path}"
@@ -45,7 +47,7 @@ module Shelly
       desc "login [EMAIL]", "Logs user in to Shelly Cloud"
       def login(email = nil)
         user = Shelly::User.new
-      	raise Errno::ENOENT, user.ssh_key_path unless user.ssh_key_exists?
+        raise Errno::ENOENT, user.ssh_key_path unless user.ssh_key_exists?
         user.email = email || ask_for_email
         user.password = ask_for_password(:with_confirmation => false)
         user.login
@@ -159,8 +161,7 @@ module Shelly
       def start(cloud = nil)
         logged_in?
         say_error "No Cloudfile found" unless Cloudfile.present?
-        cloudfile = Cloudfile.new
-        multiple_clouds(cloudfile.clouds, cloud)
+        multiple_clouds(cloud, "start", "Select which to start using:")
         @app.start
         say "Starting cloud #{@app.code_name}. Check status with:", :green
         say "  shelly list"
@@ -194,8 +195,7 @@ module Shelly
       def stop(cloud = nil)
         logged_in?
         say_error "No Cloudfile found" unless Cloudfile.present?
-        cloudfile = Cloudfile.new
-        multiple_clouds(cloudfile.clouds, cloud, "stop")
+        multiple_clouds(cloud, "stop", "Select which to stop using:")
         @app.stop
         say "Cloud '#{@app.code_name}' stopped"
       rescue Client::APIError => e
@@ -236,20 +236,6 @@ module Shelly
 
       # FIXME: move to helpers
       no_tasks do
-        def multiple_clouds(clouds, cloud, action = "start")
-          if clouds.count > 1 && cloud.nil?
-            say "You have multiple clouds in Cloudfile. Select which to #{action} using:"
-            say "  shelly #{action} #{clouds.first}"
-            say "Available clouds:"
-            clouds.each do |cloud|
-              say " * #{cloud}"
-            end
-            exit 1
-          end
-          @app = Shelly::App.new
-          @app.code_name = cloud.nil? ? clouds.first : cloud
-        end
-
         def check_options(options)
           unless options.empty?
             unless ["code-name", "databases", "domains"].all? do |option|

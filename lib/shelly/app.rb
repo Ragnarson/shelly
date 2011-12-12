@@ -42,12 +42,16 @@ module Shelly
     end
 
     def delete(code_name)
-      response = shelly.delete_app(code_name)
+      shelly.delete_app(code_name)
     end
 
     def create_cloudfile
       content = generate_cloudfile
       File.open(cloudfile_path, "a+") { |f| f << content }
+    end
+
+    def logs
+      shelly.cloud_logs(self.code_name)
     end
 
     def start

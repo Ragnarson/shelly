@@ -25,6 +25,7 @@ describe Shelly::CLI::Main do
 Tasks:
   shelly add                # Adds new cloud to Shelly Cloud
   shelly delete CODE-NAME   # Delete cloud from Shelly Cloud
+  shelly deploys <command>  # View cloud deploy logs
   shelly help [TASK]        # Describe available tasks or one specific task
   shelly ip                 # Lists clouds IP's
   shelly list               # Lists all your clouds
@@ -488,7 +489,7 @@ OUT
     end
 
     it "should exit if user doesn't have access to clouds in Cloudfile" do
-      response = {"message" => "Cloud foo-staging not found"}
+      response = {"message" => "Cloud foo-production not found"}
       exception = Shelly::Client::APIError.new(response.to_json)
       @client.stub(:start_cloud).and_raise(exception)
       $stdout.should_receive(:puts).with(red "You have no access to 'foo-production' cloud defined in Cloudfile")
@@ -605,7 +606,7 @@ OUT
     end
 
     it "should exit if user doesn't have access to clouds in Cloudfile" do
-      response = {"message" => "Cloud foo-staging not found"}
+      response = {"message" => "Cloud foo-production not found"}
       exception = Shelly::Client::APIError.new(response.to_json)
       @client.stub(:stop_cloud).and_raise(exception)
       $stdout.should_receive(:puts).with(red "You have no access to 'foo-production' cloud defined in Cloudfile")

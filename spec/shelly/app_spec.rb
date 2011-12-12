@@ -129,6 +129,13 @@ config
     end
   end
 
+  describe "#logs" do
+    it "should list logs" do
+      @client.should_receive(:cloud_logs).with("foo-staging")
+      @app.logs
+    end
+  end
+
   describe "#create" do
     context "without providing domain" do
       it "should create the app on shelly cloud via API client" do
