@@ -45,20 +45,6 @@ module Shelly
       exit 1 unless delete_application == "yes"
     end
 
-    def check_clouds
-      @cloudfile = Shelly::Cloudfile.new
-      @user = Shelly::User.new
-      user_apps = @user.apps.map { |cloud| cloud['code_name'] }
-      unless @cloudfile.clouds.all? { |cloud| user_apps.include?(cloud) }
-        errors = (@cloudfile.clouds - user_apps).map do |cloud|
-          "You have no access to '#{cloud}' cloud defined in Cloudfile"
-        end
-        raise Shelly::Client::APIError.new({:message => "Unauthorized",
-          :errors => errors}.to_json)
-      end
-      [@cloudfile, @user]
-    end
-
     def logged_in?
       user = Shelly::User.new
       user.token
@@ -69,6 +55,21 @@ module Shelly
         say "  shelly login"
         exit 1
       end
+    end
+
+    def multiple_clouds(cloud, action, message)
+      clouds = Cloudfile.new.clouds
+      if clouds.count > 1 && cloud.nil?
+        say "You have multiple clouds in Cloudfile. #{message}"
+        say "  shelly #{action} #{clouds.first}"
+        say "Available clouds:"
+        clouds.each do |cloud|
+          say " * #{cloud}"
+        end
+        exit 1
+      end
+      @app = Shelly::App.new
+      @app.code_name = cloud.nil? ? clouds.first : cloud
     end
 
   end

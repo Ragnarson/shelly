@@ -100,6 +100,17 @@ describe Shelly::Client do
     end
   end
 
+  describe "#cloud_logs" do
+    it "should send get request" do
+      time = Time.now
+      FakeWeb.register_uri(:get, @url + "/apps/staging-foo/deploys", :body => [{:failed => false, :created_at => time},
+        {:failed => true, :created_at => time+1}].to_json)
+      response = @client.cloud_logs("staging-foo")
+      response.should == [{"failed"=>false, "created_at"=>time.to_s},
+             {"failed"=>true, "created_at"=>(time+1).to_s}]
+    end
+  end
+
   describe "#create_app" do
     it "should send post with app's attributes" do
       @client.should_receive(:post).with("/apps", :app => {:code_name => "foo", :ruby_version => "1.9.2"})
@@ -108,11 +119,19 @@ describe Shelly::Client do
   end
 
   describe "#app_users" do
-    it "should send post with app code_names" do
-      FakeWeb.register_uri(:get, @url + "/apps/staging-foo/users", :body => {:code_name => "staging-foo"}.to_json)
-      FakeWeb.register_uri(:get, @url + "/apps/production-foo/users", :body => {:code_name => "production-foo"}.to_json)
-      response = @client.apps_users(["staging-foo", "production-foo"])
-      response.should == [{"code_name" => "staging-foo"}, {"code_name" => "production-foo"}]
+    it "should send get request with app code_names" do
+      FakeWeb.register_uri(:get, @url + "/apps/staging-foo/users", :body => [{:email => "test@example.com"},
+        {:email => "test2@example.com"}].to_json)
+      response = @client.app_users("staging-foo")
+      response.should == [{"email" => "test@example.com"}, {"email" => "test2@example.com"}]
+    end
+  end
+
+  describe "#app_ips" do
+    it "should send get request with app code_name" do
+      FakeWeb.register_uri(:get, @url + "/apps/staging-foo/ips", :body => {:mail_server_ip => "10.0.1.1", :web_server_ip => "88.198.21.187"}.to_json)
+      response = @client.app_ips("staging-foo")
+      response.should == {"mail_server_ip" => "10.0.1.1", "web_server_ip" => "88.198.21.187"}
     end
   end
 
@@ -141,7 +160,7 @@ describe Shelly::Client do
 
   describe "#start_cloud" do
     it "should sent post request with cloud's code_name" do
-      FakeWeb.register_uri(:post, @url + "/apps/staging-foo/start", :body => {}.to_json)
+      FakeWeb.register_uri(:put, @url + "/apps/staging-foo/start", :body => {}.to_json)
       response = @client.start_cloud("staging-foo")
       response.should == {}
     end
@@ -149,7 +168,7 @@ describe Shelly::Client do
 
   describe "#stop_cloud" do
     it "should sent delete request with cloud's code_name" do
-      FakeWeb.register_uri(:delete, @url + "/apps/staging-foo/stop", :body => {}.to_json)
+      FakeWeb.register_uri(:put, @url + "/apps/staging-foo/stop", :body => {}.to_json)
       response = @client.stop_cloud("staging-foo")
       response.should == {}
     end
@@ -275,4 +294,3 @@ describe Shelly::Client do
     end
   end
 end
-

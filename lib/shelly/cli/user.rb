@@ -10,17 +10,19 @@ module Shelly
       def list
         say_error "Must be run inside your project git repository" unless App.inside_git_repository?
         say_error "No Cloudfile found" unless Cloudfile.present?
-        @cloudfile = check_clouds.first
-        @cloudfile.fetch_users.each do |cloud, users|
-          say "Cloud #{cloud}:"
-          users.each { |user| say "  #{user}" }
-        end
-      rescue Client::APIError => e
-        if e.unauthorized?
-          e.errors.each { |error| say_error error, :with_exit => false}
-          exit 1
-        else
-          say_error e.message
+        @cloudfile = Cloudfile.new
+        @cloudfile.clouds.each do |cloud|
+          begin
+            @app = App.new(cloud)
+            say "Cloud #{cloud}:"
+            @app.users.each { |user| say "  #{user["email"]}" }
+          rescue Client::APIError => e
+            if e.unauthorized?
+              say_error "You have no access to '#{cloud}' cloud defined in Cloudfile", :with_exit => false
+            else
+              say_error e.message, :with_exit => false
+            end
+          end
         end
       end
 
@@ -28,7 +30,8 @@ module Shelly
       def add(email = nil)
         say_error "Must be run inside your project git repository" unless App.inside_git_repository?
         say_error "No Cloudfile found" unless Cloudfile.present?
-        @cloudfile, @user = check_clouds
+        @cloudfile = Cloudfile.new
+        @user = Shelly::User.new
         user_email = email || ask_for_email({:guess_email => false})
         @cloudfile.clouds.each do |cloud|
           begin
@@ -36,9 +39,13 @@ module Shelly
           rescue Client::APIError => e
             if e.validation? && e.errors.include?(["email", "#{email} has already been taken"])
               say_error "User #{email} is already in the cloud #{cloud}", :with_exit => false
+            elsif e.unauthorized?
+              say_error "You have no access to '#{cloud}' cloud defined in Cloudfile", :with_exit => false
             elsif e.validation?
               e.each_error { |error| say_error error, :with_exit => false }
               exit 1
+            else
+              say_error e.message, :with_exit => false
             end
           else
             say "Sending invitation to #{user_email} to work on #{cloud}", :green

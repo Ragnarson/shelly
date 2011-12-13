@@ -1,5 +1,6 @@
 require "shelly/cli/command"
 require "shelly/cli/user"
+require "shelly/cli/deploys"
 
 module Shelly
   module CLI
@@ -7,6 +8,7 @@ module Shelly
       include Thor::Actions
       include Helpers
       register(User, "user", "user <command>", "Manages users using this cloud")
+      register(Deploys, "deploys", "deploys <command>", "View cloud deploy logs")
       check_unknown_options!
 
       map %w(-v --version) => :version
@@ -17,11 +19,11 @@ module Shelly
 
       desc "register [EMAIL]", "Registers new user account on Shelly Cloud"
       def register(email = nil)
-      	user = Shelly::User.new
-      	user.ssh_key_registered?
+        user = Shelly::User.new
+        user.ssh_key_registered?
         say "Registering with email: #{email}" if email
-				user.email = (email || ask_for_email)
-				user.password = ask_for_password
+        user.email = (email || ask_for_email)
+        user.password = ask_for_password
         user.register
         if user.ssh_key_exists?
           say "Uploading your public SSH key from #{user.ssh_key_path}"
@@ -45,18 +47,18 @@ module Shelly
       desc "login [EMAIL]", "Logs user in to Shelly Cloud"
       def login(email = nil)
         user = Shelly::User.new
-      	raise Errno::ENOENT, user.ssh_key_path unless user.ssh_key_exists?
+        raise Errno::ENOENT, user.ssh_key_path unless user.ssh_key_exists?
         user.email = email || ask_for_email
         user.password = ask_for_password(:with_confirmation => false)
         user.login
         say "Login successful"
+        # FIXME: remove conflict boolean, move it to rescue block
         begin user.upload_ssh_key
           conflict = false
         rescue RestClient::Conflict
           conflict = true
         end
         say "Uploading your public SSH key" if conflict == false
-        email = nil
         list
       rescue Client::APIError => e
         if e.validation?
@@ -137,18 +139,21 @@ module Shelly
       def ip
         say_error "Must be run inside your project git repository" unless App.inside_git_repository?
         say_error "No Cloudfile found" unless Cloudfile.present?
-        @cloudfile = check_clouds.first
-        @cloudfile.fetch_ips.each do |server|
-          say "Cloud #{server['code_name']}:", :green
-          print_wrapped "Web server IP: #{server['web_server_ip']}", :ident => 2
-          print_wrapped "Mail server IP: #{server['mail_server_ip']}", :ident => 2
-        end
-      rescue Client::APIError => e
-        if e.unauthorized?
-          e.errors.each { |error| say_error error, :with_exit => false}
-          exit 1
-        else
-          say_error e.message
+        @cloudfile = Cloudfile.new
+        @cloudfile.clouds.each do |cloud|
+          begin
+            @app = App.new(cloud)
+            say "Cloud #{cloud}:", :green
+            ips = @app.ips
+            print_wrapped "Web server IP: #{ips['web_server_ip']}", :ident => 2
+            print_wrapped "Mail server IP: #{ips['mail_server_ip']}", :ident => 2
+          rescue Client::APIError => e
+            if e.unauthorized?
+              say_error "You have no access to '#{cloud}' cloud defined in Cloudfile", :with_exit => false
+            else
+              say_error e.message, :with_exit => false
+            end
+          end
         end
       end
 
@@ -156,8 +161,7 @@ module Shelly
       def start(cloud = nil)
         logged_in?
         say_error "No Cloudfile found" unless Cloudfile.present?
-        cloudfile, user = check_clouds
-        multiple_clouds(cloudfile.clouds, cloud)
+        multiple_clouds(cloud, "start", "Select which to start using:")
         @app.start
         say "Starting cloud #{@app.code_name}. Check status with:", :green
         say "  shelly list"
@@ -183,8 +187,7 @@ module Shelly
         exit 1
       rescue Client::APIError => e
         if e.unauthorized?
-          e.errors.each { |error| say_error error, :with_exit => false}
-          exit 1
+          say_error "You have no access to '#{@app.code_name}' cloud defined in Cloudfile"
         end
       end
 
@@ -192,14 +195,12 @@ module Shelly
       def stop(cloud = nil)
         logged_in?
         say_error "No Cloudfile found" unless Cloudfile.present?
-        cloudfile, user = check_clouds
-        multiple_clouds(cloudfile.clouds, cloud, "stop")
+        multiple_clouds(cloud, "stop", "Select which to stop using:")
         @app.stop
         say "Cloud '#{@app.code_name}' stopped"
       rescue Client::APIError => e
         if e.unauthorized?
-          e.errors.each { |error| say_error error, :with_exit => false}
-          exit 1
+          say_error "You have no access to '#{@app.code_name}' cloud defined in Cloudfile"
         end
       end
 
@@ -235,20 +236,6 @@ module Shelly
 
       # FIXME: move to helpers
       no_tasks do
-        def multiple_clouds(clouds, cloud, action = "start")
-          if clouds.count > 1 && cloud.nil?
-            say "You have multiple clouds in Cloudfile. Select which to #{action} using:"
-            say "  shelly #{action} #{clouds.first}"
-            say "Available clouds:"
-            clouds.each do |cloud|
-              say " * #{cloud}"
-            end
-            exit 1
-          end
-          @app = Shelly::App.new
-          @app.code_name = cloud.nil? ? clouds.first : cloud
-        end
-
         def check_options(options)
           unless options.empty?
             unless ["code-name", "databases", "domains"].all? do |option|
@@ -324,4 +311,3 @@ module Shelly
     end
   end
 end
-
