@@ -88,6 +88,10 @@ module Shelly
       get("/apps/#{cloud}/deploys")
     end
 
+    def cloud_log(cloud, log)
+      get("/apps/#{cloud}/deploys/#{log}")
+    end
+
     def ssh_key_available?(ssh_key)
     	get("/users/new", :ssh_key => ssh_key)
     end

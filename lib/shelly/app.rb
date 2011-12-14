@@ -51,15 +51,19 @@ module Shelly
     end
 
     def logs
-      shelly.cloud_logs(self.code_name)
+      shelly.cloud_logs(code_name)
+    end
+
+    def deploy_log(log)
+      shelly.cloud_log(code_name, log)
     end
 
     def start
-      shelly.start_cloud(self.code_name)
+      shelly.start_cloud(code_name)
     end
 
     def stop
-      shelly.stop_cloud(self.code_name)
+      shelly.stop_cloud(code_name)
     end
 
     def cloudfile_path
