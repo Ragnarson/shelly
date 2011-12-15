@@ -69,7 +69,7 @@ module Shelly
         exit 1
       end
       @app = Shelly::App.new
-      @app.code_name = cloud.nil? ? clouds.first : cloud
+      @app.code_name = cloud || clouds.first
     end
 
   end

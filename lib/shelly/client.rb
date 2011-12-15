@@ -25,6 +25,8 @@ module Shelly
       end
 
       def unauthorized?
+        # FIXME: Return unauthorized if user has no access to cloud
+        #        Return 404 if cloud doesn't exist, should be fixed in API
         message == "Unauthorized" || message =~ /Cloud .+ not found/
       end
 
