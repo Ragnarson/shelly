@@ -41,9 +41,8 @@ module Shelly
       self.environment = response["environment"]
     end
 
-    def delete(code_name)
+    def delete
       shelly.delete_app(code_name)
-      #response = shelly.delete_app(code_name)
     end
 
     def create_cloudfile

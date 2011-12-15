@@ -734,6 +734,7 @@ OUT
       end
 
       it "should return exit 1 when user doesn't type 'yes'" do
+        @app.should_not_receive(:delete)
         lambda{
           fake_stdin(["yes", "yes", "no"]) do
             @main.delete("foo-bar")
