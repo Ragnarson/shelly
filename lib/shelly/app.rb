@@ -43,6 +43,7 @@ module Shelly
 
     def delete(code_name)
       shelly.delete_app(code_name)
+      #response = shelly.delete_app(code_name)
     end
 
     def create_cloudfile

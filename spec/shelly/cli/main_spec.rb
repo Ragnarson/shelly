@@ -708,8 +708,8 @@ OUT
   describe "#delete" do
     before  do
       Shelly::App.stub(:inside_git_repository?).and_return(true)
-      @user =  Shelly::User.new
-      @app =  Shelly::App.new
+      @user = Shelly::User.new
+      @app = Shelly::App.new
       @client.stub(:token).and_return("abc")
       @app.stub(:delete)
       Shelly::User.stub(:new).and_return(@user)

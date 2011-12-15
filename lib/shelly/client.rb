@@ -67,7 +67,7 @@ module Shelly
     end
 
     def delete_app(code_name)
-      delete("/apps/delete", :code_name => code_name)
+      delete("/apps/#{code_name}")
     end
 
     def add_ssh_key(ssh_key)
@@ -112,6 +112,10 @@ module Shelly
 
     def get(path, params = {})
       request(path, :get, params)
+    end
+
+    def delete(path, params = {})
+      request(path, :delete, params)
     end
 
     def request(path, method, params = {})
