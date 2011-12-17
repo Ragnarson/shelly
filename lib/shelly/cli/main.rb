@@ -234,6 +234,25 @@ module Shelly
         say_error e.message
       end
 
+      desc "logs [CODE-NAME]", "Show latest application logs from each instance"
+      def logs(code_name = nil)
+        logged_in?
+        say_error "No Cloudfile found" unless Cloudfile.present?
+        multiple_clouds(code_name, "logs", "Select which to show logs for using:")
+        begin
+          logs = @app.application_logs
+          say "Cloud #{@app.code_name}:", :green
+          logs.each_with_index do |log, i|
+            say "Instance #{i+1}:"
+            print_wrapped log, :ident => 2
+          end
+        rescue Client::APIError => e
+          if e.unauthorized?
+            say_error "You have no access to cloud '#{code_name || @app.code_name}'"
+          end
+        end
+      end
+
       # FIXME: move to helpers
       no_tasks do
         def check_options(options)

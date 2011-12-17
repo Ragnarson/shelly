@@ -30,6 +30,7 @@ Tasks:
   shelly ip                 # Lists clouds IP's
   shelly list               # Lists all your clouds
   shelly login [EMAIL]      # Logs user in to Shelly Cloud
+  shelly logs [CODE-NAME]   # Show latest application logs from each instance
   shelly register [EMAIL]   # Registers new user account on Shelly Cloud
   shelly start [CODE-NAME]  # Starts specific cloud
   shelly stop [CODE-NAME]   # Stops specific cloud
@@ -772,6 +773,96 @@ OUT
         $stdout.should_receive(:puts).with("\e[31mMissing CODE-NAME\e[0m")
         $stdout.should_receive(:puts).with("\e[31mUse: shelly delete CODE-NAME\e[0m")
         lambda{ @main.delete }.should raise_error(SystemExit)
+      end
+    end
+  end
+
+  describe "#logs" do
+    before do
+      @user = Shelly::User.new
+      @client.stub(:token).and_return("abc")
+      FileUtils.mkdir_p("/projects/foo")
+      Dir.chdir("/projects/foo")
+      File.open("Cloudfile", 'w') {|f| f.write("foo-production:\n") }
+      Shelly::User.stub(:new).and_return(@user)
+      @client.stub(:apps).and_return([{"code_name" => "foo-production"},
+                                     {"code_name" => "foo-staging"}])
+      @app = Shelly::App.new
+      Shelly::App.stub(:new).and_return(@app)
+    end
+
+    it "should exit if there is no Cloudfile" do
+      File.delete("Cloudfile")
+      $stdout.should_receive(:puts).with("\e[31mNo Cloudfile found\e[0m")
+      lambda {
+        @main.logs
+      }.should raise_error(SystemExit)
+    end
+
+    it "should exit if user doesn't have access to clouds in Cloudfile" do
+      response = {"message" => "Cloud foo-production not found"}
+      exception = Shelly::Client::APIError.new(response.to_json)
+      @client.stub(:application_logs).and_raise(exception)
+      $stdout.should_receive(:puts).
+        with(red "You have no access to cloud 'foo-production'")
+      lambda { @main.logs }.should raise_error(SystemExit)
+    end
+
+    it "should exit if user is not logged in" do
+      response = {"message" => "Unauthorized"}
+      exception = Shelly::Client::APIError.new(response.to_json)
+      @client.stub(:token).and_raise(exception)
+      $stdout.should_receive(:puts).
+        with(red "You are not logged in. To log in use:")
+      $stdout.should_receive(:puts).with("  shelly login")
+      lambda { @main.logs }.should raise_error(SystemExit)
+    end
+
+    context "single cloud in Cloudfile" do
+      it "should show logs for the cloud" do
+        @client.stub(:application_logs).and_return({"logs" => ["log1"]})
+        $stdout.should_receive(:puts).with(green "Cloud foo-production:")
+        $stdout.should_receive(:puts).with("Instance 1:")
+        $stdout.should_receive(:puts).with("  log1")
+        @main.logs
+      end
+    end
+
+    context "multiple clouds in Cloudfile" do
+      before do
+        File.open("Cloudfile", 'w') {|f|
+          f.write("foo-staging:\nfoo-production:\n") }
+      end
+
+      it "should show information to print logs for specific cloud and exit" do
+        $stdout.should_receive(:puts).
+          with("You have multiple clouds in Cloudfile. Select which to show logs for using:")
+        $stdout.should_receive(:puts).with("  shelly logs foo-production")
+        $stdout.should_receive(:puts).with("Available clouds:")
+        $stdout.should_receive(:puts).with(" * foo-production")
+        $stdout.should_receive(:puts).with(" * foo-staging")
+        lambda { @main.logs }.should raise_error(SystemExit)
+      end
+
+      it "should fetch from command line which cloud to start" do
+        @client.should_receive(:application_logs).with("foo-staging").
+          and_return({"logs" => ["log1"]})
+        $stdout.should_receive(:puts).with(green "Cloud foo-staging:")
+        $stdout.should_receive(:puts).with("Instance 1:")
+        $stdout.should_receive(:puts).with("  log1")
+        @main.logs("foo-staging")
+      end
+    end
+
+    context "multiple instances" do
+      it "should show logs from each instance" do
+        @client.stub(:application_logs).and_return({"logs" => ["log1", "log2"]})
+        $stdout.should_receive(:puts).with(green "Cloud foo-production:")
+        $stdout.should_receive(:puts).with("Instance 1:")
+        $stdout.should_receive(:puts).with("  log1")
+        $stdout.should_receive(:puts).with("Instance 2:")
+        $stdout.should_receive(:puts).with("  log2")
+        @main.logs
       end
     end
   end
