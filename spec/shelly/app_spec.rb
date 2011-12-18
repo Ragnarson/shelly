@@ -59,8 +59,7 @@ describe Shelly::App do
 foo-staging:
   ruby_version: 1.9.2 # 1.9.2 or ree
   environment: production # RAILS_ENV
-  monitoring_email:
-    - bob@example.com
+  monitoring_email: bob@example.com
   domains:
     - foo-staging.winniecloud.com
     - foo.example.com
