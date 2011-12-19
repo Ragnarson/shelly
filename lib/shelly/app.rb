@@ -62,6 +62,14 @@ module Shelly
       shelly.application_logs(self.code_name)
     end
 
+    def database_backups
+      shelly.database_backups(code_name)
+    end
+
+    def logs
+      shelly.cloud_logs(self.code_name)
+    end
+
     def start
       shelly.start_cloud(code_name)
     end

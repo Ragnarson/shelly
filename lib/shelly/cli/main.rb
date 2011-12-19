@@ -1,5 +1,6 @@
 require "shelly/cli/command"
 require "shelly/cli/user"
+require "shelly/cli/backup"
 require "shelly/cli/deploys"
 require "shelly/cli/config"
 
@@ -9,6 +10,7 @@ module Shelly
       include Thor::Actions
       include Helpers
       register(User, "user", "user <command>", "Manages users using this cloud")
+      register(Backup, "backup", "backup <command>", "Manages database backups from this cloud")
       register(Deploys, "deploys", "deploys <command>", "View cloud deploy logs")
       register(Config, "config", "config <command>", "Manages cloud configuration files")
       check_unknown_options!

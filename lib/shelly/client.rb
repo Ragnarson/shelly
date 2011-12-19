@@ -102,6 +102,10 @@ module Shelly
       get("/apps/#{cloud}/logs")
     end
 
+    def database_backups(code_name)
+      get("/apps/#{code_name}/database_backups")
+    end
+
     def ssh_key_available?(ssh_key)
     	get("/users/new", :ssh_key => ssh_key)
     end
