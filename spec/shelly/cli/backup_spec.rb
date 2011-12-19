@@ -49,6 +49,8 @@ describe Shelly::CLI::Backup do
       it "should take cloud from command line for which to show backups" do
         @client.should_receive(:database_backups).with("foo-staging").and_return([{"filename" => "backup.postgre.tar.gz", "size" => "10kb"},{"filename" => "backup.mongo.tar.gz", "size" => "22kb"}])
         $stdout.should_receive(:puts).with(green "Available backups:")
+        $stdout.should_receive(:puts).with("\n")
+        $stdout.should_receive(:puts).with("  Filename               |  Size")
         $stdout.should_receive(:puts).with("  backup.postgre.tar.gz  |  10kb")
         $stdout.should_receive(:puts).with("  backup.mongo.tar.gz    |  22kb")
         @backup.list("foo-staging")
