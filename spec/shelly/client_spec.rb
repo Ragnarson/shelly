@@ -100,14 +100,24 @@ describe Shelly::Client do
     end
   end
 
-  describe "#cloud_logs" do
+  describe "#deployment_logs" do
     it "should send get request" do
       time = Time.now
       FakeWeb.register_uri(:get, @url + "/apps/staging-foo/deploys", :body => [{:failed => false, :created_at => time},
         {:failed => true, :created_at => time+1}].to_json)
-      response = @client.cloud_logs("staging-foo")
+      response = @client.deployment_logs("staging-foo")
       response.should == [{"failed"=>false, "created_at"=>time.to_s},
              {"failed"=>true, "created_at"=>(time+1).to_s}]
+    end
+  end
+
+  describe "#application_logs" do
+    it "should send get request" do
+      time = Time.now
+      FakeWeb.register_uri(:get, @url + "/apps/staging-foo/logs",
+        :body => {:logs => ["application_log_1", "application_log_2"]}.to_json)
+      response = @client.application_logs("staging-foo")
+      response.should == {"logs" => ["application_log_1", "application_log_2"]}
     end
   end
 
