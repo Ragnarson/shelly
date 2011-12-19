@@ -152,6 +152,13 @@ config
     end
   end
 
+  describe "#cloud_log" do
+    it "should show log" do
+      @client.should_receive(:cloud_log).with("foo-staging", "2011-11-29-11-50-16")
+      @app.deploy_log("2011-11-29-11-50-16")
+    end
+  end
+
   describe "#create" do
     context "without providing domain" do
       it "should create the app on shelly cloud via API client" do

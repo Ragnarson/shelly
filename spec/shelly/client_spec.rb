@@ -111,6 +111,14 @@ describe Shelly::Client do
     end
   end
 
+  describe "#cloud_log" do
+    it "should send get request with cloud and log" do
+      FakeWeb.register_uri(:get, @url + "/apps/staging-foo/deploys/2011-11-29-11-50-16", :body => {:content => "Log"}.to_json)
+      response = @client.cloud_log("staging-foo", "2011-11-29-11-50-16")
+      response.should == {"content" => "Log"}
+    end
+  end
+
   describe "#app_configs" do
     it "should send get request" do
       FakeWeb.register_uri(:get, @url + "/apps/staging-foo/configs", :body => [{:created_by_user => true, :path => "config/app.yml"}].to_json)
