@@ -41,9 +41,8 @@ module Shelly
       self.environment = response["environment"]
     end
 
-    def delete(code_name)
+    def delete
       shelly.delete_app(code_name)
-      #response = shelly.delete_app(code_name)
     end
 
     def create_cloudfile
@@ -76,11 +75,23 @@ module Shelly
     end
 
     def ips
-      shelly.app_ips(self.code_name)
+      shelly.app_ips(code_name)
     end
 
     def users
-      shelly.app_users(self.code_name)
+      shelly.app_users(code_name)
+    end
+
+    def configs
+      @configs ||= shelly.app_configs(code_name)
+    end
+
+    def user_configs
+      configs.find_all { |config| config["created_by_user"] }
+    end
+
+    def shelly_generated_configs
+      configs.find_all { |config| config["created_by_user"] == false }
     end
 
     def open_billing_page

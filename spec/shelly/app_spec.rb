@@ -48,6 +48,23 @@ describe Shelly::App do
     end
   end
 
+  describe "#configs" do
+    it "should get configs from client" do
+      @client.should_receive(:app_configs).with("foo-staging")
+      @app.configs
+    end
+
+    it "should return only user config files" do
+      @client.should_receive(:app_configs).with("foo-staging").and_return([])
+      @app.user_configs
+    end
+
+    it "should return only shelly genereted config files" do
+      @client.should_receive(:app_configs).with("foo-staging").and_return([])
+      @app.shelly_generated_configs
+    end
+  end
+
   describe "#generate_cloudfile" do
     it "should return generated cloudfile" do
       user = mock(:email => "bob@example.com")
@@ -59,8 +76,7 @@ describe Shelly::App do
 foo-staging:
   ruby_version: 1.9.2 # 1.9.2 or ree
   environment: production # RAILS_ENV
-  monitoring_email:
-    - bob@example.com
+  monitoring_email: bob@example.com
   domains:
     - foo-staging.winniecloud.com
     - foo.example.com

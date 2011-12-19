@@ -1,8 +1,7 @@
 <%= @code_name %>:
   ruby_version: 1.9.2 # 1.9.2 or ree
   environment: production # RAILS_ENV
-  monitoring_email:
-    - <%= @email %>
+  monitoring_email: <%= @email %>
   domains:
     <%- @domains.each do |domain| -%>
     - <%= domain %>

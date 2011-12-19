@@ -1,6 +1,7 @@
 require "shelly/cli/command"
 require "shelly/cli/user"
 require "shelly/cli/deploys"
+require "shelly/cli/config"
 
 module Shelly
   module CLI
@@ -9,6 +10,7 @@ module Shelly
       include Helpers
       register(User, "user", "user <command>", "Manages users using this cloud")
       register(Deploys, "deploys", "deploys <command>", "View cloud deploy logs")
+      register(Config, "config", "config <command>", "Manages cloud configuration files")
       check_unknown_options!
 
       map %w(-v --version) => :version
@@ -209,7 +211,7 @@ module Shelly
         user = Shelly::User.new
         user.token
         if code_name.present?
-          app = Shelly::App.new
+          app = Shelly::App.new(code_name)
           say "You are about to delete application: #{code_name}."
           say "Press Control-C at any moment to cancel."
           say "Please confirm each question by typing yes and pressing Enter."
@@ -217,7 +219,7 @@ module Shelly
           ask_to_delete_files
           ask_to_delete_database
           ask_to_delete_application
-          app.delete(code_name)
+          app.delete
           say_new_line
           say "Scheduling application delete - done"
           if App.inside_git_repository?
