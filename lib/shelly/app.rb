@@ -51,15 +51,15 @@ module Shelly
     end
 
     def logs
-      shelly.cloud_logs(self.code_name)
+      shelly.cloud_logs(code_name)
     end
 
     def start
-      shelly.start_cloud(self.code_name)
+      shelly.start_cloud(code_name)
     end
 
     def stop
-      shelly.stop_cloud(self.code_name)
+      shelly.stop_cloud(code_name)
     end
 
     def cloudfile_path
@@ -71,11 +71,15 @@ module Shelly
     end
 
     def ips
-      shelly.app_ips(self.code_name)
+      shelly.app_ips(code_name)
     end
 
     def users
-      shelly.app_users(self.code_name)
+      shelly.app_users(code_name)
+    end
+
+    def configs
+      shelly.app_configs(code_name)
     end
 
     def open_billing_page

@@ -48,6 +48,13 @@ describe Shelly::App do
     end
   end
 
+  describe "#configs" do
+    it "should get configs from client" do
+      @client.should_receive(:app_configs).with("foo-staging")
+      @app.configs
+    end
+  end
+
   describe "#generate_cloudfile" do
     it "should return generated cloudfile" do
       user = mock(:email => "bob@example.com")
