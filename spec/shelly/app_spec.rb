@@ -145,16 +145,24 @@ config
     end
   end
 
-  describe "#logs" do
-    it "should list logs" do
-      @client.should_receive(:cloud_logs).with("foo-staging")
-      @app.logs
+  describe "#deploy_logs" do
+    it "should list deploy_logs" do
+      @client.should_receive(:deploy_logs).with("foo-staging")
+      @app.deploy_logs
     end
   end
 
-  describe "#cloud_log" do
+  describe "#application_logs" do
+    it "should list application_logs" do
+      @client.should_receive(:application_logs).with("foo-staging").
+        and_return({"logs" => ["log1", "log2"]})
+      @app.application_logs
+    end
+  end
+
+  describe "#deploy_log" do
     it "should show log" do
-      @client.should_receive(:cloud_log).with("foo-staging", "2011-11-29-11-50-16")
+      @client.should_receive(:deploy_log).with("foo-staging", "2011-11-29-11-50-16")
       @app.deploy_log("2011-11-29-11-50-16")
     end
   end

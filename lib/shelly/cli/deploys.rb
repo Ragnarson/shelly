@@ -12,7 +12,7 @@ module Shelly
         logged_in?
         say_error "No Cloudfile found" unless Cloudfile.present?
         multiple_clouds(cloud, "deploys list", "Select cloud to view deploy logs using:")
-        logs = @app.logs
+        logs = @app.deploy_logs
         unless logs.empty?
           say "Available deploy logs", :green
           logs.each do |log|

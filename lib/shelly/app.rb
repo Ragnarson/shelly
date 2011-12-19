@@ -50,12 +50,16 @@ module Shelly
       File.open(cloudfile_path, "a+") { |f| f << content }
     end
 
-    def logs
-      shelly.cloud_logs(code_name)
+    def deploy_logs
+      shelly.deploy_logs(code_name)
     end
 
     def deploy_log(log)
-      shelly.cloud_log(code_name, log)
+      shelly.deploy_log(code_name, log)
+    end
+
+    def application_logs
+      shelly.application_logs(self.code_name)
     end
 
     def start

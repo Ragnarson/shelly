@@ -90,12 +90,16 @@ module Shelly
       get("/apps")
     end
 
-    def cloud_logs(cloud)
+    def deploy_logs(cloud)
       get("/apps/#{cloud}/deploys")
     end
 
-    def cloud_log(cloud, log)
+    def deploy_log(cloud, log)
       get("/apps/#{cloud}/deploys/#{log}")
+    end
+
+    def application_logs(cloud)
+      get("/apps/#{cloud}/logs")
     end
 
     def ssh_key_available?(ssh_key)
