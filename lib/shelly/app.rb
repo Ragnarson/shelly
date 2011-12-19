@@ -54,6 +54,10 @@ module Shelly
       shelly.cloud_logs(code_name)
     end
 
+    def deploy_log(log)
+      shelly.cloud_log(code_name, log)
+    end
+
     def start
       shelly.start_cloud(code_name)
     end
