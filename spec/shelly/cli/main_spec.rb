@@ -30,7 +30,7 @@ Tasks:
   shelly ip                 # Lists clouds IP's
   shelly list               # Lists all your clouds
   shelly login [EMAIL]      # Logs user in to Shelly Cloud
-  shelly logs [CODE-NAME]   # Show latest application logs from each instance
+  shelly logs               # Show latest application logs from each instance
   shelly register [EMAIL]   # Registers new user account on Shelly Cloud
   shelly start [CODE-NAME]  # Starts specific cloud
   shelly stop [CODE-NAME]   # Stops specific cloud
@@ -41,6 +41,21 @@ Options:
   [--debug]  # Show debug information
 OUT
       out = IO.popen("bin/shelly").read.strip
+      out.should == expected.strip
+    end
+
+    it "should display options in help for logs" do
+      expected = <<-OUT
+Usage:
+  shelly logs
+
+Options:
+  -c, [--cloud=CLOUD]  # Specify which cloud to show logs for
+      [--debug]        # Show debug information
+
+Show latest application logs from each instance
+OUT
+      out = IO.popen("bin/shelly help logs").read.strip
       out.should == expected.strip
     end
   end
@@ -837,7 +852,7 @@ OUT
       it "should show information to print logs for specific cloud and exit" do
         $stdout.should_receive(:puts).
           with("You have multiple clouds in Cloudfile. Select which to show logs for using:")
-        $stdout.should_receive(:puts).with("  shelly logs foo-production")
+        $stdout.should_receive(:puts).with("  shelly logs --cloud foo-production")
         $stdout.should_receive(:puts).with("Available clouds:")
         $stdout.should_receive(:puts).with(" * foo-production")
         $stdout.should_receive(:puts).with(" * foo-staging")
@@ -850,7 +865,8 @@ OUT
         $stdout.should_receive(:puts).with(green "Cloud foo-staging:")
         $stdout.should_receive(:puts).with("Instance 1:")
         $stdout.should_receive(:puts).with("  log1")
-        @main.logs("foo-staging")
+        @main.options = {:cloud => "foo-staging"}
+        @main.logs
       end
     end
 
