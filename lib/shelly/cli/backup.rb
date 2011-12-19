@@ -14,8 +14,9 @@ module Shelly
         multiple_clouds(cloud, "backup list", "Select cloud to view database backups using:")
         backups = @app.database_backups
         unless backups.empty?
-          # TODO SHOW BACKUPS LIKE ON PIVAOTAL
+          backups.unshift({"filename" => "Filename", "size" => "Size"})
           say "Available backups:", :green
+          say_new_line
           print_table(backups.map do |backup|
             [backup['filename'], "|  #{backup['size']}"]
           end, :ident => 2)
