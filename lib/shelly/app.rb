@@ -55,7 +55,7 @@ module Shelly
     end
 
     def application_logs
-      shelly.application_logs(self.code_name)['logs']
+      shelly.application_logs(self.code_name)
     end
 
     def start

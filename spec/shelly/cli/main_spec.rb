@@ -835,7 +835,7 @@ OUT
 
     context "single cloud in Cloudfile" do
       it "should show logs for the cloud" do
-        @client.stub(:application_logs).and_return({"logs" => ["log1"]})
+        @client.stub(:application_logs).and_return(["log1"])
         $stdout.should_receive(:puts).with(green "Cloud foo-production:")
         $stdout.should_receive(:puts).with("Instance 1:")
         $stdout.should_receive(:puts).with("  log1")
@@ -861,7 +861,7 @@ OUT
 
       it "should fetch from command line which cloud to start" do
         @client.should_receive(:application_logs).with("foo-staging").
-          and_return({"logs" => ["log1"]})
+          and_return(["log1"])
         $stdout.should_receive(:puts).with(green "Cloud foo-staging:")
         $stdout.should_receive(:puts).with("Instance 1:")
         $stdout.should_receive(:puts).with("  log1")
@@ -872,7 +872,7 @@ OUT
 
     context "multiple instances" do
       it "should show logs from each instance" do
-        @client.stub(:application_logs).and_return({"logs" => ["log1", "log2"]})
+        @client.stub(:application_logs).and_return(["log1", "log2"])
         $stdout.should_receive(:puts).with(green "Cloud foo-production:")
         $stdout.should_receive(:puts).with("Instance 1:")
         $stdout.should_receive(:puts).with("  log1")
