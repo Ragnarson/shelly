@@ -17,15 +17,14 @@ module Shelly
             configs = @app.configs
             unless configs.empty?
               say "Configuration files for #{cloud}", :green
-              user_configs = configs.find_all { |config| config["created_by_user"] }
+              user_configs = @app.user_configs
               unless user_configs.empty?
                 say "Custom configuration files:"
                 user_configs.each { |config| say " * #{config["path"]}" }
               else
                 say "You have no custom configuration files."
               end
-
-              shelly_configs = configs - user_configs
+              shelly_configs = @app.shelly_generated_configs
               unless shelly_configs.empty?
                 say "Following files are created by Shelly Cloud:"
                 shelly_configs.each { |config| say " * #{config["path"]}" }

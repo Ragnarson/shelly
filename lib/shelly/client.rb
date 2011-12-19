@@ -57,7 +57,7 @@ module Shelly
     end
 
     def app_configs(cloud)
-      get("/apps/#{cloud}/remote_files")
+      get("/apps/#{cloud}/configs")
     end
 
     def send_invitation(cloud, email)

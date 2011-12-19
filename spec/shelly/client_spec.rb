@@ -113,7 +113,7 @@ describe Shelly::Client do
 
   describe "#app_configs" do
     it "should send get request" do
-      FakeWeb.register_uri(:get, @url + "/apps/staging-foo/remote_files", :body => [{:created_by_user => true, :path => "config/app.yml"}].to_json)
+      FakeWeb.register_uri(:get, @url + "/apps/staging-foo/configs", :body => [{:created_by_user => true, :path => "config/app.yml"}].to_json)
       response = @client.app_configs("staging-foo")
       response.should == [{"created_by_user" => true, "path" => "config/app.yml"}]
     end

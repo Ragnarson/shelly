@@ -79,7 +79,15 @@ module Shelly
     end
 
     def configs
-      shelly.app_configs(code_name)
+      @configs ||= shelly.app_configs(code_name)
+    end
+
+    def user_configs
+      configs.find_all { |config| config["created_by_user"] }
+    end
+
+    def shelly_generated_configs
+      configs.find_all { |config| config["created_by_user"] == false }
     end
 
     def open_billing_page
