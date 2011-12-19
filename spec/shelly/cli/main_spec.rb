@@ -24,6 +24,7 @@ describe Shelly::CLI::Main do
       expected = <<-OUT
 Tasks:
   shelly add                # Adds new cloud to Shelly Cloud
+  shelly backup <command>   # Manages database backups from this cloud
   shelly delete CODE-NAME   # Delete cloud from Shelly Cloud
   shelly deploys <command>  # View cloud deploy logs
   shelly help [TASK]        # Describe available tasks or one specific task

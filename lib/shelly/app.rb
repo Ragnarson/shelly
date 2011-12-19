@@ -50,6 +50,10 @@ module Shelly
       File.open(cloudfile_path, "a+") { |f| f << content }
     end
 
+    def database_backups
+      shelly.database_backups(code_name)
+    end
+
     def logs
       shelly.cloud_logs(self.code_name)
     end
