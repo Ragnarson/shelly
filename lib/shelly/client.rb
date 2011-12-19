@@ -58,6 +58,10 @@ module Shelly
       get("/token")
     end
 
+    def app_configs(cloud)
+      get("/apps/#{cloud}/configs")
+    end
+
     def send_invitation(cloud, email)
       post("/apps/#{cloud}/collaborations", :email => email)
     end

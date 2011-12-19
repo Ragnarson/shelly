@@ -1,6 +1,7 @@
 require "shelly/cli/command"
 require "shelly/cli/user"
 require "shelly/cli/deploys"
+require "shelly/cli/config"
 
 module Shelly
   module CLI
@@ -9,6 +10,7 @@ module Shelly
       include Helpers
       register(User, "user", "user <command>", "Manages users using this cloud")
       register(Deploys, "deploys", "deploys <command>", "View cloud deploy logs")
+      register(Config, "config", "config <command>", "Manages cloud configuration files")
       check_unknown_options!
 
       map %w(-v --version) => :version
