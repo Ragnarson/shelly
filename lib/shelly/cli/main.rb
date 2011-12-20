@@ -250,8 +250,8 @@ module Shelly
           logs = @app.application_logs
           say "Cloud #{@app.code_name}:", :green
           logs.each_with_index do |log, i|
-            say "Instance #{i+1}:"
-            print_wrapped log, :ident => 2
+            say "Instance #{i+1}:", :green
+            say log
           end
         rescue Client::APIError => e
           if e.unauthorized?

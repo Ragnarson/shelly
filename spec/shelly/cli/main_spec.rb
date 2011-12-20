@@ -839,8 +839,8 @@ OUT
       it "should show logs for the cloud" do
         @client.stub(:application_logs).and_return(["log1"])
         $stdout.should_receive(:puts).with(green "Cloud foo-production:")
-        $stdout.should_receive(:puts).with("Instance 1:")
-        $stdout.should_receive(:puts).with("  log1")
+        $stdout.should_receive(:puts).with(green "Instance 1:")
+        $stdout.should_receive(:puts).with("log1")
         @main.logs
       end
     end
@@ -865,8 +865,8 @@ OUT
         @client.should_receive(:application_logs).with("foo-staging").
           and_return(["log1"])
         $stdout.should_receive(:puts).with(green "Cloud foo-staging:")
-        $stdout.should_receive(:puts).with("Instance 1:")
-        $stdout.should_receive(:puts).with("  log1")
+        $stdout.should_receive(:puts).with(green "Instance 1:")
+        $stdout.should_receive(:puts).with("log1")
         @main.options = {:cloud => "foo-staging"}
         @main.logs
       end
@@ -876,10 +876,10 @@ OUT
       it "should show logs from each instance" do
         @client.stub(:application_logs).and_return(["log1", "log2"])
         $stdout.should_receive(:puts).with(green "Cloud foo-production:")
-        $stdout.should_receive(:puts).with("Instance 1:")
-        $stdout.should_receive(:puts).with("  log1")
-        $stdout.should_receive(:puts).with("Instance 2:")
-        $stdout.should_receive(:puts).with("  log2")
+        $stdout.should_receive(:puts).with(green "Instance 1:")
+        $stdout.should_receive(:puts).with("log1")
+        $stdout.should_receive(:puts).with(green "Instance 2:")
+        $stdout.should_receive(:puts).with("log2")
         @main.logs
       end
     end
