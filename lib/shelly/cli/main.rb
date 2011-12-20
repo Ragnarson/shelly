@@ -161,11 +161,13 @@ module Shelly
         end
       end
 
-      desc "start [CODE-NAME]", "Starts specific cloud"
-      def start(cloud = nil)
+      desc "start", "Starts the cloud"
+      method_option :cloud, :type => :string, :aliases => "-c",
+        :desc => "Specify which cloud to start"
+      def start
         logged_in?
         say_error "No Cloudfile found" unless Cloudfile.present?
-        multiple_clouds(cloud, "start", "Select which to start using:")
+        multiple_clouds(options[:cloud], "start", "Select cloud to start using:")
         @app.start
         say "Starting cloud #{@app.code_name}. Check status with:", :green
         say "  shelly list"
@@ -195,11 +197,13 @@ module Shelly
         end
       end
 
-      desc "stop [CODE-NAME]", "Stops specific cloud"
-      def stop(cloud = nil)
+      desc "stop", "Stops the cloud"
+      method_option :cloud, :type => :string, :aliases => "-c",
+        :desc => "Specify which cloud to stop"
+      def stop
         logged_in?
         say_error "No Cloudfile found" unless Cloudfile.present?
-        multiple_clouds(cloud, "stop", "Select which to stop using:")
+        multiple_clouds(options[:cloud], "stop", "Select cloud to stop using:")
         @app.stop
         say "Cloud '#{@app.code_name}' stopped"
       rescue Client::APIError => e
@@ -208,31 +212,28 @@ module Shelly
         end
       end
 
-      desc "delete CODE-NAME", "Delete cloud from Shelly Cloud"
-      def delete(code_name = nil)
+      desc "delete", "Delete cloud from Shelly Cloud"
+      method_option :cloud, :type => :string, :aliases => "-c",
+        :desc => "Specify which cloud to delete"
+      def delete
         user = Shelly::User.new
         user.token
-        if code_name.present?
-          app = Shelly::App.new(code_name)
-          say "You are about to delete application: #{code_name}."
-          say "Press Control-C at any moment to cancel."
-          say "Please confirm each question by typing yes and pressing Enter."
-          say_new_line
-          ask_to_delete_files
-          ask_to_delete_database
-          ask_to_delete_application
-          app.delete
-          say_new_line
-          say "Scheduling application delete - done"
-          if App.inside_git_repository?
-            app.remove_git_remote
-            say "Removing git remote - done"
-          else
-            say "Missing git remote"
-          end
+        multiple_clouds(options[:cloud], "delete", "Select cloud to delete using:")
+        say "You are about to delete application: #{@app.code_name}."
+        say "Press Control-C at any moment to cancel."
+        say "Please confirm each question by typing yes and pressing Enter."
+        say_new_line
+        ask_to_delete_files
+        ask_to_delete_database
+        ask_to_delete_application
+        @app.delete
+        say_new_line
+        say "Scheduling application delete - done"
+        if App.inside_git_repository?
+          @app.remove_git_remote
+          say "Removing git remote - done"
         else
-          say_error "Missing CODE-NAME", :with_exit => false
-          say_error "Use: shelly delete CODE-NAME"
+          say "Missing git remote"
         end
       rescue Client::APIError => e
         say_error e.message
@@ -245,7 +246,7 @@ module Shelly
         cloud = options[:cloud]
         logged_in?
         say_error "No Cloudfile found" unless Cloudfile.present?
-        multiple_clouds(cloud, "logs --cloud", "Select which to show logs for using:")
+        multiple_clouds(cloud, "logs", "Select which to show logs for using:")
         begin
           logs = @app.application_logs
           say "Cloud #{@app.code_name}:", :green

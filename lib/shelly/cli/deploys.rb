@@ -8,10 +8,12 @@ module Shelly
       include Helpers
 
       desc "list", "Lists deploy logs"
-      def list(cloud = nil)
+      method_option :cloud, :type => :string, :aliases => "-c",
+        :desc => "Specify which cloud to show deploy logs for"
+      def list
         logged_in?
         say_error "No Cloudfile found" unless Cloudfile.present?
-        multiple_clouds(cloud, "deploys list", "Select cloud to view deploy logs using:")
+        multiple_clouds(options[:cloud], "deploys list", "Select cloud to view deploy logs using:")
         logs = @app.deploy_logs
         unless logs.empty?
           say "Available deploy logs", :green
@@ -30,10 +32,12 @@ module Shelly
       end
 
       desc "show LOG", "Show specific deploy log"
-      def show(log = nil, cloud = nil)
+      method_option :cloud, :type => :string, :aliases => "-c",
+        :desc => "Specify which cloud to show deploy logs for"
+      def show(log = nil)
         say_error "No Cloudfile found" unless Cloudfile.present?
         specify_log(log)
-        multiple_clouds(cloud, "deploys show #{log}", "Select log and cloud to view deploy logs using:")
+        multiple_clouds(options[:cloud], "deploys show #{log}", "Select log and cloud to view deploy logs using:")
         content = @app.deploy_log(log)
         say "Log for deploy done on #{content["created_at"]}", :green
         if content["bundle_install"]

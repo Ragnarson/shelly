@@ -6,12 +6,14 @@ module Shelly
       namespace :backup
       include Helpers
 
-      desc "list", "List database backup clouds defined in Cloudfile"
-      def list(cloud = nil)
+      desc "list", "List database backups"
+      method_option :cloud, :type => :string, :aliases => "-c",
+        :desc => "Specify which cloud to list backups for"
+      def list
         logged_in?
         say_error "Must be run inside your project git repository" unless App.inside_git_repository?
         say_error "No Cloudfile found" unless Cloudfile.present?
-        multiple_clouds(cloud, "backup list", "Select cloud to view database backups using:")
+        multiple_clouds(options[:cloud], "backup list", "Select cloud to view database backups for using:")
         backups = @app.database_backups
         unless backups.empty?
           backups.unshift({"filename" => "Filename", "size" => "Size"})
