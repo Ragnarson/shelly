@@ -166,22 +166,22 @@ config
       @app.deploy_log("2011-11-29-11-50-16")
     end
   end
-  
+
   describe "#database_backup" do
     before do
       @description = {
-        "filename" => "backup.tar.gz", 
-        "size" => 1234, 
+        "filename" => "backup.tar.gz",
+        "size" => 1234,
         "human_size" => "2KB"
       }
       @client.stub(:database_backup).and_return(@description)
     end
-    
+
     it "should fetch backup from API" do
-      @client.should_receive(:database_backup).with("foo-staging", "backup.tar.gz").and_return(@description)
+      @client.should_receive(:database_backup).with("foo-staging", "backup.tar.gz")
       @app.database_backup("backup.tar.gz")
     end
-    
+
     it "should initialize backup object" do
       backup = @app.database_backup("backup.tar.gz")
       backup.code_name.should == "foo-staging"

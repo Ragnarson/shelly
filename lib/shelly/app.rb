@@ -125,4 +125,3 @@ module Shelly
     end
   end
 end
-
