@@ -26,7 +26,7 @@ Tasks:
   shelly add                # Adds new cloud to Shelly Cloud
   shelly backup <command>   # Manages database backups from this cloud
   shelly config <command>   # Manages cloud configuration files
-  shelly delete CODE-NAME   # Delete cloud from Shelly Cloud
+  shelly delete             # Delete cloud from Shelly Cloud
   shelly deploys <command>  # View cloud deploy logs
   shelly help [TASK]        # Describe available tasks or one specific task
   shelly ip                 # Lists clouds IP's
@@ -34,8 +34,8 @@ Tasks:
   shelly login [EMAIL]      # Logs user in to Shelly Cloud
   shelly logs               # Show latest application logs from each instance
   shelly register [EMAIL]   # Registers new user account on Shelly Cloud
-  shelly start [CODE-NAME]  # Starts specific cloud
-  shelly stop [CODE-NAME]   # Stops specific cloud
+  shelly start              # Starts the cloud
+  shelly stop               # Stops the cloud
   shelly user <command>     # Manages users using this cloud
   shelly version            # Displays shelly version
 
@@ -538,8 +538,8 @@ OUT
       end
 
       it "should show information to start specific cloud and exit" do
-        $stdout.should_receive(:puts).with("You have multiple clouds in Cloudfile. Select which to start using:")
-        $stdout.should_receive(:puts).with("  shelly start foo-production")
+        $stdout.should_receive(:puts).with("You have multiple clouds in Cloudfile. Select cloud to start using:")
+        $stdout.should_receive(:puts).with("  shelly start --cloud foo-production")
         $stdout.should_receive(:puts).with("Available clouds:")
         $stdout.should_receive(:puts).with(" * foo-production")
         $stdout.should_receive(:puts).with(" * foo-staging")
@@ -550,7 +550,8 @@ OUT
         @client.should_receive(:start_cloud).with("foo-staging")
         $stdout.should_receive(:puts).with(green "Starting cloud foo-staging. Check status with:")
         $stdout.should_receive(:puts).with("  shelly list")
-        @main.start("foo-staging")
+        @main.options = {:cloud => "foo-staging"}
+        @main.start
       end
     end
 
@@ -654,8 +655,8 @@ OUT
       end
 
       it "should show information to start specific cloud and exit" do
-        $stdout.should_receive(:puts).with("You have multiple clouds in Cloudfile. Select which to stop using:")
-        $stdout.should_receive(:puts).with("  shelly stop foo-production")
+        $stdout.should_receive(:puts).with("You have multiple clouds in Cloudfile. Select cloud to stop using:")
+        $stdout.should_receive(:puts).with("  shelly stop --cloud foo-production")
         $stdout.should_receive(:puts).with("Available clouds:")
         $stdout.should_receive(:puts).with(" * foo-production")
         $stdout.should_receive(:puts).with(" * foo-staging")
@@ -665,7 +666,8 @@ OUT
       it "should fetch from command line which cloud to start" do
         @client.should_receive(:stop_cloud).with("foo-staging")
         $stdout.should_receive(:puts).with("Cloud 'foo-staging' stopped")
-        @main.stop("foo-staging")
+        @main.options = {:cloud => "foo-staging"}
+        @main.stop
       end
     end
   end
@@ -734,9 +736,14 @@ OUT
       Shelly::App.stub(:new).and_return(@app)
     end
 
-    context "when code_name is not nil" do
+    context "when cloud is given" do
+      before do
+        File.open("Cloudfile", 'w') {|f|
+          f.write("foo-staging:\nfoo-production:\n") }
+      end
+
       it "should ask about delete application parts" do
-        $stdout.should_receive(:puts).with("You are about to delete application: foo-bar.")
+        $stdout.should_receive(:puts).with("You are about to delete application: foo-staging.")
         $stdout.should_receive(:puts).with("Press Control-C at any moment to cancel.")
         $stdout.should_receive(:puts).with("Please confirm each question by typing yes and pressing Enter.")
         $stdout.should_receive(:puts).with("\n")
@@ -747,7 +754,8 @@ OUT
         $stdout.should_receive(:puts).with("Scheduling application delete - done")
         $stdout.should_receive(:puts).with("Removing git remote - done")
         fake_stdin(["yes", "yes", "yes"]) do
-          @main.delete("foo-bar")
+          @main.options = {:cloud => "foo-staging"}
+          @main.delete
         end
       end
 
@@ -755,23 +763,35 @@ OUT
         @app.should_not_receive(:delete)
         lambda{
           fake_stdin(["yes", "yes", "no"]) do
-            @main.delete("foo-bar")
+            @main.options = {:cloud => "foo-staging"}
+            @main.delete
           end
         }.should raise_error(SystemExit)
       end
     end
 
     context "when git repository doesn't exist" do
+      before do
+        File.open("Cloudfile", 'w') {|f|
+          f.write("foo-staging:\n") }
+      end
+
       it "should say that Git remote missing" do
         Shelly::App.stub(:inside_git_repository?).and_return(false)
         $stdout.should_receive(:puts).with("Missing git remote")
         fake_stdin(["yes", "yes", "yes"]) do
-          @main.delete("foo-bar")
+          @main.options = {:cloud => "foo-staging"}
+          @main.delete
         end
       end
     end
 
-    context "when application with CODE-NAME doesn't exist" do
+    context "when cloud given in option doesn't exist" do
+      before do
+        File.open("Cloudfile", 'w') {|f|
+          f.write("foo-staging:\n") }
+      end
+
       it "should raise Client::APIError" do
         response = {:message => "Application not found"}
         exception = Shelly::Client::APIError.new(response.to_json)
@@ -779,17 +799,33 @@ OUT
         $stdout.should_receive(:puts).with("\e[31mApplication not found\e[0m")
         lambda{
           fake_stdin(["yes", "yes", "yes"]) do
-            @main.delete("foo-bar")
+            @main.options = {:cloud => "foo-bar"}
+            @main.delete
           end
         }.should raise_error(SystemExit)
       end
     end
 
-    context "when code_name is nil" do
-      it "should display error when no code_name" do
-        $stdout.should_receive(:puts).with("\e[31mMissing CODE-NAME\e[0m")
-        $stdout.should_receive(:puts).with("\e[31mUse: shelly delete CODE-NAME\e[0m")
-        lambda{ @main.delete }.should raise_error(SystemExit)
+    context "when no cloud option is given" do
+      before do
+        File.open("Cloudfile", 'w') {|f|
+          f.write("foo-staging:\n") }
+      end
+
+      it "should take the cloud from Cloudfile" do
+        $stdout.should_receive(:puts).with("You are about to delete application: foo-staging.")
+        $stdout.should_receive(:puts).with("Press Control-C at any moment to cancel.")
+        $stdout.should_receive(:puts).with("Please confirm each question by typing yes and pressing Enter.")
+        $stdout.should_receive(:puts).with("\n")
+        $stdout.should_receive(:print).with("I want to delete all files stored on Shelly Cloud (yes/no): ")
+        $stdout.should_receive(:print).with("I want to delete all database data stored on Shelly Cloud (yes/no): ")
+        $stdout.should_receive(:print).with("I want to delete the application (yes/no): ")
+        $stdout.should_receive(:puts).with("\n")
+        $stdout.should_receive(:puts).with("Scheduling application delete - done")
+        $stdout.should_receive(:puts).with("Removing git remote - done")
+        fake_stdin(["yes", "yes", "yes"]) do
+          @main.delete
+        end
       end
     end
   end

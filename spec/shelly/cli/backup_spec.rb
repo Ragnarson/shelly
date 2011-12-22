@@ -38,8 +38,8 @@ describe Shelly::CLI::Backup do
       end
 
       it "should show information to select specific cloud and exit" do
-        $stdout.should_receive(:puts).with("You have multiple clouds in Cloudfile. Select cloud to view database backups using:")
-        $stdout.should_receive(:puts).with("  shelly backup list foo-production")
+        $stdout.should_receive(:puts).with("You have multiple clouds in Cloudfile. Select cloud to view database backups for using:")
+        $stdout.should_receive(:puts).with("  shelly backup list --cloud foo-production")
         $stdout.should_receive(:puts).with("Available clouds:")
         $stdout.should_receive(:puts).with(" * foo-production")
         $stdout.should_receive(:puts).with(" * foo-staging")
@@ -53,7 +53,8 @@ describe Shelly::CLI::Backup do
         $stdout.should_receive(:puts).with("  Filename               |  Size")
         $stdout.should_receive(:puts).with("  backup.postgre.tar.gz  |  10kb")
         $stdout.should_receive(:puts).with("  backup.mongo.tar.gz    |  22kb")
-        @backup.list("foo-staging")
+        @backup.options = {:cloud => 'foo-staging'}
+        @backup.list
       end
     end
   end

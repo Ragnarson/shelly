@@ -61,7 +61,7 @@ module Shelly
       clouds = Cloudfile.new.clouds
       if clouds.count > 1 && cloud.nil?
         say "You have multiple clouds in Cloudfile. #{message}"
-        say "  shelly #{action} #{clouds.first}"
+        say "  shelly #{action} --cloud #{clouds.first}"
         say "Available clouds:"
         clouds.each do |cloud|
           say " * #{cloud}"

@@ -42,7 +42,7 @@ describe Shelly::CLI::Deploys do
 
       it "should show information to select specific cloud and exit" do
         $stdout.should_receive(:puts).with("You have multiple clouds in Cloudfile. Select cloud to view deploy logs using:")
-        $stdout.should_receive(:puts).with("  shelly deploys list foo-production")
+        $stdout.should_receive(:puts).with("  shelly deploys list --cloud foo-production")
         $stdout.should_receive(:puts).with("Available clouds:")
         $stdout.should_receive(:puts).with(" * foo-production")
         $stdout.should_receive(:puts).with(" * foo-staging")
@@ -53,7 +53,8 @@ describe Shelly::CLI::Deploys do
         @client.should_receive(:deploy_logs).with("foo-staging").and_return([{"failed" => false, "created_at" => "2011-12-12-14-14-59"}])
         $stdout.should_receive(:puts).with(green "Available deploy logs")
         $stdout.should_receive(:puts).with(" * 2011-12-12-14-14-59")
-        @deploys.list("foo-staging")
+        @deploys.options = {:cloud => "foo-staging"}
+        @deploys.list
       end
     end
 
@@ -99,7 +100,7 @@ describe Shelly::CLI::Deploys do
 
       it "should show information to select specific cloud and exit" do
         $stdout.should_receive(:puts).with("You have multiple clouds in Cloudfile. Select log and cloud to view deploy logs using:")
-        $stdout.should_receive(:puts).with("  shelly deploys show last foo-production")
+        $stdout.should_receive(:puts).with("  shelly deploys show last --cloud foo-production")
         $stdout.should_receive(:puts).with("Available clouds:")
         $stdout.should_receive(:puts).with(" * foo-production")
         $stdout.should_receive(:puts).with(" * foo-staging")
@@ -109,7 +110,8 @@ describe Shelly::CLI::Deploys do
       it "should render the logs" do
         @client.should_receive(:deploy_log).with("foo-staging", "last").and_return(response)
         expected_output
-        @deploys.show("last", "foo-staging")
+        @deploys.options = {:cloud => "foo-staging"}
+        @deploys.show("last")
       end
     end
 
