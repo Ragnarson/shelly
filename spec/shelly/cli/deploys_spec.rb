@@ -29,7 +29,7 @@ describe Shelly::CLI::Deploys do
 
     it "should exit if user doesn't have access to cloud in Cloudfile" do
       response = {"message" => "Cloud foo-staging not found"}
-      exception = Shelly::Client::APIError.new(response.to_json)
+      exception = Shelly::Client::APIError.new(response.to_json, 404)
       @client.stub(:deploy_logs).and_raise(exception)
       $stdout.should_receive(:puts).with(red "You have no access to 'foo-staging' cloud defined in Cloudfile")
       lambda { @deploys.list }.should raise_error(SystemExit)
@@ -86,7 +86,7 @@ describe Shelly::CLI::Deploys do
 
     it "should exit if user doesn't have access to cloud in Cloudfile" do
       response = {"message" => "Cloud foo-staging not found"}
-      exception = Shelly::Client::APIError.new(response.to_json)
+      exception = Shelly::Client::APIError.new(response.to_json, 404)
       @client.stub(:deploy_log).and_raise(exception)
       $stdout.should_receive(:puts).with(red "You have no access to 'foo-staging' cloud defined in Cloudfile")
       lambda { @deploys.show("last") }.should raise_error(SystemExit)
