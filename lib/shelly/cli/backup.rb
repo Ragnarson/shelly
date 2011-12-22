@@ -36,7 +36,7 @@ module Shelly
       end
 
       method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify which cloud list backups for"
-      desc "get [FILENAME]", "Downloads specyfied or last backup to current directory"
+      desc "get [FILENAME]", "Downloads specified or last backup to current directory"
       def get(handler = "last")
         multiple_clouds(options[:cloud], "backup get [FILENAME]", "Select cloud for which you want download backup")
 
