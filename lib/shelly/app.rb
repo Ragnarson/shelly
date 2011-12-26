@@ -90,6 +90,22 @@ module Shelly
       configs.find_all { |config| config["created_by_user"] == false }
     end
 
+    def config(id)
+      shelly.app_config(code_name, id)
+    end
+
+    def create_config(path, content)
+      shelly.app_create_config(code_name, path, content)
+    end
+
+    def update_config(id, content)
+      shelly.app_update_config(code_name, id, content)
+    end
+
+    def delete_config(id)
+      shelly.app_delete_config(code_name, id)
+    end
+
     def open_billing_page
       url = "#{shelly.shellyapp_url}/login?api_key=#{current_user.token}&return_to=/apps/#{code_name}/edit_billing"
       Launchy.open(url)
