@@ -34,7 +34,7 @@ describe Shelly::CLI::Config do
 
     it "should exit if user doesn't have access to cloud in Cloudfile" do
       response = {"message" => "Cloud foo-staging not found"}
-      exception = Shelly::Client::APIError.new(response.to_json)
+      exception = Shelly::Client::APIError.new(response.to_json, 404)
       @client.stub(:app_configs).and_raise(exception)
       $stdout.should_receive(:puts).with(red "You have no access to 'foo-production' cloud defined in Cloudfile")
       lambda { @config.list }.should raise_error(SystemExit)

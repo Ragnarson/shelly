@@ -3,7 +3,7 @@ require "spec_helper"
 describe Shelly::Client::APIError do
   before do
     body = {"message" => "something went wrong", "errors" => [["first", "foo"]], "url" => "https://foo.bar"}
-    @error = Shelly::Client::APIError.new(body.to_json)
+    @error = Shelly::Client::APIError.new(body.to_json, 404)
   end
 
   it "should return error message" do
@@ -21,12 +21,23 @@ describe Shelly::Client::APIError do
   it "should return user friendly string" do
     @error.each_error{|error| error.should == "First foo"}
   end
+  
+  describe "#not_found?" do
+    it "should return true if response status code is 404" do
+      @error.should be_not_found
+    end
+    
+    it "should return false if response status code is not 404" do
+      error = Shelly::Client::APIError.new({}.to_json, 500)
+      error.should_not be_not_found
+    end
+  end
 
   describe "#validation?" do
     context "when error is caused by validation errors" do
       it "should return true" do
         body = {"message" => "Validation Failed"}
-        error = Shelly::Client::APIError.new(body.to_json)
+        error = Shelly::Client::APIError.new(body.to_json, 422)
         error.should be_validation
       end
     end
@@ -42,7 +53,7 @@ describe Shelly::Client::APIError do
     context "when error is caused by unauthorized error" do
       it "should return true" do
         body = {"message" => "Unauthorized"}
-        error = Shelly::Client::APIError.new(body.to_json)
+        error = Shelly::Client::APIError.new(body.to_json, 401)
         error.should be_unauthorized
       end
     end
@@ -59,7 +70,11 @@ describe Shelly::Client do
   before do
     ENV['SHELLY_URL'] = nil
     @client = Shelly::Client.new("bob@example.com", "secret")
-    @url = "https://#{CGI.escape("bob@example.com")}:secret@admin.winniecloud.com/apiv2"
+  end
+  
+  def api_url(resource = "")
+    auth = "#{CGI.escape(@client.email)}:#{@client.password}@"
+    "https://#{auth}admin.winniecloud.com/apiv2/#{resource}"
   end
 
   describe "#api_url" do
@@ -103,7 +118,7 @@ describe Shelly::Client do
   describe "#deploy_logs" do
     it "should send get request" do
       time = Time.now
-      FakeWeb.register_uri(:get, @url + "/apps/staging-foo/deploys", :body => [{:failed => false, :created_at => time},
+      FakeWeb.register_uri(:get, api_url("apps/staging-foo/deploys"), :body => [{:failed => false, :created_at => time},
         {:failed => true, :created_at => time+1}].to_json)
       response = @client.deploy_logs("staging-foo")
       response.should == [{"failed"=>false, "created_at"=>time.to_s},
@@ -113,7 +128,7 @@ describe Shelly::Client do
 
   describe "#deploy_log" do
     it "should send get request with cloud and log" do
-      FakeWeb.register_uri(:get, @url + "/apps/staging-foo/deploys/2011-11-29-11-50-16", :body => {:content => "Log"}.to_json)
+      FakeWeb.register_uri(:get, api_url("apps/staging-foo/deploys/2011-11-29-11-50-16"), :body => {:content => "Log"}.to_json)
       response = @client.deploy_log("staging-foo", "2011-11-29-11-50-16")
       response.should == {"content" => "Log"}
     end
@@ -121,7 +136,7 @@ describe Shelly::Client do
 
   describe "#app_configs" do
     it "should send get request" do
-      FakeWeb.register_uri(:get, @url + "/apps/staging-foo/configs", :body => [{:created_by_user => true, :path => "config/app.yml"}].to_json)
+      FakeWeb.register_uri(:get, api_url("apps/staging-foo/configs"), :body => [{:created_by_user => true, :path => "config/app.yml"}].to_json)
       response = @client.app_configs("staging-foo")
       response.should == [{"created_by_user" => true, "path" => "config/app.yml"}]
     end
@@ -130,7 +145,7 @@ describe Shelly::Client do
   describe "#application_logs" do
     it "should send get request" do
       time = Time.now
-      FakeWeb.register_uri(:get, @url + "/apps/staging-foo/logs",
+      FakeWeb.register_uri(:get, api_url("apps/staging-foo/logs"),
         :body => {:logs => ["application_log_1", "application_log_2"]}.to_json)
       response = @client.application_logs("staging-foo")
       response.should == {"logs" => ["application_log_1", "application_log_2"]}
@@ -146,7 +161,7 @@ describe Shelly::Client do
 
   describe "#app_users" do
     it "should send get request with app code_names" do
-      FakeWeb.register_uri(:get, @url + "/apps/staging-foo/users", :body => [{:email => "test@example.com"},
+      FakeWeb.register_uri(:get, api_url("apps/staging-foo/users"), :body => [{:email => "test@example.com"},
         {:email => "test2@example.com"}].to_json)
       response = @client.app_users("staging-foo")
       response.should == [{"email" => "test@example.com"}, {"email" => "test2@example.com"}]
@@ -155,7 +170,7 @@ describe Shelly::Client do
 
   describe "#app_ips" do
     it "should send get request with app code_name" do
-      FakeWeb.register_uri(:get, @url + "/apps/staging-foo/ips", :body => {:mail_server_ip => "10.0.1.1", :web_server_ip => "88.198.21.187"}.to_json)
+      FakeWeb.register_uri(:get, api_url("apps/staging-foo/ips"), :body => {:mail_server_ip => "10.0.1.1", :web_server_ip => "88.198.21.187"}.to_json)
       response = @client.app_ips("staging-foo")
       response.should == {"mail_server_ip" => "10.0.1.1", "web_server_ip" => "88.198.21.187"}
     end
@@ -163,8 +178,8 @@ describe Shelly::Client do
 
   describe "#send_invitation" do
     it "should send post with developer's email" do
-      FakeWeb.register_uri(:post, @url + "/apps/staging-foo/collaborations", :body => {}.to_json)
-      FakeWeb.register_uri(:post, @url + "/apps/production-foo/collaborations", :body => {}.to_json)
+      FakeWeb.register_uri(:post, api_url("apps/staging-foo/collaborations"), :body => {}.to_json)
+      FakeWeb.register_uri(:post, api_url("apps/production-foo/collaborations"), :body => {}.to_json)
       response = @client.send_invitation("staging-foo", "megan@example.com")
       response.should == {}
     end
@@ -186,7 +201,7 @@ describe Shelly::Client do
 
   describe "#start_cloud" do
     it "should sent post request with cloud's code_name" do
-      FakeWeb.register_uri(:put, @url + "/apps/staging-foo/start", :body => {}.to_json)
+      FakeWeb.register_uri(:put, api_url("apps/staging-foo/start"), :body => {}.to_json)
       response = @client.start_cloud("staging-foo")
       response.should == {}
     end
@@ -194,7 +209,7 @@ describe Shelly::Client do
 
   describe "#stop_cloud" do
     it "should sent delete request with cloud's code_name" do
-      FakeWeb.register_uri(:put, @url + "/apps/staging-foo/stop", :body => {}.to_json)
+      FakeWeb.register_uri(:put, api_url("apps/staging-foo/stop"), :body => {}.to_json)
       response = @client.stop_cloud("staging-foo")
       response.should == {}
     end
@@ -204,6 +219,48 @@ describe Shelly::Client do
     it "should send get request with ssh key" do
       @client.should_receive(:get).with("/users/new", {:ssh_key => "ssh-key Abb"})
       @client.ssh_key_available?("ssh-key Abb")
+    end
+  end
+  
+  describe "#database_backup" do
+    it "should fetch backup description from API" do
+      expected = {
+        "filename" => @filename,
+        "size" => 1234,
+        "human_size" => "2KB"
+      }
+      filename = "2011.11.26.04.00.10.foo.postgres.tar.gz"
+      url = api_url("apps/foo/database_backups/#{filename}")
+      FakeWeb.register_uri(:get, url, :body => expected.to_json)
+      
+      @client.database_backup("foo", filename).should == expected
+    end
+  end
+  
+  describe "#download_backup" do
+    before do
+      @filename = "2011.11.26.04.00.10.foo.postgres.tar.gz"
+      url = api_url("apps/foo/database_backups/#{@filename}")
+      response = Net::HTTPResponse.new('', '', '')
+      # Streaming
+      response.stub(:read_body).and_yield("aaa").and_yield("bbbbb").and_yield("dddf")
+      FakeWeb.register_uri(:get, url, :response => response)
+    end
+    
+    it "should write streamed database backup to file" do
+      @client.download_backup("foo", @filename)
+      File.read(@filename).should == %w(aaa bbbbb dddf).join
+    end
+    
+    it "should execute progress_callback with size of every chunk" do
+      progress = mock(:update => true)
+      progress.should_receive(:update).with(3)
+      progress.should_receive(:update).with(5)
+      progress.should_receive(:update).with(4)
+      
+      callback = lambda { |size| progress.update(size) }
+
+      @client.download_backup("foo", @filename, callback)
     end
   end
 
