@@ -62,6 +62,22 @@ module Shelly
       get("/apps/#{cloud}/configs")
     end
 
+    def app_config(cloud, id)
+      get("/apps/#{cloud}/configs/#{id}")
+    end
+
+    def app_create_config(cloud, path, content)
+      post("/apps/#{cloud}/configs", :config => {:path => path, :content => content})
+    end
+
+    def app_update_config(cloud, id, content)
+      put("/apps/#{cloud}/configs/#{id}", :config => {:content => content})
+    end
+
+    def app_delete_config(cloud, id)
+      delete("/apps/#{cloud}/configs/#{id}")
+    end
+
     def send_invitation(cloud, email)
       post("/apps/#{cloud}/collaborations", :email => email)
     end
