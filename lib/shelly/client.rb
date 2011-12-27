@@ -4,8 +4,11 @@ require "json"
 module Shelly
   class Client
     class APIError < Exception
-      def initialize(response_body)
+      attr_reader :status_code
+      
+      def initialize(response_body, status_code)
         @response = JSON.parse(response_body)
+        @status_code = status_code
       end
 
       def message
@@ -23,10 +26,14 @@ module Shelly
       def validation?
         message == "Validation Failed"
       end
+      
+      def not_found?
+        status_code == 404
+      end
 
       def unauthorized?
-        # FIXME: Return unauthorized if user has no access to cloud
-        #        Return 404 if cloud doesn't exist, should be fixed in API
+        # FIXME: Return unauthorized if user has no access to cloud, checked by 401 status code
+        #        Return 404 if child of app doesn't exist, should be fixed in API
         message == "Unauthorized" || message =~ /Cloud .+ not found/
       end
 
@@ -36,6 +43,8 @@ module Shelly
         end
       end
     end
+
+    attr_reader :email, :password
 
     def initialize(email = nil, password = nil)
       @email = email
@@ -121,6 +130,10 @@ module Shelly
     def database_backups(code_name)
       get("/apps/#{code_name}/database_backups")
     end
+    
+    def database_backup(code_name, handler)
+      get("/apps/#{code_name}/database_backups/#{handler}")
+    end
 
     def ssh_key_available?(ssh_key)
     	get("/users/new", :ssh_key => ssh_key)
@@ -148,6 +161,23 @@ module Shelly
 
     def delete(path, params = {})
       request(path, :delete, params)
+    end
+    
+    def download_backup(cloud, filename, progress_callback = nil)
+      File.open(filename, "w") do |out|
+        process_response = lambda do |response|
+          response.read_body do |chunk|
+            out.write(chunk)
+            progress_callback.call(chunk.size) if progress_callback
+          end
+        end
+
+        options = request_parameters("/apps/#{cloud}/database_backups/#{filename}", :get)
+        options = options.merge(:block_response => process_response, 
+          :headers => {:accept => "application/x-gzip"})
+      
+        RestClient::Request.execute(options)
+      end
     end
 
     def request(path, method, params = {})
@@ -177,7 +207,7 @@ module Shelly
 
     def process_response(response)
       if [401, 404, 422, 500].include?(response.code)
-        raise APIError.new(response.body)
+        raise APIError.new(response.body, response.code)
       end
 
       response.return!
