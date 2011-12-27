@@ -132,15 +132,15 @@ describe Shelly::CLI::Backup do
 
     it "should exit if user doesn't have access to cloud in Cloudfile" do
       response = {"message" => "Cloud foo-staging not found"}
-      exception = Shelly::Client::APIError.new(response.to_json)
+      exception = Shelly::Client::APIError.new(response.to_json, 404)
       @client.stub(:request_backup).and_raise(exception)
       $stdout.should_receive(:puts).with(red "You have no access to 'foo-staging' cloud defined in Cloudfile")
       lambda { @backup.create }.should raise_error(SystemExit)
     end
 
-    it "should display errors and exit 1" do
+    it "should display errors and exit 1 when kind is not valid" do
       response = {"message" => "Wrong KIND argument. User one of following: postgresql, mongodb, redis"}
-      exception = Shelly::Client::APIError.new(response.to_json)
+      exception = Shelly::Client::APIError.new(response.to_json, 404)
       @client.should_receive(:request_backup).and_raise(exception)
       $stdout.should_receive(:puts).with(red response["message"])
       lambda { @backup.create }.should raise_error(SystemExit)

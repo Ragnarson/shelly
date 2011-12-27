@@ -76,7 +76,7 @@ module Shelly
     end
 
     def request_backup(kind)
-      shelly.request_backup(code_name,kind)
+      shelly.request_backup(code_name, kind)
     end
 
     def logs

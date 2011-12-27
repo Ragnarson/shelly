@@ -58,11 +58,10 @@ module Shelly
 
       desc "create [KIND]", "Creates current snapshot of given database. Default: all databases."
       method_option :cloud, :type => :string, :aliases => "-c",
-        :desc => "Specify which cloud to show logs for"
+        :desc => "Specify which cloud to create database snapshot for"
       def create(kind = nil)
         logged_in?
-        cloud = options[:cloud]
-        multiple_clouds(cloud, "backup create", "Select cloud to create snapshot of database")
+        multiple_clouds(options[:cloud], "backup create", "Select cloud to create snapshot of database")
         @app.request_backup(kind)
         say "Backup requested. It can take up to several minutes for" +
           "the backup process to finish and the backup to show up in backups list.", :green
