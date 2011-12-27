@@ -8,6 +8,8 @@ module Shelly
     attr_accessor :code_name, :databases, :ruby_version, :environment,
       :git_url, :domains
 
+    autoload :Backup, "shelly/backup"
+
     def initialize(code_name = nil)
       self.code_name = code_name
     end
@@ -59,15 +61,22 @@ module Shelly
     end
 
     def application_logs
-      shelly.application_logs(self.code_name)
+      shelly.application_logs(code_name)
     end
 
     def database_backups
-      shelly.database_backups(code_name)
+      shelly.database_backups(code_name).map do |attributes|
+        Shelly::Backup.new(attributes.merge("code_name" => code_name))
+      end
+    end
+
+    def database_backup(handler)
+      attributes = shelly.database_backup(code_name, handler)
+      Shelly::Backup.new(attributes.merge("code_name" => code_name))
     end
 
     def logs
-      shelly.cloud_logs(self.code_name)
+      shelly.cloud_logs(code_name)
     end
 
     def start
@@ -132,4 +141,3 @@ module Shelly
     end
   end
 end
-
