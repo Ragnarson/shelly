@@ -13,7 +13,6 @@ module Shelly
         :desc => "Specify which cloud to list backups for"
       def list
         logged_in?
-        say_error "Must be run inside your project git repository" unless App.inside_git_repository?
         say_error "No Cloudfile found" unless Cloudfile.present?
         multiple_clouds(options[:cloud], "backup list", "Select cloud to view database backups for using:")
         backups = @app.database_backups
@@ -54,6 +53,24 @@ module Shelly
           say "You can list available backups with 'shelly backup list' command"
         else
           raise e
+        end
+      end
+
+      desc "create [KIND]", "Creates current snapshot of given database. Default: all databases."
+      method_option :cloud, :type => :string, :aliases => "-c",
+        :desc => "Specify which cloud to show logs for"
+      def create(kind = nil)
+        logged_in?
+        cloud = options[:cloud]
+        multiple_clouds(cloud, "backup create", "Select cloud to create snapshot of database")
+        @app.request_backup(kind)
+        say "Backup requested. It can take up to several minutes for" +
+          "the backup process to finish and the backup to show up in backups list.", :green
+      rescue Client::APIError => e
+        if e.unauthorized?
+          say_error "You have no access to '#{@app.code_name}' cloud defined in Cloudfile"
+        else
+          say_error e.message
         end
       end
     end

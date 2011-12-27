@@ -75,6 +75,10 @@ module Shelly
       Shelly::Backup.new(attributes.merge("code_name" => code_name))
     end
 
+    def request_backup(kind)
+      shelly.request_backup(code_name,kind)
+    end
+
     def logs
       shelly.cloud_logs(code_name)
     end
