@@ -41,15 +41,15 @@ describe Shelly::CLI::Config do
     end
 
     it "should list available configuration files for clouds" do
-      @client.should_receive(:app_configs).with("foo-staging").and_return([{"id" => 1, "created_by_user" => true, "path" => "config/settings.yml"}])
-      @client.should_receive(:app_configs).with("foo-production").and_return([{"id" => 2, "created_by_user" => false, "path" => "config/app.yml"}])
+      @client.should_receive(:app_configs).with("foo-staging").and_return([{"created_by_user" => true, "path" => "config/settings.yml"}])
+      @client.should_receive(:app_configs).with("foo-production").and_return([{"created_by_user" => false, "path" => "config/app.yml"}])
       $stdout.should_receive(:puts).with(green "Configuration files for foo-production")
       $stdout.should_receive(:puts).with("You have no custom configuration files.")
       $stdout.should_receive(:puts).with("Following files are created by Shelly Cloud:")
-      $stdout.should_receive(:puts).with(/ * 2\s+config\/app.yml/)
+      $stdout.should_receive(:puts).with(/ * \s+config\/app.yml/)
       $stdout.should_receive(:puts).with(green "Configuration files for foo-staging")
       $stdout.should_receive(:puts).with("Custom configuration files:")
-      $stdout.should_receive(:puts).with(/ * 1\s+config\/settings.yml/)
+      $stdout.should_receive(:puts).with(/ * \s+config\/settings.yml/)
 
       @config.list
     end
@@ -200,7 +200,6 @@ describe Shelly::CLI::Config do
     end
 
     it "should delete configuration file" do
-      @client.should_receive(:app_config).with("foo-staging", 1).and_return({"path" => "test.rb", "content" => "example content"})
       @client.should_receive(:app_delete_config).with("foo-staging", 1).and_return({})
       $stdout.should_receive(:puts).with(green "File deleted, redeploy your cloud to make changes")
       fake_stdin(["y"]) do
@@ -209,7 +208,6 @@ describe Shelly::CLI::Config do
     end
 
     it "should not delete file if user answered other than yes/y" do
-      @client.should_receive(:app_config).with("foo-staging", 1).and_return({"path" => "test.rb", "content" => "example content"})
       @client.should_not_receive(:app_delete_config)
       $stdout.should_receive(:puts).with("File not deleted")
       fake_stdin(["n"]) do
@@ -228,7 +226,6 @@ describe Shelly::CLI::Config do
       end
 
       it "should use cloud specified by parameter" do
-        @client.should_receive(:app_config).with("foo-production", 1).and_return({"path" => "test.rb", "content" => "example content"})
         @client.should_receive(:app_delete_config).with("foo-production", 1).and_return({})
         $stdout.should_receive(:puts).with(green "File deleted, redeploy your cloud to make changes")
         @config.options = {:cloud => "foo-production"}

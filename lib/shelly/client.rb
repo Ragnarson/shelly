@@ -1,5 +1,6 @@
 require "rest_client"
 require "json"
+require "cgi"
 
 module Shelly
   class Client
@@ -62,20 +63,20 @@ module Shelly
       get("/apps/#{cloud}/configs")
     end
 
-    def app_config(cloud, id)
-      get("/apps/#{cloud}/configs/#{id}")
+    def app_config(cloud, path)
+      get("/apps/#{cloud}/configs/#{CGI.escape(path)}")
     end
 
     def app_create_config(cloud, path, content)
       post("/apps/#{cloud}/configs", :config => {:path => path, :content => content})
     end
 
-    def app_update_config(cloud, id, content)
-      put("/apps/#{cloud}/configs/#{id}", :config => {:content => content})
+    def app_update_config(cloud, path, content)
+      put("/apps/#{cloud}/configs/#{CGI.escape(path)}", :config => {:content => content})
     end
 
-    def app_delete_config(cloud, id)
-      delete("/apps/#{cloud}/configs/#{id}")
+    def app_delete_config(cloud, path)
+      delete("/apps/#{cloud}/configs/#{CGI.escape(path)}")
     end
 
     def send_invitation(cloud, email)

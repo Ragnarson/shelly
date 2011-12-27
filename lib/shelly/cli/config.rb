@@ -44,15 +44,19 @@ module Shelly
 
       method_option :cloud, :type => :string, :aliases => "-c",
         :desc => "Specify which cloud to show configuration file for"
-      desc "show CONFIG_ID", "View configuration file"
-      def show(id = nil)
+      desc "show PATH", "View configuration file"
+      def show(path = nil)
         logged_in?
         say_error "No Cloudfile found" unless Cloudfile.present?
-        say_error "No configuration file specified" unless id
-        multiple_clouds(options[:cloud], "show #{id}", "Specify cloud using:")
-        config = @app.config(id)
+        say_error "No configuration file specified" unless path
+        multiple_clouds(options[:cloud], "show #{path}", "Specify cloud using:")
+        config = @app.config(path)
         say "Content of #{config["path"]}:", :green
         say config["content"]
+      rescue Client::APIError => e
+        if e.unauthorized?
+          say_error "You have no access to '#{@app.code_name}' cloud defined in Cloudfile"
+        end
       end
 
       map "new" => :create
@@ -81,15 +85,15 @@ module Shelly
       map "update" => :edit
       method_option :cloud, :type => :string, :aliases => "-c",
         :desc => "Specify for which cloud edit configuration file"
-      desc "edit CONFIG_ID", "Edit configuration file"
-      def edit(id = nil)
+      desc "edit PATH", "Edit configuration file"
+      def edit(path = nil)
         logged_in?
         say_error "No Cloudfile found" unless Cloudfile.present?
-        say_error "No configuration file specified" unless id
-        multiple_clouds(options[:cloud], "edit #{id}", "Specify cloud using:")
-        config = @app.config(id)
+        say_error "No configuration file specified" unless path
+        multiple_clouds(options[:cloud], "edit #{path}", "Specify cloud using:")
+        config = @app.config(path)
         content = open_editor(config["path"], config["content"])
-        @app.update_config(id, content)
+        @app.update_config(path, content)
         say "File '#{config["path"]}' updated, it will be used after next code deploy", :green
       rescue Client::APIError => e
         if e.unauthorized?
@@ -104,16 +108,15 @@ module Shelly
 
       method_option :cloud, :type => :string, :aliases => "-c",
         :desc => "Specify for which cloud delete configuration file"
-      desc "delete CONFIG_ID", "Delete configuration file"
-      def delete(id = nil)
+      desc "delete PATH", "Delete configuration file"
+      def delete(path = nil)
         logged_in?
         say_error "No Cloudfile found" unless Cloudfile.present?
-        say_error "No configuration file specified" unless id
-        multiple_clouds(options[:cloud], "delete #{id}", "Specify cloud using:")
-        config = @app.config(id)
-        answer = ask("Are you sure you want to delete '#{config["path"]}' [y/n]: ")
+        say_error "No configuration file specified" unless path
+        multiple_clouds(options[:cloud], "delete #{path}", "Specify cloud using:")
+        answer = ask("Are you sure you want to delete 'path' [y/n]: ")
         if answer =~ /yes|YES|y|Y/
-          @app.delete_config(id)
+          @app.delete_config(path)
           say "File deleted, redeploy your cloud to make changes", :green
         else
           say "File not deleted"
@@ -132,7 +135,7 @@ module Shelly
       no_tasks do
         def print_configs(configs)
           print_table(configs.map { |config|
-            [" * ", config["id"], config["path"]] })
+            [" * ", config["path"]] })
         end
 
         def open_editor(path, output = "")

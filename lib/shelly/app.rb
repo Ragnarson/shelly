@@ -106,20 +106,20 @@ module Shelly
       configs.find_all { |config| config["created_by_user"] == false }
     end
 
-    def config(id)
-      shelly.app_config(code_name, id)
+    def config(path)
+      shelly.app_config(code_name, path)
     end
 
     def create_config(path, content)
       shelly.app_create_config(code_name, path, content)
     end
 
-    def update_config(id, content)
-      shelly.app_update_config(code_name, id, content)
+    def update_config(path, content)
+      shelly.app_update_config(code_name, path, content)
     end
 
-    def delete_config(id)
-      shelly.app_delete_config(code_name, id)
+    def delete_config(path)
+      shelly.app_delete_config(code_name, path)
     end
 
     def open_billing_page
