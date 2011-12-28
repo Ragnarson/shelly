@@ -27,6 +27,7 @@ module Shelly
       end
     end
 
+    # FIXME: this should return instances of App
     def clouds
       @content.keys.sort
     end
@@ -36,16 +37,5 @@ module Shelly
       # FIXME: check if it possible to remove sub("---", "") by passing options to_yaml
       string.sub("---","").split("\n").map(&:rstrip).join("\n").strip
     end
-
-    def fetch_users
-      response = shelly.apps_users(clouds)
-      response.inject({}) do |result, app|
-        result[app['code_name']] = app['users'].map do |user|
-          user['email']
-        end
-        result
-      end
-    end
   end
 end
-

@@ -1,5 +1,8 @@
 require "shelly/cli/command"
 require "shelly/cli/user"
+require "shelly/cli/backup"
+require "shelly/cli/deploys"
+require "shelly/cli/config"
 
 module Shelly
   module CLI
@@ -7,9 +10,12 @@ module Shelly
       include Thor::Actions
 
       register(User, "user", "user <command>", "Manages users using this cloud")
+      register(Backup, "backup", "backup <command>", "Manages database backups from this cloud")
+      register(Deploys, "deploys", "deploys <command>", "View cloud deploy logs")
+      register(Config, "config", "config <command>", "Manages cloud configuration files")
       check_unknown_options!
 
-      before_hook :logged_in?, :only => [:add]
+      before_hook :logged_in?, :only => [:add, :list, :start, :stop]
       before_hook :inside_git_repository?, :only => [:add]
 
       map %w(-v --version) => :version
@@ -47,19 +53,20 @@ module Shelly
 
       desc "login [EMAIL]", "Logs user in to Shelly Cloud"
       def login(email = nil)
-        user = Shelly::User.new(email || ask_for_email, ask_for_password(:with_confirmation => false))
+        user = Shelly::User.new
+        raise Errno::ENOENT, user.ssh_key_path unless user.ssh_key_exists?
+        user.email = email || ask_for_email
+        user.password = ask_for_password(:with_confirmation => false)
         user.login
         say "Login successful"
+        # FIXME: remove conflict boolean, move it to rescue block
         begin user.upload_ssh_key
-        conflict = false
+          conflict = false
         rescue RestClient::Conflict
           conflict = true
         end
         say "Uploading your public SSH key" if conflict == false
-        say "You have following clouds available:", :green
-        user.apps.each do |app|
-          say "  #{app["code_name"]}"
-        end
+        list
       rescue Client::APIError => e
         if e.validation?
           e.each_error { |error| say_error "#{error}", :with_exit => false }
@@ -70,6 +77,9 @@ module Shelly
           say_error "#{e.url}", :with_exit => false
         end
         exit 1
+      rescue Errno::ENOENT => e
+        say_error e, :with_exit => false
+        say_error "Use ssh-keygen to generate ssh key pair"
       end
 
       method_option "code-name", :type => :string, :aliases => "-c",
@@ -107,6 +117,147 @@ module Shelly
           say_new_line
           say_error "Fix erros in the below command and type it again to create your cloud" , :with_exit => false
           say_error "shelly add --code-name=#{@app.code_name} --databases=#{@app.databases.join} --domains=#{@app.code_name}.shellyapp.com"
+        end
+      end
+
+      desc "list", "Lists all your clouds"
+      def list
+        user = Shelly::User.new
+        user.token
+        apps = user.apps
+        unless apps.empty?
+          say "You have following clouds available:", :green
+          print_table(apps.map do |app|
+            state = app["state"] == "deploy_failed" ? " (Support has been notified)" : ""
+            [app["code_name"], "|  #{app["state"].gsub("_", " ")}#{state}"]
+          end, :ident => 2)
+        else
+          say "You have no clouds yet", :green
+        end
+      rescue Client::APIError => e
+        if e.unauthorized?
+          say_error "You are not logged in, use `shelly login`"
+        end
+      end
+      map "status" => :list
+
+      desc "ip", "Lists clouds IP's"
+      def ip
+        say_error "Must be run inside your project git repository" unless App.inside_git_repository?
+        say_error "No Cloudfile found" unless Cloudfile.present?
+        @cloudfile = Cloudfile.new
+        @cloudfile.clouds.each do |cloud|
+          begin
+            @app = App.new(cloud)
+            say "Cloud #{cloud}:", :green
+            ips = @app.ips
+            print_wrapped "Web server IP: #{ips['web_server_ip']}", :ident => 2
+            print_wrapped "Mail server IP: #{ips['mail_server_ip']}", :ident => 2
+          rescue Client::APIError => e
+            if e.unauthorized?
+              say_error "You have no access to '#{cloud}' cloud defined in Cloudfile", :with_exit => false
+            else
+              say_error e.message, :with_exit => false
+            end
+          end
+        end
+      end
+
+      desc "start", "Starts the cloud"
+      method_option :cloud, :type => :string, :aliases => "-c",
+        :desc => "Specify which cloud to start"
+      def start
+        say_error "No Cloudfile found" unless Cloudfile.present?
+        multiple_clouds(options[:cloud], "start", "Select cloud to start using:")
+        @app.start
+        say "Starting cloud #{@app.code_name}. Check status with:", :green
+        say "  shelly list"
+      rescue RestClient::Conflict => e
+        response =  JSON.parse(e.response)
+        case response['state']
+        when "running"
+          say_error "Not starting: cloud '#{@app.code_name}' is already running"
+        when "deploying", "configuring"
+          say_error "Not starting: cloud '#{@app.code_name}' is currently deploying"
+        when "no_code"
+          say_error "Not starting: no source code provided", :with_exit => false
+          say_error "Push source code using:", :with_exit => false
+          say       "  git push production master"
+        when "deploy_failed", "configuration_failed"
+          say_error "Not starting: deployment failed", :with_exit => false
+          say_error "Support has been notified", :with_exit => false
+          say_error "See #{response['link']} for reasons of failure"
+        when "no_billing"
+          say_error "Please fill in billing details to start foo-production. Opening browser.", :with_exit => false
+          @app.open_billing_page
+        end
+        exit 1
+      rescue Client::APIError => e
+        if e.unauthorized?
+          say_error "You have no access to '#{@app.code_name}' cloud defined in Cloudfile"
+        end
+      end
+
+      desc "stop", "Stops the cloud"
+      method_option :cloud, :type => :string, :aliases => "-c",
+        :desc => "Specify which cloud to stop"
+      def stop
+        say_error "No Cloudfile found" unless Cloudfile.present?
+        multiple_clouds(options[:cloud], "stop", "Select cloud to stop using:")
+        @app.stop
+        say "Cloud '#{@app.code_name}' stopped"
+      rescue Client::APIError => e
+        if e.unauthorized?
+          say_error "You have no access to '#{@app.code_name}' cloud defined in Cloudfile"
+        end
+      end
+
+      desc "delete", "Delete cloud from Shelly Cloud"
+      method_option :cloud, :type => :string, :aliases => "-c",
+        :desc => "Specify which cloud to delete"
+      def delete
+        user = Shelly::User.new
+        user.token
+        multiple_clouds(options[:cloud], "delete", "Select cloud to delete using:")
+        say "You are about to delete application: #{@app.code_name}."
+        say "Press Control-C at any moment to cancel."
+        say "Please confirm each question by typing yes and pressing Enter."
+        say_new_line
+        ask_to_delete_files
+        ask_to_delete_database
+        ask_to_delete_application
+        @app.delete
+        say_new_line
+        say "Scheduling application delete - done"
+        if App.inside_git_repository?
+          @app.remove_git_remote
+          say "Removing git remote - done"
+        else
+          say "Missing git remote"
+        end
+      rescue Client::APIError => e
+        say_error e.message
+      end
+
+      desc "logs", "Show latest application logs from each instance"
+      method_option :cloud, :type => :string, :aliases => "-c",
+        :desc => "Specify which cloud to show logs for"
+      def logs
+        cloud = options[:cloud]
+        logged_in?
+        say_error "No Cloudfile found" unless Cloudfile.present?
+        multiple_clouds(cloud, "logs", "Select which to show logs for using:")
+        begin
+          logs = @app.application_logs
+          say "Cloud #{@app.code_name}:", :green
+          logs.each_with_index do |log, i|
+            say "Instance #{i+1}:", :green
+            say log
+          end
+        rescue Client::APIError => e
+          if e.unauthorized?
+            say_error "You have no access to cloud '#{cloud || @app.code_name}'"
+          end
         end
       end
 
@@ -187,4 +338,3 @@ module Shelly
     end
   end
 end
-

@@ -4,6 +4,7 @@ require "thor/thor"
 require "thor/group"
 require "thor/options"
 require "thor/arguments"
+require "thor/basic"
 
 module Shelly
   module CLI

@@ -22,17 +22,4 @@ describe Shelly::Cloudfile do
     end
   end
 
-  describe "#fetch_users" do
-    it "should return array to display with clouds and users" do
-      @cloudfile.write(@hash)
-      @client.should_receive(:apps_users).and_return(response)
-      response = @cloudfile.fetch_users
-      response.should == {"foo-staging" => ["user@example.com"]}
-    end
-
-    def response
-      [{'code_name' => 'foo-staging','users' => [{'email' => 'user@example.com'}]}]
-    end
-  end
-
 end

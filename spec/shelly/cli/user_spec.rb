@@ -10,6 +10,7 @@ describe Shelly::CLI::User do
     Shelly::User.stub(:guess_email).and_return("")
     $stdout.stub(:puts)
     $stdout.stub(:print)
+    @client.stub(:token).and_return("abc")
   end
 
   describe "#help" do
@@ -17,7 +18,6 @@ describe Shelly::CLI::User do
       $stdout.should_receive(:puts).with("Tasks:")
       $stdout.should_receive(:puts).with(/add \[EMAIL\]\s+# Add new developer to clouds defined in Cloudfile/)
         $stdout.should_receive(:puts).with(/list\s+# List users with access to clouds defined in Cloudfile/)
-      # @cli_user.help
       invoke(@cli_user, :help)
     end
   end
@@ -28,7 +28,8 @@ describe Shelly::CLI::User do
       Dir.chdir("/projects/foo")
       File.open("Cloudfile", 'w') {|f| f.write("foo-staging:\nfoo-production:\n") }
       Shelly::App.stub(:inside_git_repository?).and_return(true)
-      @client.stub(:token)
+      @cloudfile = Shelly::Cloudfile.new
+      Shelly::Cloudfile.stub(:new).and_return(@cloudfile)
     end
 
     it "should exit with message if command run outside git repository" do
@@ -49,9 +50,10 @@ describe Shelly::CLI::User do
 
     it "should exit if user is not logged in" do
       response = {"message" => "Unauthorized", "url" => "https://admin.winniecloud.com/users/password/new"}
-      exception = Shelly::Client::APIError.new(response.to_json)
+      exception = Shelly::Client::APIError.new(response.to_json, 404)
       @client.stub(:token).and_raise(exception)
-      $stdout.should_receive(:puts).with("\e[31mYou are not logged in, use `shelly login` to log in\e[0m")
+      $stdout.should_receive(:puts).with(red "You are not logged in. To log in use:")
+      $stdout.should_receive(:puts).with("  shelly login")
       lambda {
         invoke(@cli_user, :list)
       }.should raise_error(SystemExit)
@@ -59,33 +61,30 @@ describe Shelly::CLI::User do
 
     context "on success" do
       it "should receive clouds from the Cloudfile" do
-        @client.should_receive(:apps).and_return([{"code_name" => "foo-production"}, {"code_name" => "foo-staging"}])
-        @client.should_receive(:apps_users).and_return(response)
+        @client.stub(:app_users).and_return(response)
+        @cloudfile.should_receive(:clouds).and_return(["foo-staging", "foo-production"])
         invoke(@cli_user, :list)
       end
 
       it "should display clouds and users" do
-        @client.should_receive(:apps).and_return([{"code_name" => "foo-production"}, {"code_name" => "foo-staging"}])
-        @client.stub(:apps_users).and_return(response)
+        @client.stub(:app_users).and_return(response)
         $stdout.should_receive(:puts).with("Cloud foo-production:")
         $stdout.should_receive(:puts).with("  user@example.com")
-        $stdout.should_receive(:puts).with("Cloud foo-staging:")
-        $stdout.should_receive(:puts).with("  user2@example.com")
         invoke(@cli_user, :list)
       end
     end
 
     def response
-      [{'code_name' => 'foo-production', 'users' => [{'email' => 'user@example.com'}]},
-       {'code_name' => 'foo-staging', 'users' => [{'name' => 'username2','email' => 'user2@example.com'}]}]
+      [{'email' => 'user@example.com'}]
     end
 
     context "on failure" do
       it "should raise an error if user does not have access to cloud" do
-        @client.should_receive(:apps).and_return([{"code_name" => "foo-production"}])
-        @client.stub(:apps_users).and_return(response)
-        $stdout.should_receive(:puts).with("\e[31mYou have no access to 'foo-staging' cloud defined in Cloudfile\e[0m")
-        lambda { invoke(@cli_user, :list) }.should raise_error(SystemExit)
+        response = {"message" => "Cloud foo-staging not found"}
+        exception = Shelly::Client::APIError.new(response.to_json, 404)
+        @client.stub(:app_users).and_raise(exception)
+        $stdout.should_receive(:puts).with(red "You have no access to 'foo-staging' cloud defined in Cloudfile")
+        invoke(@cli_user, :list)
       end
     end
   end
@@ -122,7 +121,6 @@ describe Shelly::CLI::User do
       before do
         @client.should_receive(:send_invitation).with("foo-production", "megan@example.com")
         @client.should_receive(:send_invitation).with("foo-staging", "megan@example.com")
-        @client.should_receive(:apps).and_return([{"code_name" => "foo-production"}, {"code_name" => "foo-staging"}])
       end
 
       it "should ask about email" do
@@ -143,9 +141,11 @@ describe Shelly::CLI::User do
 
     context "on failure" do
       it "should raise error if user doesnt have access to cloud" do
-        @client.should_receive(:apps).and_return([{"code_name" => "foo-production"}])
-        $stdout.should_receive(:puts).with("\e[31mYou have no access to 'foo-staging' cloud defined in Cloudfile\e[0m")
-        lambda { invoke(@cli_user, :add, "megan@example.com") }.should raise_error(SystemExit)
+        response = {"message" => "Cloud foo-staging not found"}
+        exception = Shelly::Client::APIError.new(response.to_json, 404)
+        @client.stub(:send_invitation).and_raise(exception)
+        $stdout.should_receive(:puts).with(red "You have no access to 'foo-staging' cloud defined in Cloudfile")
+        invoke(@cli_user, :add, "megan@example.com")
       end
     end
   end

@@ -23,17 +23,41 @@ describe Shelly::CLI::Main do
     it "should display available commands" do
       expected = <<-OUT
 Tasks:
-  shelly add               # Adds new cloud to Shelly Cloud
-  shelly help [TASK]       # Describe available tasks or one specific task
-  shelly login [EMAIL]     # Logs user in to Shelly Cloud
-  shelly register [EMAIL]  # Registers new user account on Shelly Cloud
-  shelly user <command>    # Manages users using this cloud
-  shelly version           # Displays shelly version
+  shelly add                # Adds new cloud to Shelly Cloud
+  shelly backup <command>   # Manages database backups from this cloud
+  shelly config <command>   # Manages cloud configuration files
+  shelly delete             # Delete cloud from Shelly Cloud
+  shelly deploys <command>  # View cloud deploy logs
+  shelly help [TASK]        # Describe available tasks or one specific task
+  shelly ip                 # Lists clouds IP's
+  shelly list               # Lists all your clouds
+  shelly login [EMAIL]      # Logs user in to Shelly Cloud
+  shelly logs               # Show latest application logs from each instance
+  shelly register [EMAIL]   # Registers new user account on Shelly Cloud
+  shelly start              # Starts the cloud
+  shelly stop               # Stops the cloud
+  shelly user <command>     # Manages users using this cloud
+  shelly version            # Displays shelly version
 
 Options:
   [--debug]  # Show debug information
 OUT
       out = IO.popen("bin/shelly --debug").read.strip
+      out.should == expected.strip
+    end
+
+    it "should display options in help for logs" do
+      expected = <<-OUT
+Usage:
+  shelly logs
+
+Options:
+  -c, [--cloud=CLOUD]  # Specify which cloud to show logs for
+      [--debug]        # Show debug information
+
+Show latest application logs from each instance
+OUT
+      out = IO.popen("bin/shelly help logs").read.strip
       out.should == expected.strip
     end
   end
@@ -148,7 +172,7 @@ OUT
     context "on unsuccessful registration" do
       it "should display errors and exit with 1" do
         response = {"message" => "Validation Failed", "errors" => [["email", "has been already taken"]]}
-        exception = Shelly::Client::APIError.new(response.to_json)
+        exception = Shelly::Client::APIError.new(response.to_json, 422)
         @client.stub(:register_user).and_raise(exception)
         $stdout.should_receive(:puts).with("\e[31mEmail has been already taken\e[0m")
         lambda {
@@ -163,9 +187,13 @@ OUT
   describe "#login" do
     before do
       @user = Shelly::User.new
+      @key_path = File.expand_path("~/.ssh/id_rsa.pub")
+      FileUtils.mkdir_p("~/.ssh")
+      File.open("~/.ssh/id_rsa.pub", "w") { |f| f << "ssh-key AAbbcc" }
       @user.stub(:upload_ssh_key)
       @client.stub(:token).and_return("abc")
-      @client.stub(:apps).and_return([{"code_name" => "abc"}, {"code_name" => "fooo"}])
+      @client.stub(:apps).and_return([{"code_name" => "abc", "state" => "running"},
+        {"code_name" => "fooo", "state" => "no_code"},])
       Shelly::User.stub(:new).and_return(@user)
     end
 
@@ -180,6 +208,13 @@ OUT
         $stdout.should_receive(:puts).with("Login successful")
         fake_stdin(["megan@example.com", "secret"]) do
           invoke(@main, :login)
+        end
+      end
+
+      it "should accept email as parameter" do
+        $stdout.should_receive(:puts).with("Login successful")
+        fake_stdin(["secret"]) do
+          @main.login("megan@example.com")
         end
       end
 
@@ -201,18 +236,30 @@ OUT
 
       it "should display list of applications to which user has access" do
         $stdout.should_receive(:puts).with("\e[32mYou have following clouds available:\e[0m")
-        $stdout.should_receive(:puts).with("  abc")
-        $stdout.should_receive(:puts).with("  fooo")
+        $stdout.should_receive(:puts).with(/  abc\s+\|  running/)
+        $stdout.should_receive(:puts).with(/  fooo\s+\|  no code/)
         fake_stdin(["megan@example.com", "secret"]) do
           invoke(@main, :login)
         end
       end
     end
 
+    context "when local ssh key doesn't exists" do
+      it "should display error message and return exit with 1" do
+        FileUtils.rm_rf(@key_path)
+        File.exists?(@key_path).should be_false
+        $stdout.should_receive(:puts).with("\e[31mNo such file or directory - " + @key_path + "\e[0m")
+        $stdout.should_receive(:puts).with("\e[31mUse ssh-keygen to generate ssh key pair\e[0m")
+        lambda {
+          @main.login
+        }.should raise_error(SystemExit)
+      end
+    end
+
     context "on unauthorized user" do
       it "should exit with 1 and display error message" do
         response = {"message" => "Unauthorized", "url" => "https://admin.winniecloud.com/users/password/new"}
-        exception = Shelly::Client::APIError.new(response.to_json)
+        exception = Shelly::Client::APIError.new(response.to_json, 401)
         @client.stub(:token).and_raise(exception)
         $stdout.should_receive(:puts).with("\e[31mWrong email or password\e[0m")
         $stdout.should_receive(:puts).with("\e[31mYou can reset password by using link:\e[0m")
@@ -330,7 +377,7 @@ OUT
 
     it "should display validation errors if they are any" do
       response = {"message" => "Validation Failed", "errors" => [["code_name", "has been already taken"]]}
-      exception = Shelly::Client::APIError.new(response.to_json)
+      exception = Shelly::Client::APIError.new(response.to_json, 422)
       @app.should_receive(:create).and_raise(exception)
       $stdout.should_receive(:puts).with("\e[31mCode name has been already taken\e[0m")
       $stdout.should_receive(:puts).with("\e[31mFix erros in the below command and type it again to create your cloud\e[0m")
@@ -387,5 +434,479 @@ OUT
       end
     end
   end
-end
 
+  describe "#list" do
+    before do
+      @user = Shelly::User.new
+      @client.stub(:token).and_return("abc")
+      @client.stub(:apps).and_return([{"code_name" => "abc", "state" => "running"},
+         {"code_name" => "fooo", "state" => "deploy_failed"}])
+      Shelly::User.stub(:new).and_return(@user)
+    end
+
+    it "should display user's clouds" do
+      $stdout.should_receive(:puts).with("\e[32mYou have following clouds available:\e[0m")
+      $stdout.should_receive(:puts).with(/abc\s+\|  running/)
+      $stdout.should_receive(:puts).with(/fooo\s+\|  deploy failed \(Support has been notified\)/)
+      @main.list
+    end
+
+    it "should display info that user has no clouds" do
+      @client.stub(:apps).and_return([])
+      $stdout.should_receive(:puts).with("\e[32mYou have no clouds yet\e[0m")
+      @main.list
+    end
+
+    it "should have a 'status' alias" do
+      @client.stub(:apps).and_return([])
+      $stdout.should_receive(:puts).with("\e[32mYou have no clouds yet\e[0m")
+      Shelly::CLI::Main.start(["status"])
+    end
+
+    context "on failure" do
+      it "should display info that user is not logged in" do
+        body = {"message" => "Unauthorized"}
+        error = Shelly::Client::APIError.new(body.to_json, 401)
+        @client.stub(:token).and_raise(error)
+        $stdout.should_receive(:puts).with("\e[31mYou are not logged in, use `shelly login`\e[0m")
+        lambda {
+          @main.list
+        }.should raise_error(SystemExit)
+      end
+    end
+  end
+
+  describe "#start" do
+    before do
+      @user = Shelly::User.new
+      @client.stub(:token).and_return("abc")
+      FileUtils.mkdir_p("/projects/foo")
+      Dir.chdir("/projects/foo")
+      File.open("Cloudfile", 'w') {|f| f.write("foo-production:\n") }
+      Shelly::User.stub(:new).and_return(@user)
+      @client.stub(:apps).and_return([{"code_name" => "foo-production"}, {"code_name" => "foo-staging"}])
+      @app = Shelly::App.new
+      Shelly::App.stub(:new).and_return(@app)
+    end
+
+    it "should exit if there is no Cloudfile" do
+      File.delete("Cloudfile")
+      $stdout.should_receive(:puts).with("\e[31mNo Cloudfile found\e[0m")
+      lambda {
+        invoke(@main, :start)
+      }.should raise_error(SystemExit)
+    end
+
+    it "should exit if user doesn't have access to clouds in Cloudfile" do
+      response = {"message" => "Cloud foo-production not found"}
+      exception = Shelly::Client::APIError.new(response.to_json, 404)
+      @client.stub(:start_cloud).and_raise(exception)
+      $stdout.should_receive(:puts).with(red "You have no access to 'foo-production' cloud defined in Cloudfile")
+      lambda { invoke(@main, :start) }.should raise_error(SystemExit)
+    end
+
+    it "should exit if user is not logged in" do
+      response = {"message" => "Unauthorized"}
+      exception = Shelly::Client::APIError.new(response.to_json, 401)
+      @client.stub(:token).and_raise(exception)
+      $stdout.should_receive(:puts).with(red "You are not logged in. To log in use:")
+      $stdout.should_receive(:puts).with("  shelly login")
+      lambda { invoke(@main, :start) }.should raise_error(SystemExit)
+    end
+
+    context "single cloud in Cloudfile" do
+      it "should start the cloud" do
+        @client.stub(:start_cloud)
+        $stdout.should_receive(:puts).with(green "Starting cloud foo-production. Check status with:")
+        $stdout.should_receive(:puts).with("  shelly list")
+        invoke(@main, :start)
+      end
+    end
+
+    context "multiple clouds in Cloudfile" do
+      before do
+        File.open("Cloudfile", 'w') {|f| f.write("foo-staging:\nfoo-production:\n") }
+      end
+
+      it "should show information to start specific cloud and exit" do
+        $stdout.should_receive(:puts).with("You have multiple clouds in Cloudfile. Select cloud to start using:")
+        $stdout.should_receive(:puts).with("  shelly start --cloud foo-production")
+        $stdout.should_receive(:puts).with("Available clouds:")
+        $stdout.should_receive(:puts).with(" * foo-production")
+        $stdout.should_receive(:puts).with(" * foo-staging")
+        lambda { invoke(@main, :start) }.should raise_error(SystemExit)
+      end
+
+      it "should fetch from command line which cloud to start" do
+        @client.should_receive(:start_cloud).with("foo-staging")
+        $stdout.should_receive(:puts).with(green "Starting cloud foo-staging. Check status with:")
+        $stdout.should_receive(:puts).with("  shelly list")
+        invoke(@main, :start, "--cloud", "foo-staging" )
+      end
+    end
+
+    context "on failure" do
+      it "should show information that cloud is running" do
+        raise_conflict(:state => "running")
+        $stdout.should_receive(:puts).with(red "Not starting: cloud 'foo-production' is already running")
+        lambda { invoke(@main, :start)  }.should raise_error(SystemExit)
+      end
+
+      %w{deploying configuring}.each do |state|
+        it "should show information that cloud is #{state}" do
+          raise_conflict(:state => state)
+          $stdout.should_receive(:puts).with(red "Not starting: cloud 'foo-production' is currently deploying")
+          lambda { invoke(@main, :start) }.should raise_error(SystemExit)
+        end
+      end
+
+      it "should show information that cloud has no code" do
+        raise_conflict(:state => "no_code")
+        $stdout.should_receive(:puts).with(red "Not starting: no source code provided")
+        $stdout.should_receive(:puts).with(red "Push source code using:")
+        $stdout.should_receive(:puts).with("  git push production master")
+        lambda { invoke(@main, :start) }.should raise_error(SystemExit)
+      end
+
+      %w{deploy_failed configuration_failed}.each do |state|
+        it "should show information that cloud #{state}" do
+          raise_conflict(:state => state, :link => "http://example.com/logs")
+          $stdout.should_receive(:puts).with(red "Not starting: deployment failed")
+          $stdout.should_receive(:puts).with(red "Support has been notified")
+          $stdout.should_receive(:puts).with(red "See http://example.com/logs for reasons of failure")
+          lambda { invoke(@main, :start) }.should raise_error(SystemExit)
+        end
+      end
+      it "should open billing page" do
+        raise_conflict(:state => "no_billing")
+        $stdout.should_receive(:puts).with(red "Please fill in billing details to start foo-production. Opening browser.")
+        @app.should_receive(:open_billing_page)
+        lambda { invoke(@main, :start) }.should raise_error(SystemExit)
+      end
+
+      def raise_conflict(options = {})
+        options = {:state => "no_code"}.merge(options)
+        exception = RestClient::Conflict.new
+        exception.stub(:response).and_return(options.to_json)
+        @client.stub(:start_cloud).and_raise(exception)
+      end
+    end
+  end
+
+  describe "#stop" do
+    before do
+      @user = Shelly::User.new
+      @client.stub(:token).and_return("abc")
+      FileUtils.mkdir_p("/projects/foo")
+      Dir.chdir("/projects/foo")
+      File.open("Cloudfile", 'w') {|f| f.write("foo-production:\n") }
+      Shelly::User.stub(:new).and_return(@user)
+      @client.stub(:apps).and_return([{"code_name" => "foo-production"}, {"code_name" => "foo-staging"}])
+      @app = Shelly::App.new
+      Shelly::App.stub(:new).and_return(@app)
+    end
+
+    it "should exit if there is no Cloudfile" do
+      File.delete("Cloudfile")
+      $stdout.should_receive(:puts).with("\e[31mNo Cloudfile found\e[0m")
+      lambda {
+        invoke(@main, :stop)
+      }.should raise_error(SystemExit)
+    end
+
+    it "should exit if user doesn't have access to clouds in Cloudfile" do
+      response = {"message" => "Cloud foo-production not found"}
+      exception = Shelly::Client::APIError.new(response.to_json, 404)
+      @client.stub(:stop_cloud).and_raise(exception)
+      $stdout.should_receive(:puts).with(red "You have no access to 'foo-production' cloud defined in Cloudfile")
+      lambda { invoke(@main, :stop) }.should raise_error(SystemExit)
+    end
+
+    it "should exit if user is not logged in" do
+      response = {"message" => "Unauthorized"}
+      exception = Shelly::Client::APIError.new(response.to_json, 401)
+      @client.stub(:token).and_raise(exception)
+      $stdout.should_receive(:puts).with(red "You are not logged in. To log in use:")
+      $stdout.should_receive(:puts).with("  shelly login")
+      lambda { invoke(@main, :stop) }.should raise_error(SystemExit)
+    end
+
+    context "single cloud in Cloudfile" do
+      it "should start the cloud" do
+        @client.stub(:stop_cloud)
+        $stdout.should_receive(:puts).with("Cloud 'foo-production' stopped")
+        invoke(@main, :stop)
+      end
+    end
+
+    context "multiple clouds in Cloudfile" do
+      before do
+        File.open("Cloudfile", 'w') {|f| f.write("foo-staging:\nfoo-production:\n") }
+      end
+
+      it "should show information to start specific cloud and exit" do
+        $stdout.should_receive(:puts).with("You have multiple clouds in Cloudfile. Select cloud to stop using:")
+        $stdout.should_receive(:puts).with("  shelly stop --cloud foo-production")
+        $stdout.should_receive(:puts).with("Available clouds:")
+        $stdout.should_receive(:puts).with(" * foo-production")
+        $stdout.should_receive(:puts).with(" * foo-staging")
+        lambda { invoke(@main, :stop) }.should raise_error(SystemExit)
+      end
+
+      it "should fetch from command line which cloud to start" do
+        @client.should_receive(:stop_cloud).with("foo-staging")
+        $stdout.should_receive(:puts).with("Cloud 'foo-staging' stopped")
+        invoke(@main, :stop, "--cloud", "foo-staging")
+      end
+    end
+  end
+
+  describe "#ips" do
+    before do
+      File.open("Cloudfile", 'w') {|f| f.write("foo-staging:\nfoo-production:\n") }
+      Shelly::App.stub(:inside_git_repository?).and_return(true)
+    end
+
+    it "should exit with message if command run outside git repository" do
+      Shelly::App.stub(:inside_git_repository?).and_return(false)
+      $stdout.should_receive(:puts).with("\e[31mMust be run inside your project git repository\e[0m")
+      lambda {
+        invoke(@main, :ip)
+      }.should raise_error(SystemExit)
+    end
+
+    it "should exit with message if there is no Cloudfile" do
+      File.delete("Cloudfile")
+      $stdout.should_receive(:puts).with("\e[31mNo Cloudfile found\e[0m")
+      lambda {
+        invoke(@main, :ip)
+      }.should raise_error(SystemExit)
+    end
+
+    context "on success" do
+      it "should display mail and web server ip's" do
+        @client.stub(:app_ips).and_return(response)
+        $stdout.should_receive(:puts).with("\e[32mCloud foo-production:\e[0m")
+        $stdout.should_receive(:puts).with("  Web server IP: 22.22.22.22")
+        $stdout.should_receive(:puts).with("  Mail server IP: 11.11.11.11")
+        @main.ip
+      end
+    end
+
+    def response
+      {'mail_server_ip' => '11.11.11.11', 'web_server_ip' => '22.22.22.22'}
+    end
+
+    context "on failure" do
+      it "should raise an error if user is not in git repository" do
+        Shelly::App.stub(:inside_git_repository?).and_return(false)
+        $stdout.should_receive(:puts).with("\e[31mMust be run inside your project git repository\e[0m")
+        lambda { @main.ip }.should raise_error(SystemExit)
+      end
+
+      it "should raise an error if user does not have access to cloud" do
+        response = {"message" => "Cloud foo-staging not found"}
+        exception = Shelly::Client::APIError.new(response.to_json, 404)
+        @client.stub(:app_ips).and_raise(exception)
+        $stdout.should_receive(:puts).with(red "You have no access to 'foo-staging' cloud defined in Cloudfile")
+        @main.ip
+      end
+    end
+  end
+
+  describe "#delete" do
+    before  do
+      Shelly::App.stub(:inside_git_repository?).and_return(true)
+      @user = Shelly::User.new
+      @app = Shelly::App.new
+      @client.stub(:token).and_return("abc")
+      @app.stub(:delete)
+      Shelly::User.stub(:new).and_return(@user)
+      Shelly::App.stub(:new).and_return(@app)
+    end
+
+    context "when cloud is given" do
+      before do
+        File.open("Cloudfile", 'w') {|f|
+          f.write("foo-staging:\nfoo-production:\n") }
+      end
+
+      it "should ask about delete application parts" do
+        $stdout.should_receive(:puts).with("You are about to delete application: foo-staging.")
+        $stdout.should_receive(:puts).with("Press Control-C at any moment to cancel.")
+        $stdout.should_receive(:puts).with("Please confirm each question by typing yes and pressing Enter.")
+        $stdout.should_receive(:puts).with("\n")
+        $stdout.should_receive(:print).with("I want to delete all files stored on Shelly Cloud (yes/no): ")
+        $stdout.should_receive(:print).with("I want to delete all database data stored on Shelly Cloud (yes/no): ")
+        $stdout.should_receive(:print).with("I want to delete the application (yes/no): ")
+        $stdout.should_receive(:puts).with("\n")
+        $stdout.should_receive(:puts).with("Scheduling application delete - done")
+        $stdout.should_receive(:puts).with("Removing git remote - done")
+        fake_stdin(["yes", "yes", "yes"]) do
+          @main.options = {:cloud => "foo-staging"}
+          @main.delete
+        end
+      end
+
+      it "should return exit 1 when user doesn't type 'yes'" do
+        @app.should_not_receive(:delete)
+        lambda{
+          fake_stdin(["yes", "yes", "no"]) do
+            @main.options = {:cloud => "foo-staging"}
+            @main.delete
+          end
+        }.should raise_error(SystemExit)
+      end
+    end
+
+    context "when git repository doesn't exist" do
+      before do
+        File.open("Cloudfile", 'w') {|f|
+          f.write("foo-staging:\n") }
+      end
+
+      it "should say that Git remote missing" do
+        Shelly::App.stub(:inside_git_repository?).and_return(false)
+        $stdout.should_receive(:puts).with("Missing git remote")
+        fake_stdin(["yes", "yes", "yes"]) do
+          @main.options = {:cloud => "foo-staging"}
+          @main.delete
+        end
+      end
+    end
+
+    context "when cloud given in option doesn't exist" do
+      before do
+        File.open("Cloudfile", 'w') {|f|
+          f.write("foo-staging:\n") }
+      end
+
+      it "should raise Client::APIError" do
+        response = {:message => "Application not found"}
+        exception = Shelly::Client::APIError.new(response.to_json, 404)
+        @app.stub(:delete).and_raise(exception)
+        $stdout.should_receive(:puts).with("\e[31mApplication not found\e[0m")
+        lambda{
+          fake_stdin(["yes", "yes", "yes"]) do
+            @main.options = {:cloud => "foo-bar"}
+            @main.delete
+          end
+        }.should raise_error(SystemExit)
+      end
+    end
+
+    context "when no cloud option is given" do
+      before do
+        File.open("Cloudfile", 'w') {|f|
+          f.write("foo-staging:\n") }
+      end
+
+      it "should take the cloud from Cloudfile" do
+        $stdout.should_receive(:puts).with("You are about to delete application: foo-staging.")
+        $stdout.should_receive(:puts).with("Press Control-C at any moment to cancel.")
+        $stdout.should_receive(:puts).with("Please confirm each question by typing yes and pressing Enter.")
+        $stdout.should_receive(:puts).with("\n")
+        $stdout.should_receive(:print).with("I want to delete all files stored on Shelly Cloud (yes/no): ")
+        $stdout.should_receive(:print).with("I want to delete all database data stored on Shelly Cloud (yes/no): ")
+        $stdout.should_receive(:print).with("I want to delete the application (yes/no): ")
+        $stdout.should_receive(:puts).with("\n")
+        $stdout.should_receive(:puts).with("Scheduling application delete - done")
+        $stdout.should_receive(:puts).with("Removing git remote - done")
+        fake_stdin(["yes", "yes", "yes"]) do
+          @main.delete
+        end
+      end
+    end
+  end
+
+  describe "#logs" do
+    before do
+      @user = Shelly::User.new
+      @client.stub(:token).and_return("abc")
+      FileUtils.mkdir_p("/projects/foo")
+      Dir.chdir("/projects/foo")
+      File.open("Cloudfile", 'w') {|f| f.write("foo-production:\n") }
+      Shelly::User.stub(:new).and_return(@user)
+      @client.stub(:apps).and_return([{"code_name" => "foo-production"},
+                                     {"code_name" => "foo-staging"}])
+      @app = Shelly::App.new
+      Shelly::App.stub(:new).and_return(@app)
+    end
+
+    it "should exit if there is no Cloudfile" do
+      File.delete("Cloudfile")
+      $stdout.should_receive(:puts).with("\e[31mNo Cloudfile found\e[0m")
+      lambda {
+        @main.logs
+      }.should raise_error(SystemExit)
+    end
+
+    it "should exit if user doesn't have access to clouds in Cloudfile" do
+      response = {"message" => "Cloud foo-production not found"}
+      exception = Shelly::Client::APIError.new(response.to_json, 404)
+      @client.stub(:application_logs).and_raise(exception)
+      $stdout.should_receive(:puts).
+        with(red "You have no access to cloud 'foo-production'")
+      lambda { @main.logs }.should raise_error(SystemExit)
+    end
+
+    it "should exit if user is not logged in" do
+      response = {"message" => "Unauthorized"}
+      exception = Shelly::Client::APIError.new(response.to_json, 401)
+      @client.stub(:token).and_raise(exception)
+      $stdout.should_receive(:puts).
+        with(red "You are not logged in. To log in use:")
+      $stdout.should_receive(:puts).with("  shelly login")
+      lambda { @main.logs }.should raise_error(SystemExit)
+    end
+
+    context "single cloud in Cloudfile" do
+      it "should show logs for the cloud" do
+        @client.stub(:application_logs).and_return(["log1"])
+        $stdout.should_receive(:puts).with(green "Cloud foo-production:")
+        $stdout.should_receive(:puts).with(green "Instance 1:")
+        $stdout.should_receive(:puts).with("log1")
+        @main.logs
+      end
+    end
+
+    context "multiple clouds in Cloudfile" do
+      before do
+        File.open("Cloudfile", 'w') {|f|
+          f.write("foo-staging:\nfoo-production:\n") }
+      end
+
+      it "should show information to print logs for specific cloud and exit" do
+        $stdout.should_receive(:puts).
+          with("You have multiple clouds in Cloudfile. Select which to show logs for using:")
+        $stdout.should_receive(:puts).with("  shelly logs --cloud foo-production")
+        $stdout.should_receive(:puts).with("Available clouds:")
+        $stdout.should_receive(:puts).with(" * foo-production")
+        $stdout.should_receive(:puts).with(" * foo-staging")
+        lambda { @main.logs }.should raise_error(SystemExit)
+      end
+
+      it "should fetch from command line which cloud to start" do
+        @client.should_receive(:application_logs).with("foo-staging").
+          and_return(["log1"])
+        $stdout.should_receive(:puts).with(green "Cloud foo-staging:")
+        $stdout.should_receive(:puts).with(green "Instance 1:")
+        $stdout.should_receive(:puts).with("log1")
+        @main.options = {:cloud => "foo-staging"}
+        @main.logs
+      end
+    end
+
+    context "multiple instances" do
+      it "should show logs from each instance" do
+        @client.stub(:application_logs).and_return(["log1", "log2"])
+        $stdout.should_receive(:puts).with(green "Cloud foo-production:")
+        $stdout.should_receive(:puts).with(green "Instance 1:")
+        $stdout.should_receive(:puts).with("log1")
+        $stdout.should_receive(:puts).with(green "Instance 2:")
+        $stdout.should_receive(:puts).with("log2")
+        @main.logs
+      end
+    end
+  end
+end

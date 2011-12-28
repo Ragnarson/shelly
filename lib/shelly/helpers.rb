@@ -27,12 +27,22 @@ module Shelly
       say_error "Email can't be blank, please try again"
     end
 
-    def logged_in?
-      user = Shelly::User.new
-      user.load_credentials
-      user.login
-    rescue Client::APIError => e
-      say_error "You are not logged in, use `shelly login` to log in"
+    def ask_to_delete_files
+      delete_files_question = "I want to delete all files stored on Shelly Cloud (yes/no):"
+      delete_files = ask(delete_files_question)
+      exit 1 unless delete_files == "yes"
+    end
+
+    def ask_to_delete_database
+      delete_database_question = "I want to delete all database data stored on Shelly Cloud (yes/no):"
+      delete_database = ask(delete_database_question)
+      exit 1 unless delete_database == "yes"
+    end
+
+    def ask_to_delete_application
+      delete_application_question = "I want to delete the application (yes/no):"
+      delete_application = ask(delete_application_question)
+      exit 1 unless delete_application == "yes"
     end
 
     def inside_git_repository?
@@ -41,6 +51,33 @@ module Shelly
 
     def cloudfile_present?
       say_error "No Cloudfile found" unless Cloudfile.present?
+    end
+
+    def logged_in?
+      user = Shelly::User.new
+      user.token
+      user
+    rescue Client::APIError => e
+      if e.unauthorized?
+        say_error "You are not logged in. To log in use:", :with_exit => false
+        say "  shelly login"
+        exit 1
+      end
+    end
+
+    def multiple_clouds(cloud, action, message)
+      clouds = Cloudfile.new.clouds
+      if clouds.count > 1 && cloud.nil?
+        say "You have multiple clouds in Cloudfile. #{message}"
+        say "  shelly #{action} --cloud #{clouds.first}"
+        say "Available clouds:"
+        clouds.each do |cloud|
+          say " * #{cloud}"
+        end
+        exit 1
+      end
+      @app = Shelly::App.new
+      @app.code_name = cloud || clouds.first
     end
 
   end

@@ -11,16 +11,6 @@ describe Shelly::App do
     @app.code_name = "foo-staging"
   end
 
-  describe "being initialized" do
-    it "should have default ruby_version: MRI-1.9.2" do
-      @app.ruby_version.should == "MRI-1.9.2"
-    end
-
-    it "should have default environment: production" do
-      @app.environment.should == "production"
-    end
-  end
-
   describe ".guess_code_name" do
     it "should return name of current working directory" do
       Shelly::App.guess_code_name.should == "foo"
@@ -28,9 +18,16 @@ describe Shelly::App do
   end
 
   describe "#users" do
-    it "should " do
-      @client.should_receive(:app_users).with(["staging-foo", "production-foo"])
-      @app.users(["staging-foo", "production-foo"])
+    it "should fetch app's users" do
+      @client.should_receive(:app_users).with("foo-staging")
+      @app.users
+    end
+  end
+
+  describe "#ips" do
+    it "should get app's ips" do
+      @client.should_receive(:app_ips).with("foo-staging")
+      @app.ips
     end
   end
 
@@ -51,6 +48,23 @@ describe Shelly::App do
     end
   end
 
+  describe "#configs" do
+    it "should get configs from client" do
+      @client.should_receive(:app_configs).with("foo-staging")
+      @app.configs
+    end
+
+    it "should return only user config files" do
+      @client.should_receive(:app_configs).with("foo-staging").and_return([])
+      @app.user_configs
+    end
+
+    it "should return only shelly genereted config files" do
+      @client.should_receive(:app_configs).with("foo-staging").and_return([])
+      @app.shelly_generated_configs
+    end
+  end
+
   describe "#generate_cloudfile" do
     it "should return generated cloudfile" do
       user = mock(:email => "bob@example.com")
@@ -60,10 +74,9 @@ describe Shelly::App do
       FakeFS.deactivate!
       expected = <<-config
 foo-staging:
-  ruby: 1.9.2 # 1.9.2 or ree
+  ruby_version: 1.9.2 # 1.9.2 or ree
   environment: production # RAILS_ENV
-  monitoring_email:
-    - bob@example.com
+  monitoring_email: bob@example.com
   domains:
     - foo-staging.winniecloud.com
     - foo.example.com
@@ -75,11 +88,11 @@ foo-staging:
       # delayed_job: 1
     postgresql:
       size: large
-      database:
+      databases:
         - postgresql
     mongodb:
       size: large
-      database:
+      databases:
         - mongodb
 config
       @app.generate_cloudfile.strip.should == expected.strip
@@ -120,6 +133,64 @@ config
     end
   end
 
+  describe "#start & #stop" do
+    it "should start cloud" do
+      @client.should_receive(:start_cloud).with("foo-staging")
+      @app.start
+    end
+
+    it "should stop cloud" do
+      @client.should_receive(:stop_cloud).with("foo-staging")
+      @app.stop
+    end
+  end
+
+  describe "#deploy_logs" do
+    it "should list deploy_logs" do
+      @client.should_receive(:deploy_logs).with("foo-staging")
+      @app.deploy_logs
+    end
+  end
+
+  describe "#application_logs" do
+    it "should list application_logs" do
+      @client.should_receive(:application_logs).with("foo-staging").
+        and_return({"logs" => ["log1", "log2"]})
+      @app.application_logs
+    end
+  end
+
+  describe "#deploy_log" do
+    it "should show log" do
+      @client.should_receive(:deploy_log).with("foo-staging", "2011-11-29-11-50-16")
+      @app.deploy_log("2011-11-29-11-50-16")
+    end
+  end
+
+  describe "#database_backup" do
+    before do
+      @description = {
+        "filename" => "backup.tar.gz",
+        "size" => 1234,
+        "human_size" => "2KB"
+      }
+      @client.stub(:database_backup).and_return(@description)
+    end
+
+    it "should fetch backup from API" do
+      @client.should_receive(:database_backup).with("foo-staging", "backup.tar.gz")
+      @app.database_backup("backup.tar.gz")
+    end
+
+    it "should initialize backup object" do
+      backup = @app.database_backup("backup.tar.gz")
+      backup.code_name.should == "foo-staging"
+      backup.size.should == 1234
+      backup.human_size.should == "2KB"
+      backup.filename.should == "backup.tar.gz"
+    end
+  end
+
   describe "#create" do
     context "without providing domain" do
       it "should create the app on shelly cloud via API client" do
@@ -127,21 +198,21 @@ config
         attributes = {
           :code_name => "fooo",
           :name => "fooo",
-          :environment => "production",
-          :ruby_version => "MRI-1.9.2",
-          :domain_name => nil
+          :domains => nil
         }
         @client.should_receive(:create_app).with(attributes).and_return("git_url" => "git@git.shellycloud.com:fooo.git",
-          "domain_name" => "fooo.shellyapp.com")
+          "domains" => %w(fooo.shellyapp.com))
         @app.create
       end
 
-      it "should assign returned git_url and domain" do
+      it "should assign returned git_url, domains, ruby_version and environment" do
         @client.stub(:create_app).and_return("git_url" => "git@git.example.com:fooo.git",
-          "domain_name" => "fooo.shellyapp.com")
+          "domains" => ["fooo.shellyapp.com"], "ruby_version" => "1.9.2", "environment" => "production")
         @app.create
         @app.git_url.should == "git@git.example.com:fooo.git"
         @app.domains.should == ["fooo.shellyapp.com"]
+        @app.ruby_version.should == "1.9.2"
+        @app.environment.should == "production"
       end
     end
 
@@ -152,20 +223,18 @@ config
         attributes = {
           :code_name => "boo",
           :name => "boo",
-          :environment => "production",
-          :ruby_version => "MRI-1.9.2",
-          :domain_name => "boo.shellyapp.com boo.example.com"
+          :domains => %w(boo.shellyapp.com boo.example.com)
         }
         @client.should_receive(:create_app).with(attributes).and_return("git_url" => "git@git.shellycloud.com:fooo.git",
-          "domain_name" => "boo.shellyapp.com boo.example.com")
+          "domains" => %w(boo.shellyapp.com boo.example.com))
         @app.create
       end
 
       it "should assign returned git_url and domain" do
         @client.stub(:create_app).and_return("git_url" => "git@git.example.com:fooo.git",
-          "domain_name" => "boo.shellyapp.com boo.example.com")
+          "domains" => %w(boo.shellyapp.com boo.example.com))
         @app.create
-        @app.domains.should == ["boo.shellyapp.com", "boo.example.com"]
+        @app.domains.should == %w(boo.shellyapp.com boo.example.com)
       end
     end
   end
