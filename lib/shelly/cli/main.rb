@@ -6,7 +6,6 @@ module Shelly
     class Main < Command
       include Thor::Actions
 
-
       register(User, "user", "user <command>", "Manages users using this cloud")
       check_unknown_options!
 

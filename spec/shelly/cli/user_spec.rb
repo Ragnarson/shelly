@@ -17,7 +17,8 @@ describe Shelly::CLI::User do
       $stdout.should_receive(:puts).with("Tasks:")
       $stdout.should_receive(:puts).with(/add \[EMAIL\]\s+# Add new developer to clouds defined in Cloudfile/)
         $stdout.should_receive(:puts).with(/list\s+# List users with access to clouds defined in Cloudfile/)
-      @cli_user.help
+      # @cli_user.help
+      invoke(@cli_user, :help)
     end
   end
 

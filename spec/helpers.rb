@@ -5,7 +5,7 @@ module RSpec
     end
 
     def invoke(object, *args)
-      object.send(:invoke, object.class, args.map)
+      object.class.send(:start, args.map { |arg| arg.to_s })
     end
   end
 end

@@ -1,4 +1,3 @@
-$:.each { |a|  puts a}
 class Thor
   class << self
     def before_hook(method, options = {})
@@ -7,11 +6,10 @@ class Thor
     end
 
     def send(*args)
-      puts args.inspect
       if args.first == :dispatch
         running_task = args[2].first
         @hook.each do |method, options|
-          if options[:only].include? running_task.to_sym
+          if options[:only].include?(running_task.to_sym)
             new.send(method)
           end
         end
@@ -20,7 +18,6 @@ class Thor
     end
 
     def start(given_args=ARGV, config={})
-      puts "start-my #{given_args.inspect} -- #{config.inspect}"
       config[:shell] ||= Thor::Base.shell.new
       send(:dispatch, nil, given_args.dup, nil, config)
     rescue Thor::Error => e
