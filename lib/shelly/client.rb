@@ -136,8 +136,12 @@ module Shelly
       get("/apps/#{code_name}/database_backups/#{handler}")
     end
 
+    def request_backup(code_name, kind = nil)
+      post("/apps/#{code_name}/database_backups", :kind => kind)
+    end
+
     def ssh_key_available?(ssh_key)
-    	get("/users/new", :ssh_key => ssh_key)
+      get("/users/new", :ssh_key => ssh_key)
     end
 
     def app_users(cloud)
