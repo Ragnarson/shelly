@@ -114,8 +114,8 @@ module Shelly
         say_error "No Cloudfile found" unless Cloudfile.present?
         say_error "No configuration file specified" unless path
         multiple_clouds(options[:cloud], "delete #{path}", "Specify cloud using:")
-        answer = ask("Are you sure you want to delete 'path' [y/n]: ")
-        if answer =~ /yes|YES|y|Y/
+        answer = yes?("Are you sure you want to delete 'path' [y/n]: ")
+        if answer
           @app.delete_config(path)
           say "File deleted, redeploy your cloud to make changes", :green
         else
