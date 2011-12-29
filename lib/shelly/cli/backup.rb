@@ -8,12 +8,13 @@ module Shelly
       namespace :backup
       include Helpers
 
+      before_hook :logged_in?, :only => [:list, :get, :create]
+      before_hook :cloudfile_present?, :only => [:list]
+
       desc "list", "List database backups"
       method_option :cloud, :type => :string, :aliases => "-c",
         :desc => "Specify which cloud to list backups for"
       def list
-        logged_in?
-        say_error "No Cloudfile found" unless Cloudfile.present?
         multiple_clouds(options[:cloud], "backup list", "Select cloud to view database backups for using:")
         backups = @app.database_backups
         if backups.present?
@@ -60,7 +61,6 @@ module Shelly
       method_option :cloud, :type => :string, :aliases => "-c",
         :desc => "Specify which cloud to create database snapshot for"
       def create(kind = nil)
-        logged_in?
         multiple_clouds(options[:cloud], "backup create", "Select cloud to create snapshot of database")
         @app.request_backup(kind)
         say "Backup requested. It can take up to several minutes for" +

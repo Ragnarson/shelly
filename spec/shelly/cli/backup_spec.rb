@@ -24,7 +24,7 @@ describe Shelly::CLI::Backup do
       File.delete("Cloudfile")
       $stdout.should_receive(:puts).with("\e[31mNo Cloudfile found\e[0m")
       lambda {
-        @backup.list
+        invoke(@backup, :list)
       }.should raise_error(SystemExit)
     end
 
@@ -33,7 +33,7 @@ describe Shelly::CLI::Backup do
       exception = Shelly::Client::APIError.new(response.to_json, 401)
       @client.stub(:database_backups).and_raise(exception)
       $stdout.should_receive(:puts).with(red "You have no access to 'foo-staging' cloud defined in Cloudfile")
-      lambda { @backup.list }.should raise_error(SystemExit)
+      lambda { invoke(@backup, :list) }.should raise_error(SystemExit)
     end
 
     context "multiple clouds" do
@@ -47,7 +47,7 @@ describe Shelly::CLI::Backup do
         $stdout.should_receive(:puts).with("Available clouds:")
         $stdout.should_receive(:puts).with(" * foo-production")
         $stdout.should_receive(:puts).with(" * foo-staging")
-        lambda { @backup.list }.should raise_error(SystemExit)
+        lambda { invoke(@backup, :list) }.should raise_error(SystemExit)
       end
 
       it "should take cloud from command line for which to show backups" do
@@ -57,8 +57,7 @@ describe Shelly::CLI::Backup do
         $stdout.should_receive(:puts).with("  Filename               |  Size")
         $stdout.should_receive(:puts).with("  backup.postgre.tar.gz  |  10kb")
         $stdout.should_receive(:puts).with("  backup.mongo.tar.gz    |  22kb")
-        @backup.options = {:cloud => 'foo-staging'}
-        @backup.list
+        invoke(@backup, :list, "--cloud", "foo-staging")
       end
     end
 
@@ -73,30 +72,29 @@ describe Shelly::CLI::Backup do
 
       it "should make sure that cloud is choosen" do
         @client.should_receive(:database_backup).with("foo-staging", "last")
-        @backup.get
+        invoke(@backup, :get)
 
-        @backup.options = {:cloud => "other"}
         @client.should_receive(:database_backup).with("other", "last")
-        @backup.get
+        invoke(@backup, :get, "--cloud", "other")
       end
 
       it "should fetch backup size and initialize download progress bar" do
         @client.stub(:database_backup).and_return({"filename" => "backup.postgres.tar.gz", "size" => 333})
         Shelly::DownloadProgressBar.should_receive(:new).with(333).and_return(@bar)
 
-        @backup.get
+        invoke(@backup, :get)
       end
 
       it "should fetch given backup file itself" do
         @client.should_receive(:download_backup).with("foo-staging", "better.tar.gz", @bar.progress_callback)
-        @backup.get("better.tar.gz")
+        invoke(@backup, :get, "better.tar.gz")
       end
 
       it "should show info where file has been saved" do
         $stdout.should_receive(:puts)
         $stdout.should_receive(:puts).with(green "Backup file saved to better.tar.gz")
         @client.should_receive(:download_backup).with("foo-staging", "better.tar.gz", @bar.progress_callback)
-        @backup.get("last")
+        invoke(@backup, :get, "last")
       end
 
       context "on backup not found" do
@@ -105,7 +103,7 @@ describe Shelly::CLI::Backup do
           @client.stub(:database_backup).and_raise(exception)
           $stdout.should_receive(:puts).with(red "Backup not found")
           $stdout.should_receive(:puts).with("You can list available backups with 'shelly backup list' command")
-          @backup.get("better.tar.gz")
+          invoke(@backup, :get, "better.tar.gz")
         end
       end
 
@@ -116,7 +114,7 @@ describe Shelly::CLI::Backup do
           $stdout.should_not_receive(:puts).with(red "Backup not found")
           $stdout.should_not_receive(:puts).with("You can list available backups with 'shelly backup list' command")
           lambda {
-            @backup.get("better.tar.gz")
+            invoke(@backup, :get, "better.tar.gz")
           }.should raise_error(Shelly::Client::APIError)
         end
       end
@@ -135,7 +133,7 @@ describe Shelly::CLI::Backup do
       exception = Shelly::Client::APIError.new(response.to_json, 404)
       @client.stub(:request_backup).and_raise(exception)
       $stdout.should_receive(:puts).with(red "You have no access to 'foo-staging' cloud defined in Cloudfile")
-      lambda { @backup.create }.should raise_error(SystemExit)
+      lambda { invoke(@backup, :create) }.should raise_error(SystemExit)
     end
 
     it "should display errors and exit 1 when kind is not valid" do
@@ -143,14 +141,14 @@ describe Shelly::CLI::Backup do
       exception = Shelly::Client::APIError.new(response.to_json, 422)
       @client.should_receive(:request_backup).and_raise(exception)
       $stdout.should_receive(:puts).with(red response["message"])
-      lambda { @backup.create }.should raise_error(SystemExit)
+      lambda { invoke(@backup, :create) }.should raise_error(SystemExit)
     end
 
     it "should display information about request backup" do
       @client.stub(:request_backup)
       $stdout.should_receive(:puts).with(green "Backup requested. It can take up to several minutes for" +
           "the backup process to finish and the backup to show up in backups list.")
-      @backup.create
+      invoke(@backup, :create)
     end
   end
 end

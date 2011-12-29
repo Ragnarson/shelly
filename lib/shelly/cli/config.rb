@@ -6,10 +6,11 @@ module Shelly
       include Thor::Actions
       include Helpers
 
+      before_hook :logged_in?, :only => [:list, :show, :create, :edit, :delete]
+      before_hook :cloudfile_present?, :only => [:list, :show, :create, :edit, :delete]
+
       desc "list", "List configuration files"
       def list
-        logged_in?
-        say_error "No Cloudfile found" unless Cloudfile.present?
         cloudfile = Cloudfile.new
         cloudfile.clouds.each do |cloud|
           @app = App.new(cloud)
@@ -46,8 +47,6 @@ module Shelly
         :desc => "Specify which cloud to show configuration file for"
       desc "show PATH", "View configuration file"
       def show(path = nil)
-        logged_in?
-        say_error "No Cloudfile found" unless Cloudfile.present?
         say_error "No configuration file specified" unless path
         multiple_clouds(options[:cloud], "show #{path}", "Specify cloud using:")
         config = @app.config(path)
@@ -64,8 +63,6 @@ module Shelly
         :desc => "Specify for which cloud create configuration file"
       desc "create PATH", "Create configuration file"
       def create(path = nil)
-        logged_in?
-        say_error "No Cloudfile found" unless Cloudfile.present?
         say_error "No path specified" unless path
         output = open_editor(path)
         multiple_clouds(options[:cloud], "create #{path}", "Specify cloud using:")
@@ -87,8 +84,6 @@ module Shelly
         :desc => "Specify for which cloud edit configuration file"
       desc "edit PATH", "Edit configuration file"
       def edit(path = nil)
-        logged_in?
-        say_error "No Cloudfile found" unless Cloudfile.present?
         say_error "No configuration file specified" unless path
         multiple_clouds(options[:cloud], "edit #{path}", "Specify cloud using:")
         config = @app.config(path)
@@ -110,8 +105,6 @@ module Shelly
         :desc => "Specify for which cloud delete configuration file"
       desc "delete PATH", "Delete configuration file"
       def delete(path = nil)
-        logged_in?
-        say_error "No Cloudfile found" unless Cloudfile.present?
         say_error "No configuration file specified" unless path
         multiple_clouds(options[:cloud], "delete #{path}", "Specify cloud using:")
         answer = yes?("Are you sure you want to delete 'path' [y/n]: ")
