@@ -6,6 +6,7 @@ describe Shelly::CLI::Config do
   before do
     FileUtils.stub(:chmod)
     @config = Shelly::CLI::Config.new
+    Shelly::CLI::Config.stub(:new).and_return(@config)
     @client = mock
     Shelly::Client.stub(:new).and_return(@client)
     $stdout.stub(:puts)
@@ -87,7 +88,8 @@ describe Shelly::CLI::Config do
 
       it "should use cloud specified by parameter" do
         @client.should_receive(:app_config).with("foo-production", "path").and_return({"path" => "test.rb", "content" => "example content"})
-        invoke(@config, :show, "path", "--cloud", "foo-production")
+        @config.options = {:cloud => "foo-production"}
+        invoke(@config, :show, "path")
       end
     end
   end
@@ -105,14 +107,12 @@ describe Shelly::CLI::Config do
     end
 
     it "should ask to set EDITOR environment variable if not set" do
-      Shelly::CLI::Config.stub(:new).and_return(@config)
       @config.stub(:system) {false}
       $stdout.should_receive(:puts).with(red "Please set EDITOR environment variable")
       lambda { invoke(@config, :create, "path") }.should raise_error(SystemExit)
     end
 
     it "should create file" do
-      Shelly::CLI::Config.stub(:new).and_return(@config)
       @config.should_receive(:system).with(/vim \/tmp\/shelly-edit/).and_return(true)
       @client.should_receive(:app_create_config).with("foo-staging", "path", "\n").and_return({})
       $stdout.should_receive(:puts).with(green "File 'path' created, it will be used after next code deploy")
@@ -131,7 +131,6 @@ describe Shelly::CLI::Config do
       end
 
       it "should use cloud specified by parameter" do
-        Shelly::CLI::Config.stub(:new).and_return(@config)
         @config.should_receive(:system).with(/vim \/tmp\/shelly-edit/).and_return(true)
         @client.should_receive(:app_create_config).with("foo-production", "path", "\n").and_return({})
         @config.options = {:cloud => "foo-production"}
@@ -154,7 +153,6 @@ describe Shelly::CLI::Config do
     end
 
     it "should ask to set EDITOR environment variable if not set" do
-      Shelly::CLI::Config.stub(:new).and_return(@config)
       @client.should_receive(:app_config).with("foo-staging", "path").and_return({"path" => "test.rb", "content" => "example content"})
       @config.stub(:system) {false}
       $stdout.should_receive(:puts).with(red "Please set EDITOR environment variable")
@@ -162,7 +160,6 @@ describe Shelly::CLI::Config do
     end
 
     it "should create file" do
-      Shelly::CLI::Config.stub(:new).and_return(@config)
       @client.should_receive(:app_config).with("foo-staging", "path").and_return({"path" => "test.rb", "content" => "example content"})
       @config.should_receive(:system).with(/vim \/tmp\/shelly-edit/).and_return(true)
       @client.should_receive(:app_update_config).with("foo-staging", "path", "example content\n").and_return({"path" => "test.rb", "content" => "example content"})
@@ -182,7 +179,6 @@ describe Shelly::CLI::Config do
       end
 
       it "should use cloud specified by parameter" do
-        Shelly::CLI::Config.stub(:new).and_return(@config)
         @client.should_receive(:app_config).with("foo-production", "path").and_return({"path" => "test.rb", "content" => "example content"})
         @config.should_receive(:system).with(/vim \/tmp\/shelly-edit/).and_return(true)
         @client.should_receive(:app_update_config).with("foo-production", "path", "example content\n").and_return({"path" => "test.rb", "content" => "example content"})
@@ -233,8 +229,9 @@ describe Shelly::CLI::Config do
       it "should use cloud specified by parameter" do
         @client.should_receive(:app_delete_config).with("foo-production", "path").and_return({})
         $stdout.should_receive(:puts).with(green "File deleted, redeploy your cloud to make changes")
+        @config.options = {:cloud => "foo-production"}
         fake_stdin(["y"]) do
-          invoke(@config, :delete, "path", "--cloud", "foo-production")
+          invoke(@config, :delete, "path")
         end
       end
     end

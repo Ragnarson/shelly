@@ -5,6 +5,7 @@ require "shelly/download_progress_bar"
 describe Shelly::CLI::Backup do
   before do
     @backup = Shelly::CLI::Backup.new
+    Shelly::CLI::Backup.stub(:new).and_return(@backup)
     @client = mock
     @client.stub(:token).and_return("abc")
     Shelly::Client.stub(:new).and_return(@client)
@@ -57,7 +58,8 @@ describe Shelly::CLI::Backup do
         $stdout.should_receive(:puts).with("  Filename               |  Size")
         $stdout.should_receive(:puts).with("  backup.postgre.tar.gz  |  10kb")
         $stdout.should_receive(:puts).with("  backup.mongo.tar.gz    |  22kb")
-        invoke(@backup, :list, "--cloud", "foo-staging")
+        @backup.options = {:cloud => "foo-staging"}
+        invoke(@backup, :list)
       end
     end
 
@@ -73,9 +75,12 @@ describe Shelly::CLI::Backup do
       it "should make sure that cloud is choosen" do
         @client.should_receive(:database_backup).with("foo-staging", "last")
         invoke(@backup, :get)
+      end
 
+      it "should make sure that cloud is choosen" do
         @client.should_receive(:database_backup).with("other", "last")
-        invoke(@backup, :get, "--cloud", "other")
+        @backup.options = {:cloud => "other"}
+        invoke(@backup, :get)
       end
 
       it "should fetch backup size and initialize download progress bar" do

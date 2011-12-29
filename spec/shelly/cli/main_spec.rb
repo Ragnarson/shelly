@@ -5,6 +5,7 @@ describe Shelly::CLI::Main do
   before do
     FileUtils.stub(:chmod)
     @main = Shelly::CLI::Main.new
+    Shelly::CLI::Main.stub(:new).and_return(@main)
     @client = mock
     Shelly::Client.stub(:new).and_return(@client)
     Shelly::User.stub(:guess_email).and_return("")
@@ -303,15 +304,17 @@ OUT
       context "invalid params" do
         it "should show help and exit if not all options are passed" do
           $stdout.should_receive(:puts).with("\e[31mTry 'shelly help add' for more information\e[0m")
+          @main.options = {"code-name" => "foo"}
           lambda {
-            invoke(@main, :add, "--code-name", "foo")
+            invoke(@main, :add)
           }.should raise_error(SystemExit)
         end
 
         it "should exit if databases are not valid" do
           $stdout.should_receive(:puts).with("\e[31mTry 'shelly help add' for more information\e[0m")
+          @main.options = {"code-name" => "foo", :databases => ["not existing"], :domains => "foo.example.com"}
           lambda {
-            invoke(@main, :add, "--code-name", "foo", "--databases", "not existing", "--domains", "foo.example.com")
+            invoke(@main, :add)
           }.should raise_error(SystemExit)
         end
       end
@@ -319,7 +322,8 @@ OUT
       context "valid params" do
         it "should create app on shelly cloud" do
           @app.should_receive(:create)
-          invoke(@main, :add, "--code-name", "foo", "--databases", "postgresql", "--domains", "foo.example.com")
+          @main.options = {"code-name" => "foo", "databases" => ["postgresql"], "domains" => ["foo.example.com"]}
+          invoke(@main, :add)
         end
       end
     end
@@ -541,7 +545,8 @@ OUT
         @client.should_receive(:start_cloud).with("foo-staging")
         $stdout.should_receive(:puts).with(green "Starting cloud foo-staging. Check status with:")
         $stdout.should_receive(:puts).with("  shelly list")
-        invoke(@main, :start, "--cloud", "foo-staging" )
+        @main.options = {:cloud => "foo-staging"}
+        invoke(@main, :start)
       end
     end
 
@@ -656,7 +661,8 @@ OUT
       it "should fetch from command line which cloud to start" do
         @client.should_receive(:stop_cloud).with("foo-staging")
         $stdout.should_receive(:puts).with("Cloud 'foo-staging' stopped")
-        invoke(@main, :stop, "--cloud", "foo-staging")
+        @main.options = {:cloud => "foo-staging"}
+        invoke(@main, :stop)
       end
     end
   end
@@ -742,8 +748,9 @@ OUT
         $stdout.should_receive(:puts).with("\n")
         $stdout.should_receive(:puts).with("Scheduling application delete - done")
         $stdout.should_receive(:puts).with("Removing git remote - done")
+        @main.options = {:cloud => "foo-staging"}
         fake_stdin(["yes", "yes", "yes"]) do
-          invoke(@main, :delete, "--cloud", "foo-staging")
+          invoke(@main, :delete)
         end
       end
 
@@ -888,7 +895,8 @@ OUT
         $stdout.should_receive(:puts).with(green "Cloud foo-staging:")
         $stdout.should_receive(:puts).with(green "Instance 1:")
         $stdout.should_receive(:puts).with("log1")
-        invoke(@main, :logs, "--cloud", "foo-staging")
+        @main.options = {:cloud => "foo-staging"}
+        invoke(@main, :logs)
       end
     end
 

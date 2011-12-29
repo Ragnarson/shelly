@@ -10,7 +10,6 @@ module Shelly
   module CLI
     class Command < Thor
       include Helpers
-      extend Hook
       class_option :debug, :type => :boolean, :desc => "Show debug information"
     end
   end

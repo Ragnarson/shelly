@@ -5,6 +5,7 @@ describe Shelly::CLI::Deploys do
   before do
     FileUtils.stub(:chmod)
     @deploys = Shelly::CLI::Deploys.new
+    Shelly::CLI::Deploys.stub(:new).and_return(@deploys)
     @client = mock
     Shelly::Client.stub(:new).and_return(@client)
     $stdout.stub(:puts)
@@ -53,7 +54,8 @@ describe Shelly::CLI::Deploys do
         @client.should_receive(:deploy_logs).with("foo-staging").and_return([{"failed" => false, "created_at" => "2011-12-12-14-14-59"}])
         $stdout.should_receive(:puts).with(green "Available deploy logs")
         $stdout.should_receive(:puts).with(" * 2011-12-12-14-14-59")
-        invoke(@deploys, :list, "--cloud", "foo-staging")
+        @deploys.options = {:cloud => "foo-staging"}
+        invoke(@deploys, :list)
       end
     end
 
@@ -111,7 +113,8 @@ describe Shelly::CLI::Deploys do
       it "should render the logs" do
         @client.should_receive(:deploy_log).with("foo-staging", "last").and_return(response)
         expected_output
-        invoke(@deploys, :show, "last", "--cloud", "foo-staging")
+        @deploys.options = {:cloud => "foo-staging"}
+        invoke(@deploys, :show, "last")
       end
     end
 

@@ -5,6 +5,7 @@ describe Shelly::CLI::User do
   before do
     FileUtils.stub(:chmod)
     @cli_user = Shelly::CLI::User.new
+    Shelly::CLI::User.stub(:new).and_return(@cli_user)
     @client = mock
     Shelly::Client.stub(:new).and_return(@client)
     Shelly::User.stub(:guess_email).and_return("")
