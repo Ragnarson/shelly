@@ -5,6 +5,7 @@ describe Shelly::CLI::Main do
   before do
     FileUtils.stub(:chmod)
     @main = Shelly::CLI::Main.new
+    Shelly::CLI::Main.stub(:new).and_return(@main)
     @client = mock
     Shelly::Client.stub(:new).and_return(@client)
     Shelly::User.stub(:guess_email).and_return("")
@@ -15,7 +16,7 @@ describe Shelly::CLI::Main do
   describe "#version" do
     it "should return shelly's version" do
       $stdout.should_receive(:puts).with("shelly version #{Shelly::VERSION}")
-      @main.version
+      invoke(@main, :version)
     end
   end
 
@@ -42,7 +43,7 @@ Tasks:
 Options:
   [--debug]  # Show debug information
 OUT
-      out = IO.popen("bin/shelly").read.strip
+      out = IO.popen("bin/shelly --debug").read.strip
       out.should == expected.strip
     end
 
@@ -79,7 +80,7 @@ OUT
       $stdout.should_receive(:puts).with("\e[31mNo such file or directory - " + @key_path + "\e[0m")
       $stdout.should_receive(:puts).with("\e[31mUse ssh-keygen to generate ssh key pair\e[0m")
       lambda {
-        @main.register
+        invoke(@main, :register)
       }.should raise_error(SystemExit)
     end
 
@@ -88,7 +89,7 @@ OUT
       $stdout.should_receive(:puts).with("\e[31mUser with your ssh key already exists.\e[0m")
       $stdout.should_receive(:puts).with("\e[31mYou can login using: shelly login [EMAIL]\e[0m")
       lambda {
-        @main.register
+        invoke(@main, :register)
       }.should raise_error(SystemExit)
     end
 
@@ -97,7 +98,7 @@ OUT
       $stdout.should_receive(:print).with("Password: ")
       $stdout.should_receive(:print).with("Password confirmation: ")
       fake_stdin(["better@example.com", "secret", "secret"]) do
-        @main.register
+        invoke(@main, :register)
       end
     end
 
@@ -106,21 +107,21 @@ OUT
       $stdout.should_receive(:print).with("Email (kate@example.com - default): ")
       @client.should_receive(:register_user).with("kate@example.com", "secret", "ssh-key AAbbcc")
       fake_stdin(["", "secret", "secret"]) do
-        @main.register
+        invoke(@main, :register)
       end
     end
 
     it "should use email provided by user" do
       @client.should_receive(:register_user).with("better@example.com", "secret", "ssh-key AAbbcc")
       fake_stdin(["better@example.com", "secret", "secret"]) do
-        @main.register
+        invoke(@main, :register)
       end
     end
 
     it "should not ask about email if it's provided as argument" do
       $stdout.should_receive(:puts).with("Registering with email: kate@example.com")
       fake_stdin(["secret", "secret"]) do
-        @main.register("kate@example.com")
+        invoke(@main, :register, "kate@example.com")
       end
     end
 
@@ -130,7 +131,7 @@ OUT
         $stdout.should_receive(:puts).with("\e[31mEmail can't be blank, please try again\e[0m")
         lambda {
           fake_stdin(["", "bob@example.com", "only-pass", "only-pass"]) do
-            @main.register
+            invoke(@main, :register)
           end
         }.should raise_error(SystemExit)
       end
@@ -142,7 +143,7 @@ OUT
         File.open(@key_path, "w") { |f| f << "key" }
         $stdout.should_receive(:puts).with("Uploading your public SSH key from #{@key_path}")
         fake_stdin(["kate@example.com", "secret", "secret"]) do
-          @main.register
+          invoke(@main, :register)
         end
       end
     end
@@ -153,7 +154,7 @@ OUT
         FileUtils.rm_rf(@key_path)
         $stdout.should_not_receive(:puts).with("Uploading your public SSH key from #{@key_path}")
         fake_stdin(["kate@example.com", "secret", "secret"]) do
-          @main.register
+          invoke(@main, :register)
         end
       end
     end
@@ -164,7 +165,7 @@ OUT
         $stdout.should_receive(:puts).with("Successfully registered!")
         $stdout.should_receive(:puts).with("Check you mailbox for email address confirmation")
         fake_stdin(["kate@example.com", "pass", "pass"]) do
-          @main.register
+          invoke(@main, :register)
         end
       end
     end
@@ -177,7 +178,7 @@ OUT
         $stdout.should_receive(:puts).with("\e[31mEmail has been already taken\e[0m")
         lambda {
           fake_stdin(["kate@example.com", "pass", "pass"]) do
-            @main.register
+            invoke(@main, :register)
           end
         }.should raise_error(SystemExit)
       end
@@ -199,7 +200,7 @@ OUT
 
     it "should ask about email and password" do
       fake_stdin(["megan@example.com", "secret"]) do
-        @main.login
+        invoke(@main, :login)
       end
     end
 
@@ -207,14 +208,14 @@ OUT
       it "should display message about successful login" do
         $stdout.should_receive(:puts).with("Login successful")
         fake_stdin(["megan@example.com", "secret"]) do
-          @main.login
+          invoke(@main, :login)
         end
       end
 
       it "should accept email as parameter" do
         $stdout.should_receive(:puts).with("Login successful")
         fake_stdin(["secret"]) do
-          @main.login("megan@example.com")
+          invoke(@main, :login, "megan@example.com")
         end
       end
 
@@ -222,7 +223,7 @@ OUT
         @user.should_receive(:upload_ssh_key)
         $stdout.should_receive(:puts).with("Uploading your public SSH key")
         fake_stdin(["megan@example.com", "secret"]) do
-          @main.login
+          invoke(@main, :login)
         end
       end
 
@@ -230,7 +231,7 @@ OUT
         @user.should_receive(:upload_ssh_key).and_raise(RestClient::Conflict)
         $stdout.should_receive(:puts).with("\e[32mYou have following clouds available:\e[0m")
         fake_stdin(["megan@example.com", "secret"]) do
-          @main.login
+          invoke(@main, :login)
         end
       end
 
@@ -239,7 +240,7 @@ OUT
         $stdout.should_receive(:puts).with(/  abc\s+\|  running/)
         $stdout.should_receive(:puts).with(/  fooo\s+\|  no code/)
         fake_stdin(["megan@example.com", "secret"]) do
-          @main.login
+          invoke(@main, :login)
         end
       end
     end
@@ -251,7 +252,7 @@ OUT
         $stdout.should_receive(:puts).with("\e[31mNo such file or directory - " + @key_path + "\e[0m")
         $stdout.should_receive(:puts).with("\e[31mUse ssh-keygen to generate ssh key pair\e[0m")
         lambda {
-          @main.login
+          invoke(@main, :login)
         }.should raise_error(SystemExit)
       end
     end
@@ -266,7 +267,7 @@ OUT
         $stdout.should_receive(:puts).with("\e[31mhttps://admin.winniecloud.com/users/password/new\e[0m")
         lambda {
           fake_stdin(["megan@example.com", "secret"]) do
-            @main.login
+            invoke(@main, :login)
           end
         }.should raise_error(SystemExit)
       end
@@ -285,6 +286,7 @@ OUT
       @app.stub(:git_url).and_return("git@git.shellycloud.com:foooo.git")
       Shelly::App.stub(:inside_git_repository?).and_return(true)
       Shelly::App.stub(:new).and_return(@app)
+      @client.stub(:token).and_return("abc")
     end
 
     it "should exit with message if command run outside git repository" do
@@ -292,7 +294,7 @@ OUT
       $stdout.should_receive(:puts).with("\e[31mMust be run inside your project git repository\e[0m")
       lambda {
         fake_stdin(["", ""]) do
-          @main.add
+          invoke(@main, :add)
         end
       }.should raise_error(SystemExit)
     end
@@ -303,33 +305,25 @@ OUT
         it "should show help and exit if not all options are passed" do
           $stdout.should_receive(:puts).with("\e[31mTry 'shelly help add' for more information\e[0m")
           @main.options = {"code-name" => "foo"}
-          lambda { @main.add }.should raise_error(SystemExit)
+          lambda {
+            invoke(@main, :add)
+          }.should raise_error(SystemExit)
         end
 
         it "should exit if databases are not valid" do
           $stdout.should_receive(:puts).with("\e[31mTry 'shelly help add' for more information\e[0m")
-          @main.options = {"code-name" => "foo", "databases" => ["not existing"], "domains" => ["foo.example.com"]}
-          lambda { @main.add }.should raise_error(SystemExit)
+          @main.options = {"code-name" => "foo", :databases => ["not existing"], :domains => "foo.example.com"}
+          lambda {
+            invoke(@main, :add)
+          }.should raise_error(SystemExit)
         end
-
-        it "should display which parameter was wrong" do
-          expected = "shelly: unrecognized option '--unknown=param'\n" +
-                      "Usage: shelly [COMMAND]... [OPTIONS]\n" +
-                      "Try 'shelly --help' for more information"
-
-          Open3.popen3("bin/shelly add --unknown=param") do |stdin, stdout, stderr, wait_thr|
-            out = stderr.read.strip
-            out.should == expected
-          end
-        end
-
       end
 
       context "valid params" do
         it "should create app on shelly cloud" do
           @app.should_receive(:create)
           @main.options = {"code-name" => "foo", "databases" => ["postgresql"], "domains" => ["foo.example.com"]}
-          @main.add
+          invoke(@main, :add)
         end
       end
     end
@@ -338,7 +332,7 @@ OUT
       $stdout.should_receive(:print).with("Cloud code name (foo-production - default): ")
       @app.should_receive(:code_name=).with("mycodename")
       fake_stdin(["mycodename", ""]) do
-        @main.add
+        invoke(@main, :add)
       end
     end
 
@@ -347,7 +341,7 @@ OUT
         $stdout.should_receive(:print).with("Cloud code name (foo-production - default): ")
         @app.should_receive(:code_name=).with("foo-production")
         fake_stdin(["", ""]) do
-          @main.add
+          invoke(@main, :add)
         end
       end
     end
@@ -356,7 +350,7 @@ OUT
       $stdout.should_receive(:print).with("Which database do you want to use postgresql, mongodb, redis, none (postgresql - default): ")
       @app.should_receive(:databases=).with(["postgresql", "mongodb", "redis"])
       fake_stdin(["", "postgresql  ,mongodb redis"]) do
-        @main.add
+        invoke(@main, :add)
       end
     end
 
@@ -364,7 +358,7 @@ OUT
       $stdout.should_receive(:print).with("Which database do you want to use postgresql, mongodb, redis, none (postgresql - default): ")
       $stdout.should_receive(:print).with("Unknown database kind. Supported are: postgresql, mongodb, redis, none: ")
       fake_stdin(["", "postgresql,doesnt-exist", "none"]) do
-        @main.add
+        invoke(@main, :add)
       end
     end
 
@@ -372,7 +366,7 @@ OUT
       it "should use 'postgresql' database as default" do
         @app.should_receive(:databases=).with(["postgresql"])
         fake_stdin(["", ""]) do
-          @main.add
+          invoke(@main, :add)
         end
       end
     end
@@ -380,7 +374,7 @@ OUT
     it "should create the app on shelly cloud" do
       @app.should_receive(:create)
       fake_stdin(["", ""]) do
-        @main.add
+        invoke(@main, :add)
       end
     end
 
@@ -393,7 +387,7 @@ OUT
       $stdout.should_receive(:puts).with("\e[31mshelly add --code-name=foo-production --databases=postgresql --domains=foo-production.shellyapp.com\e[0m")
       lambda {
         fake_stdin(["", ""]) do
-          @main.add
+          invoke(@main, :add)
         end
       }.should raise_error(SystemExit)
     end
@@ -402,14 +396,14 @@ OUT
       $stdout.should_receive(:puts).with("\e[32mAdding remote production git@git.shellycloud.com:foooo.git\e[0m")
       @app.should_receive(:add_git_remote)
       fake_stdin(["foooo", ""]) do
-        @main.add
+        invoke(@main, :add)
       end
     end
 
     it "should create Cloudfile" do
       File.exists?("/projects/foo/Cloudfile").should be_false
       fake_stdin(["foooo", ""]) do
-        @main.add
+        invoke(@main, :add)
       end
       File.read("/projects/foo/Cloudfile").should == "Example Cloudfile"
     end
@@ -418,7 +412,7 @@ OUT
       $stdout.should_receive(:puts).with("\e[32mProvide billing details. Opening browser...\e[0m")
       @app.should_receive(:open_billing_page)
       fake_stdin(["foooo", ""]) do
-        @main.add
+        invoke(@main, :add)
       end
     end
 
@@ -427,7 +421,7 @@ OUT
       $stdout.should_receive(:puts).with("\e[32mYou can review changes using\e[0m")
       $stdout.should_receive(:puts).with("  git status")
       fake_stdin(["foooo", "none"]) do
-        @main.add
+        invoke(@main, :add)
       end
     end
 
@@ -439,7 +433,7 @@ OUT
       $stdout.should_receive(:puts).with("\e[32mDeploy to production using:\e[0m")
       $stdout.should_receive(:puts).with("  git push production master")
       fake_stdin(["foooo", "none"]) do
-        @main.add
+        invoke(@main, :add)
       end
     end
   end
@@ -457,19 +451,19 @@ OUT
       $stdout.should_receive(:puts).with("\e[32mYou have following clouds available:\e[0m")
       $stdout.should_receive(:puts).with(/abc\s+\|  running/)
       $stdout.should_receive(:puts).with(/fooo\s+\|  deploy failed \(Support has been notified\)/)
-      @main.list
+      invoke(@main, :list)
     end
 
     it "should display info that user has no clouds" do
       @client.stub(:apps).and_return([])
       $stdout.should_receive(:puts).with("\e[32mYou have no clouds yet\e[0m")
-      @main.list
+      invoke(@main, :list)
     end
 
     it "should have a 'status' alias" do
       @client.stub(:apps).and_return([])
       $stdout.should_receive(:puts).with("\e[32mYou have no clouds yet\e[0m")
-      Shelly::CLI::Main.start(["status"])
+      invoke(@main, :status)
     end
 
     context "on failure" do
@@ -477,9 +471,10 @@ OUT
         body = {"message" => "Unauthorized"}
         error = Shelly::Client::APIError.new(body.to_json, 401)
         @client.stub(:token).and_raise(error)
-        $stdout.should_receive(:puts).with("\e[31mYou are not logged in, use `shelly login`\e[0m")
+        $stdout.should_receive(:puts).with(red "You are not logged in. To log in use:")
+        $stdout.should_receive(:puts).with("  shelly login")
         lambda {
-          @main.list
+          invoke(@main, :list)
         }.should raise_error(SystemExit)
       end
     end
@@ -502,7 +497,7 @@ OUT
       File.delete("Cloudfile")
       $stdout.should_receive(:puts).with("\e[31mNo Cloudfile found\e[0m")
       lambda {
-        @main.start
+        invoke(@main, :start)
       }.should raise_error(SystemExit)
     end
 
@@ -511,7 +506,7 @@ OUT
       exception = Shelly::Client::APIError.new(response.to_json, 404)
       @client.stub(:start_cloud).and_raise(exception)
       $stdout.should_receive(:puts).with(red "You have no access to 'foo-production' cloud defined in Cloudfile")
-      lambda { @main.start }.should raise_error(SystemExit)
+      lambda { invoke(@main, :start) }.should raise_error(SystemExit)
     end
 
     it "should exit if user is not logged in" do
@@ -520,7 +515,7 @@ OUT
       @client.stub(:token).and_raise(exception)
       $stdout.should_receive(:puts).with(red "You are not logged in. To log in use:")
       $stdout.should_receive(:puts).with("  shelly login")
-      lambda { @main.start }.should raise_error(SystemExit)
+      lambda { invoke(@main, :start) }.should raise_error(SystemExit)
     end
 
     context "single cloud in Cloudfile" do
@@ -528,7 +523,7 @@ OUT
         @client.stub(:start_cloud)
         $stdout.should_receive(:puts).with(green "Starting cloud foo-production. Check status with:")
         $stdout.should_receive(:puts).with("  shelly list")
-        @main.start
+        invoke(@main, :start)
       end
     end
 
@@ -543,7 +538,7 @@ OUT
         $stdout.should_receive(:puts).with("Available clouds:")
         $stdout.should_receive(:puts).with(" * foo-production")
         $stdout.should_receive(:puts).with(" * foo-staging")
-        lambda { @main.start }.should raise_error(SystemExit)
+        lambda { invoke(@main, :start) }.should raise_error(SystemExit)
       end
 
       it "should fetch from command line which cloud to start" do
@@ -551,7 +546,7 @@ OUT
         $stdout.should_receive(:puts).with(green "Starting cloud foo-staging. Check status with:")
         $stdout.should_receive(:puts).with("  shelly list")
         @main.options = {:cloud => "foo-staging"}
-        @main.start
+        invoke(@main, :start)
       end
     end
 
@@ -559,14 +554,14 @@ OUT
       it "should show information that cloud is running" do
         raise_conflict(:state => "running")
         $stdout.should_receive(:puts).with(red "Not starting: cloud 'foo-production' is already running")
-        lambda { @main.start }.should raise_error(SystemExit)
+        lambda { invoke(@main, :start)  }.should raise_error(SystemExit)
       end
 
       %w{deploying configuring}.each do |state|
         it "should show information that cloud is #{state}" do
           raise_conflict(:state => state)
           $stdout.should_receive(:puts).with(red "Not starting: cloud 'foo-production' is currently deploying")
-          lambda { @main.start }.should raise_error(SystemExit)
+          lambda { invoke(@main, :start) }.should raise_error(SystemExit)
         end
       end
 
@@ -575,7 +570,7 @@ OUT
         $stdout.should_receive(:puts).with(red "Not starting: no source code provided")
         $stdout.should_receive(:puts).with(red "Push source code using:")
         $stdout.should_receive(:puts).with("  git push production master")
-        lambda { @main.start }.should raise_error(SystemExit)
+        lambda { invoke(@main, :start) }.should raise_error(SystemExit)
       end
 
       %w{deploy_failed configuration_failed}.each do |state|
@@ -584,14 +579,14 @@ OUT
           $stdout.should_receive(:puts).with(red "Not starting: deployment failed")
           $stdout.should_receive(:puts).with(red "Support has been notified")
           $stdout.should_receive(:puts).with(red "See http://example.com/logs for reasons of failure")
-          lambda { @main.start }.should raise_error(SystemExit)
+          lambda { invoke(@main, :start) }.should raise_error(SystemExit)
         end
       end
       it "should open billing page" do
         raise_conflict(:state => "no_billing")
         $stdout.should_receive(:puts).with(red "Please fill in billing details to start foo-production. Opening browser.")
         @app.should_receive(:open_billing_page)
-        lambda { @main.start }.should raise_error(SystemExit)
+        lambda { invoke(@main, :start) }.should raise_error(SystemExit)
       end
 
       def raise_conflict(options = {})
@@ -620,7 +615,7 @@ OUT
       File.delete("Cloudfile")
       $stdout.should_receive(:puts).with("\e[31mNo Cloudfile found\e[0m")
       lambda {
-        @main.stop
+        invoke(@main, :stop)
       }.should raise_error(SystemExit)
     end
 
@@ -629,7 +624,7 @@ OUT
       exception = Shelly::Client::APIError.new(response.to_json, 404)
       @client.stub(:stop_cloud).and_raise(exception)
       $stdout.should_receive(:puts).with(red "You have no access to 'foo-production' cloud defined in Cloudfile")
-      lambda { @main.stop }.should raise_error(SystemExit)
+      lambda { invoke(@main, :stop) }.should raise_error(SystemExit)
     end
 
     it "should exit if user is not logged in" do
@@ -638,14 +633,14 @@ OUT
       @client.stub(:token).and_raise(exception)
       $stdout.should_receive(:puts).with(red "You are not logged in. To log in use:")
       $stdout.should_receive(:puts).with("  shelly login")
-      lambda { @main.stop }.should raise_error(SystemExit)
+      lambda { invoke(@main, :stop) }.should raise_error(SystemExit)
     end
 
     context "single cloud in Cloudfile" do
       it "should start the cloud" do
         @client.stub(:stop_cloud)
         $stdout.should_receive(:puts).with("Cloud 'foo-production' stopped")
-        @main.stop
+        invoke(@main, :stop)
       end
     end
 
@@ -660,14 +655,14 @@ OUT
         $stdout.should_receive(:puts).with("Available clouds:")
         $stdout.should_receive(:puts).with(" * foo-production")
         $stdout.should_receive(:puts).with(" * foo-staging")
-        lambda { @main.stop }.should raise_error(SystemExit)
+        lambda { invoke(@main, :stop) }.should raise_error(SystemExit)
       end
 
       it "should fetch from command line which cloud to start" do
         @client.should_receive(:stop_cloud).with("foo-staging")
         $stdout.should_receive(:puts).with("Cloud 'foo-staging' stopped")
         @main.options = {:cloud => "foo-staging"}
-        @main.stop
+        invoke(@main, :stop)
       end
     end
   end
@@ -682,7 +677,7 @@ OUT
       Shelly::App.stub(:inside_git_repository?).and_return(false)
       $stdout.should_receive(:puts).with("\e[31mMust be run inside your project git repository\e[0m")
       lambda {
-        @main.ip
+        invoke(@main, :ip)
       }.should raise_error(SystemExit)
     end
 
@@ -690,7 +685,7 @@ OUT
       File.delete("Cloudfile")
       $stdout.should_receive(:puts).with("\e[31mNo Cloudfile found\e[0m")
       lambda {
-        @main.ip
+        invoke(@main, :ip)
       }.should raise_error(SystemExit)
     end
 
@@ -700,7 +695,7 @@ OUT
         $stdout.should_receive(:puts).with("\e[32mCloud foo-production:\e[0m")
         $stdout.should_receive(:puts).with("  Web server IP: 22.22.22.22")
         $stdout.should_receive(:puts).with("  Mail server IP: 11.11.11.11")
-        @main.ip
+        invoke(@main, :ip)
       end
     end
 
@@ -712,7 +707,7 @@ OUT
       it "should raise an error if user is not in git repository" do
         Shelly::App.stub(:inside_git_repository?).and_return(false)
         $stdout.should_receive(:puts).with("\e[31mMust be run inside your project git repository\e[0m")
-        lambda { @main.ip }.should raise_error(SystemExit)
+        lambda { invoke(@main, :ip) }.should raise_error(SystemExit)
       end
 
       it "should raise an error if user does not have access to cloud" do
@@ -720,7 +715,7 @@ OUT
         exception = Shelly::Client::APIError.new(response.to_json, 404)
         @client.stub(:app_ips).and_raise(exception)
         $stdout.should_receive(:puts).with(red "You have no access to 'foo-staging' cloud defined in Cloudfile")
-        @main.ip
+        invoke(@main, :ip)
       end
     end
   end
@@ -753,9 +748,9 @@ OUT
         $stdout.should_receive(:puts).with("\n")
         $stdout.should_receive(:puts).with("Scheduling application delete - done")
         $stdout.should_receive(:puts).with("Removing git remote - done")
+        @main.options = {:cloud => "foo-staging"}
         fake_stdin(["yes", "yes", "yes"]) do
-          @main.options = {:cloud => "foo-staging"}
-          @main.delete
+          invoke(@main, :delete)
         end
       end
 
@@ -763,8 +758,7 @@ OUT
         @app.should_not_receive(:delete)
         lambda{
           fake_stdin(["yes", "yes", "no"]) do
-            @main.options = {:cloud => "foo-staging"}
-            @main.delete
+            invoke(@main, :delete, "--cloud", "foo-staging")
           end
         }.should raise_error(SystemExit)
       end
@@ -780,8 +774,7 @@ OUT
         Shelly::App.stub(:inside_git_repository?).and_return(false)
         $stdout.should_receive(:puts).with("Missing git remote")
         fake_stdin(["yes", "yes", "yes"]) do
-          @main.options = {:cloud => "foo-staging"}
-          @main.delete
+          invoke(@main, :delete, "--cloud", "foo-staging")
         end
       end
     end
@@ -799,8 +792,7 @@ OUT
         $stdout.should_receive(:puts).with("\e[31mApplication not found\e[0m")
         lambda{
           fake_stdin(["yes", "yes", "yes"]) do
-            @main.options = {:cloud => "foo-bar"}
-            @main.delete
+            invoke(@main, :delete, "--cloud", "foo-bar")
           end
         }.should raise_error(SystemExit)
       end
@@ -824,7 +816,7 @@ OUT
         $stdout.should_receive(:puts).with("Scheduling application delete - done")
         $stdout.should_receive(:puts).with("Removing git remote - done")
         fake_stdin(["yes", "yes", "yes"]) do
-          @main.delete
+          invoke(@main, :delete)
         end
       end
     end
@@ -848,7 +840,7 @@ OUT
       File.delete("Cloudfile")
       $stdout.should_receive(:puts).with("\e[31mNo Cloudfile found\e[0m")
       lambda {
-        @main.logs
+        invoke(@main, :logs)
       }.should raise_error(SystemExit)
     end
 
@@ -858,7 +850,7 @@ OUT
       @client.stub(:application_logs).and_raise(exception)
       $stdout.should_receive(:puts).
         with(red "You have no access to cloud 'foo-production'")
-      lambda { @main.logs }.should raise_error(SystemExit)
+      lambda { invoke(@main, :logs) }.should raise_error(SystemExit)
     end
 
     it "should exit if user is not logged in" do
@@ -868,7 +860,7 @@ OUT
       $stdout.should_receive(:puts).
         with(red "You are not logged in. To log in use:")
       $stdout.should_receive(:puts).with("  shelly login")
-      lambda { @main.logs }.should raise_error(SystemExit)
+      lambda { invoke(@main, :logs) }.should raise_error(SystemExit)
     end
 
     context "single cloud in Cloudfile" do
@@ -877,7 +869,7 @@ OUT
         $stdout.should_receive(:puts).with(green "Cloud foo-production:")
         $stdout.should_receive(:puts).with(green "Instance 1:")
         $stdout.should_receive(:puts).with("log1")
-        @main.logs
+        invoke(@main, :logs)
       end
     end
 
@@ -894,7 +886,7 @@ OUT
         $stdout.should_receive(:puts).with("Available clouds:")
         $stdout.should_receive(:puts).with(" * foo-production")
         $stdout.should_receive(:puts).with(" * foo-staging")
-        lambda { @main.logs }.should raise_error(SystemExit)
+        lambda { invoke(@main, :logs) }.should raise_error(SystemExit)
       end
 
       it "should fetch from command line which cloud to start" do
@@ -904,7 +896,7 @@ OUT
         $stdout.should_receive(:puts).with(green "Instance 1:")
         $stdout.should_receive(:puts).with("log1")
         @main.options = {:cloud => "foo-staging"}
-        @main.logs
+        invoke(@main, :logs)
       end
     end
 
@@ -916,7 +908,7 @@ OUT
         $stdout.should_receive(:puts).with("log1")
         $stdout.should_receive(:puts).with(green "Instance 2:")
         $stdout.should_receive(:puts).with("log2")
-        @main.logs
+        invoke(@main, :logs)
       end
     end
   end

@@ -5,6 +5,7 @@ describe Shelly::CLI::Deploys do
   before do
     FileUtils.stub(:chmod)
     @deploys = Shelly::CLI::Deploys.new
+    Shelly::CLI::Deploys.stub(:new).and_return(@deploys)
     @client = mock
     Shelly::Client.stub(:new).and_return(@client)
     $stdout.stub(:puts)
@@ -23,7 +24,7 @@ describe Shelly::CLI::Deploys do
       File.delete("Cloudfile")
       $stdout.should_receive(:puts).with("\e[31mNo Cloudfile found\e[0m")
       lambda {
-        @deploys.list
+        invoke(@deploys, :list)
       }.should raise_error(SystemExit)
     end
 
@@ -32,7 +33,7 @@ describe Shelly::CLI::Deploys do
       exception = Shelly::Client::APIError.new(response.to_json, 404)
       @client.stub(:deploy_logs).and_raise(exception)
       $stdout.should_receive(:puts).with(red "You have no access to 'foo-staging' cloud defined in Cloudfile")
-      lambda { @deploys.list }.should raise_error(SystemExit)
+      lambda { invoke(@deploys, :list) }.should raise_error(SystemExit)
     end
 
     context "multiple clouds" do
@@ -46,7 +47,7 @@ describe Shelly::CLI::Deploys do
         $stdout.should_receive(:puts).with("Available clouds:")
         $stdout.should_receive(:puts).with(" * foo-production")
         $stdout.should_receive(:puts).with(" * foo-staging")
-        lambda { @deploys.list }.should raise_error(SystemExit)
+        lambda { invoke(@deploys, :list) }.should raise_error(SystemExit)
       end
 
       it "should take cloud from command line for which to show logs" do
@@ -54,17 +55,19 @@ describe Shelly::CLI::Deploys do
         $stdout.should_receive(:puts).with(green "Available deploy logs")
         $stdout.should_receive(:puts).with(" * 2011-12-12-14-14-59")
         @deploys.options = {:cloud => "foo-staging"}
-        @deploys.list
+        invoke(@deploys, :list)
       end
     end
 
     context "single cloud" do
       it "should display available logs" do
-        @client.should_receive(:deploy_logs).with("foo-staging").and_return([{"failed" => false, "created_at" => "2011-12-12-14-14-59"}, {"failed" => true, "created_at" => "2011-12-12-15-14-59"}])
+        @client.should_receive(:deploy_logs).with("foo-staging").and_return([
+          {"failed" => false, "created_at" => "2011-12-12-14-14-59"},
+          {"failed" => true, "created_at" => "2011-12-12-15-14-59"}])
         $stdout.should_receive(:puts).with(green "Available deploy logs")
         $stdout.should_receive(:puts).with(" * 2011-12-12-14-14-59")
         $stdout.should_receive(:puts).with(" * 2011-12-12-15-14-59 (failed)")
-        @deploys.list
+        invoke(@deploys, :list)
       end
     end
   end
@@ -81,7 +84,7 @@ describe Shelly::CLI::Deploys do
       File.delete("Cloudfile")
       $stdout.should_receive(:puts).with("\e[31mNo Cloudfile found\e[0m")
       lambda {
-        @deploys.show
+        invoke(@deploys, :show)
       }.should raise_error(SystemExit)
     end
 
@@ -90,7 +93,7 @@ describe Shelly::CLI::Deploys do
       exception = Shelly::Client::APIError.new(response.to_json, 404)
       @client.stub(:deploy_log).and_raise(exception)
       $stdout.should_receive(:puts).with(red "You have no access to 'foo-staging' cloud defined in Cloudfile")
-      lambda { @deploys.show("last") }.should raise_error(SystemExit)
+      lambda { invoke(@deploys, :show, "last") }.should raise_error(SystemExit)
     end
 
     context "multiple clouds" do
@@ -104,14 +107,14 @@ describe Shelly::CLI::Deploys do
         $stdout.should_receive(:puts).with("Available clouds:")
         $stdout.should_receive(:puts).with(" * foo-production")
         $stdout.should_receive(:puts).with(" * foo-staging")
-        lambda { @deploys.show("last") }.should raise_error(SystemExit)
+        lambda { invoke(@deploys, :show, "last") }.should raise_error(SystemExit)
       end
 
       it "should render the logs" do
         @client.should_receive(:deploy_log).with("foo-staging", "last").and_return(response)
         expected_output
         @deploys.options = {:cloud => "foo-staging"}
-        @deploys.show("last")
+        invoke(@deploys, :show, "last")
       end
     end
 
@@ -119,7 +122,7 @@ describe Shelly::CLI::Deploys do
       it "should render logs without passing cloud" do
         @client.should_receive(:deploy_log).with("foo-staging", "last").and_return(response)
         expected_output
-        @deploys.show("last")
+        invoke(@deploys, :show, "last")
       end
     end
 

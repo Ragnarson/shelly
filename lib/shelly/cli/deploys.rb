@@ -7,12 +7,13 @@ module Shelly
       namespace :deploys
       include Helpers
 
+      before_hook :logged_in?, :only => [:list, :show]
+      before_hook :cloudfile_present?, :only => [:list, :show]
+
       desc "list", "Lists deploy logs"
       method_option :cloud, :type => :string, :aliases => "-c",
         :desc => "Specify which cloud to show deploy logs for"
       def list
-        logged_in?
-        say_error "No Cloudfile found" unless Cloudfile.present?
         multiple_clouds(options[:cloud], "deploys list", "Select cloud to view deploy logs using:")
         logs = @app.deploy_logs
         unless logs.empty?
@@ -35,7 +36,6 @@ module Shelly
       method_option :cloud, :type => :string, :aliases => "-c",
         :desc => "Specify which cloud to show deploy logs for"
       def show(log = nil)
-        say_error "No Cloudfile found" unless Cloudfile.present?
         specify_log(log)
         multiple_clouds(options[:cloud], "deploys show #{log}", "Select log and cloud to view deploy logs using:")
         content = @app.deploy_log(log)

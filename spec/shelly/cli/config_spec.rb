@@ -6,6 +6,7 @@ describe Shelly::CLI::Config do
   before do
     FileUtils.stub(:chmod)
     @config = Shelly::CLI::Config.new
+    Shelly::CLI::Config.stub(:new).and_return(@config)
     @client = mock
     Shelly::Client.stub(:new).and_return(@client)
     $stdout.stub(:puts)
@@ -28,7 +29,7 @@ describe Shelly::CLI::Config do
       File.delete("Cloudfile")
       $stdout.should_receive(:puts).with(red "No Cloudfile found")
       lambda {
-        @config.list
+        invoke(@config, :list)
       }.should raise_error(SystemExit)
     end
 
@@ -37,7 +38,7 @@ describe Shelly::CLI::Config do
       exception = Shelly::Client::APIError.new(response.to_json, 404)
       @client.stub(:app_configs).and_raise(exception)
       $stdout.should_receive(:puts).with(red "You have no access to 'foo-production' cloud defined in Cloudfile")
-      lambda { @config.list }.should raise_error(SystemExit)
+      lambda { invoke(@config, :list) }.should raise_error(SystemExit)
     end
 
     it "should list available configuration files for clouds" do
@@ -51,7 +52,7 @@ describe Shelly::CLI::Config do
       $stdout.should_receive(:puts).with("Custom configuration files:")
       $stdout.should_receive(:puts).with(/ * \s+config\/settings.yml/)
 
-      @config.list
+      invoke(@config, :list)
     end
 
   end
@@ -60,19 +61,19 @@ describe Shelly::CLI::Config do
     it "should exit with message if there is no Cloudfile" do
       File.delete("Cloudfile")
       $stdout.should_receive(:puts).with(red "No Cloudfile found")
-      lambda { @config.show(1) }.should raise_error(SystemExit)
+      lambda { invoke(@config, :show) }.should raise_error(SystemExit)
     end
 
-    it "should exit if no id was specified" do
+    it "should exit if no path was specified" do
       $stdout.should_receive(:puts).with(red "No configuration file specified")
-      lambda { @config.show }.should raise_error(SystemExit)
+      lambda { invoke(@config, :show) }.should raise_error(SystemExit)
     end
 
     it "should show config" do
-      @client.should_receive(:app_config).with("foo-staging", 1).and_return({"path" => "test.rb", "content" => "example content"})
+      @client.should_receive(:app_config).with("foo-staging", "path").and_return({"path" => "test.rb", "content" => "example content"})
       $stdout.should_receive(:puts).with(green "Content of test.rb:")
       $stdout.should_receive(:puts).with("example content")
-      @config.show(1)
+      invoke(@config, :show, "path")
     end
 
     context "multiple clouds" do
@@ -82,13 +83,13 @@ describe Shelly::CLI::Config do
 
       it "should show info to select cloud and exit" do
         $stdout.should_receive(:puts).with("You have multiple clouds in Cloudfile. Specify cloud using:")
-        lambda { @config.show(1) }.should raise_error(SystemExit)
+        lambda { invoke(@config, :show, "path") }.should raise_error(SystemExit)
       end
 
       it "should use cloud specified by parameter" do
-        @client.should_receive(:app_config).with("foo-production", 1).and_return({"path" => "test.rb", "content" => "example content"})
+        @client.should_receive(:app_config).with("foo-production", "path").and_return({"path" => "test.rb", "content" => "example content"})
         @config.options = {:cloud => "foo-production"}
-        @config.show(1)
+        invoke(@config, :show, "path")
       end
     end
   end
@@ -97,25 +98,25 @@ describe Shelly::CLI::Config do
     it "should exit with message if there is no Cloudfile" do
       File.delete("Cloudfile")
       $stdout.should_receive(:puts).with(red "No Cloudfile found")
-      lambda { @config.create("path") }.should raise_error(SystemExit)
+      lambda { invoke(@config, :create, "path") }.should raise_error(SystemExit)
     end
 
-    it "should exit if no id was specified" do
+    it "should exit if no path was specified" do
       $stdout.should_receive(:puts).with(red "No path specified")
-      lambda { @config.create }.should raise_error(SystemExit)
+      lambda { invoke(@config, :create) }.should raise_error(SystemExit)
     end
 
     it "should ask to set EDITOR environment variable if not set" do
       @config.stub(:system) {false}
       $stdout.should_receive(:puts).with(red "Please set EDITOR environment variable")
-      lambda { @config.create("path") }.should raise_error(SystemExit)
+      lambda { invoke(@config, :create, "path") }.should raise_error(SystemExit)
     end
 
     it "should create file" do
       @config.should_receive(:system).with(/vim \/tmp\/shelly-edit/).and_return(true)
       @client.should_receive(:app_create_config).with("foo-staging", "path", "\n").and_return({})
       $stdout.should_receive(:puts).with(green "File 'path' created, it will be used after next code deploy")
-      @config.create("path")
+      invoke(@config, :create, "path")
     end
 
     context "multiple clouds" do
@@ -133,7 +134,7 @@ describe Shelly::CLI::Config do
         @config.should_receive(:system).with(/vim \/tmp\/shelly-edit/).and_return(true)
         @client.should_receive(:app_create_config).with("foo-production", "path", "\n").and_return({})
         @config.options = {:cloud => "foo-production"}
-        @config.create("path")
+        invoke(@config, :create, "path")
       end
     end
   end
@@ -143,27 +144,27 @@ describe Shelly::CLI::Config do
     it "should exit with message if there is no Cloudfile" do
       File.delete("Cloudfile")
       $stdout.should_receive(:puts).with(red "No Cloudfile found")
-      lambda { @config.edit(1) }.should raise_error(SystemExit)
+      lambda { invoke(@config, :edit, "path") }.should raise_error(SystemExit)
     end
 
     it "should exit if no path was specified" do
       $stdout.should_receive(:puts).with(red "No configuration file specified")
-      lambda { @config.edit }.should raise_error(SystemExit)
+      lambda { invoke(@config, :edit) }.should raise_error(SystemExit)
     end
 
     it "should ask to set EDITOR environment variable if not set" do
-      @client.should_receive(:app_config).with("foo-staging", 1).and_return({"path" => "test.rb", "content" => "example content"})
+      @client.should_receive(:app_config).with("foo-staging", "path").and_return({"path" => "test.rb", "content" => "example content"})
       @config.stub(:system) {false}
       $stdout.should_receive(:puts).with(red "Please set EDITOR environment variable")
-      lambda { @config.edit(1) }.should raise_error(SystemExit)
+      lambda { invoke(@config, :edit, "path") }.should raise_error(SystemExit)
     end
 
     it "should create file" do
-      @client.should_receive(:app_config).with("foo-staging", 1).and_return({"path" => "test.rb", "content" => "example content"})
+      @client.should_receive(:app_config).with("foo-staging", "path").and_return({"path" => "test.rb", "content" => "example content"})
       @config.should_receive(:system).with(/vim \/tmp\/shelly-edit/).and_return(true)
-      @client.should_receive(:app_update_config).with("foo-staging", 1, "example content\n").and_return({"path" => "test.rb", "content" => "example content"})
+      @client.should_receive(:app_update_config).with("foo-staging", "path", "example content\n").and_return({"path" => "test.rb", "content" => "example content"})
       $stdout.should_receive(:puts).with(green "File 'test.rb' updated, it will be used after next code deploy")
-      @config.edit(1)
+      invoke(@config, :edit, "path")
     end
 
     context "multiple clouds" do
@@ -174,15 +175,15 @@ describe Shelly::CLI::Config do
       it "should show info to select cloud and exit" do
         @config.stub(:system) {true}
         $stdout.should_receive(:puts).with("You have multiple clouds in Cloudfile. Specify cloud using:")
-        lambda { @config.edit(1) }.should raise_error(SystemExit)
+        lambda { invoke(@config, :edit, "path") }.should raise_error(SystemExit)
       end
 
       it "should use cloud specified by parameter" do
-        @client.should_receive(:app_config).with("foo-production", 1).and_return({"path" => "test.rb", "content" => "example content"})
+        @client.should_receive(:app_config).with("foo-production", "path").and_return({"path" => "test.rb", "content" => "example content"})
         @config.should_receive(:system).with(/vim \/tmp\/shelly-edit/).and_return(true)
-        @client.should_receive(:app_update_config).with("foo-production", 1, "example content\n").and_return({"path" => "test.rb", "content" => "example content"})
+        @client.should_receive(:app_update_config).with("foo-production", "path", "example content\n").and_return({"path" => "test.rb", "content" => "example content"})
         @config.options = {:cloud => "foo-production"}
-        @config.edit(1)
+        invoke(@config, :edit, "path")
       end
     end
   end
@@ -191,19 +192,19 @@ describe Shelly::CLI::Config do
     it "should exit with message if there is no Cloudfile" do
       File.delete("Cloudfile")
       $stdout.should_receive(:puts).with(red "No Cloudfile found")
-      lambda { @config.delete(1) }.should raise_error(SystemExit)
+      lambda { invoke(@config, :delete) }.should raise_error(SystemExit)
     end
 
     it "should exit if no path was specified" do
       $stdout.should_receive(:puts).with(red "No configuration file specified")
-      lambda { @config.delete }.should raise_error(SystemExit)
+      lambda { invoke(@config, :delete) }.should raise_error(SystemExit)
     end
 
     it "should delete configuration file" do
-      @client.should_receive(:app_delete_config).with("foo-staging", 1).and_return({})
+      @client.should_receive(:app_delete_config).with("foo-staging", "path").and_return({})
       $stdout.should_receive(:puts).with(green "File deleted, redeploy your cloud to make changes")
       fake_stdin(["y"]) do
-        @config.delete(1)
+        invoke(@config, :delete, "path")
       end
     end
 
@@ -211,7 +212,7 @@ describe Shelly::CLI::Config do
       @client.should_not_receive(:app_delete_config)
       $stdout.should_receive(:puts).with("File not deleted")
       fake_stdin(["n"]) do
-        @config.delete(1)
+        invoke(@config, :delete, "path")
       end
     end
 
@@ -222,15 +223,15 @@ describe Shelly::CLI::Config do
 
       it "should show info to select cloud and exit" do
         $stdout.should_receive(:puts).with("You have multiple clouds in Cloudfile. Specify cloud using:")
-        lambda { @config.delete(1) }.should raise_error(SystemExit)
+        lambda { invoke(@config, :delete, "path") }.should raise_error(SystemExit)
       end
 
       it "should use cloud specified by parameter" do
-        @client.should_receive(:app_delete_config).with("foo-production", 1).and_return({})
+        @client.should_receive(:app_delete_config).with("foo-production", "path").and_return({})
         $stdout.should_receive(:puts).with(green "File deleted, redeploy your cloud to make changes")
         @config.options = {:cloud => "foo-production"}
         fake_stdin(["y"]) do
-          @config.delete(1)
+          invoke(@config, :delete, "path")
         end
       end
     end
