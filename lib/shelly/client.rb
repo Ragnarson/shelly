@@ -6,7 +6,7 @@ module Shelly
   class Client
     class APIError < Exception
       attr_reader :status_code
-      
+
       def initialize(response_body, status_code)
         @response = JSON.parse(response_body)
         @status_code = status_code
@@ -27,7 +27,7 @@ module Shelly
       def validation?
         message == "Validation Failed"
       end
-      
+
       def not_found?
         status_code == 404
       end
@@ -131,9 +131,14 @@ module Shelly
     def database_backups(code_name)
       get("/apps/#{code_name}/database_backups")
     end
-    
+
     def database_backup(code_name, handler)
       get("/apps/#{code_name}/database_backups/#{handler}")
+    end
+
+    def restore_backup(code_name, filename)
+      puts "/apps/#{code_name}/database_backups/restore"
+      put("/apps/#{code_name}/database_backups/restore", :id => filename)
     end
 
     def request_backup(code_name, kind = nil)
@@ -167,7 +172,7 @@ module Shelly
     def delete(path, params = {})
       request(path, :delete, params)
     end
-    
+
     def download_backup(cloud, filename, progress_callback = nil)
       File.open(filename, "w") do |out|
         process_response = lambda do |response|
@@ -178,9 +183,9 @@ module Shelly
         end
 
         options = request_parameters("/apps/#{cloud}/database_backups/#{filename}", :get)
-        options = options.merge(:block_response => process_response, 
+        options = options.merge(:block_response => process_response,
           :headers => {:accept => "application/x-gzip"})
-      
+
         RestClient::Request.execute(options)
       end
     end

@@ -153,4 +153,58 @@ describe Shelly::CLI::Backup do
       @backup.create
     end
   end
+
+  describe "restore" do
+    before do
+      @client.stub(:database_backup).and_return({"filename" => "better.tar.gz", "size" => 12345, "kind" => "postgre"})
+      @client.stub(:restore_backup).and_return({"filename" => "better.tar.gz", "size" => 12345, "kind" => "postgre"})
+      $stdout.stub(:puts)
+    end
+
+    it "should restore database" do
+      $stdout.should_receive(:puts).with("You are about restore database postgre for cloud foo-staging to state from better.tar.gz")
+      $stdout.should_receive(:print).with("I want to restore the database (yes/no): ")
+      $stdout.should_receive(:puts).with("\n")
+      @client.stub(:restore_backup).with("todo-list-test","better.tar.gz")
+      $stdout.should_receive(:puts).with("\n")
+      $stdout.should_receive(:puts).with("Restore has been scheduled. Wait few minutes till database is restored.")
+
+      fake_stdin(["yes"]) do
+        @backup.restore("better.tar.gz")
+      end
+    end
+
+    context "on type no" do
+      it "should cancel restore database" do
+        $stdout.should_receive(:puts).with("You are about restore database postgre for cloud foo-staging to state from better.tar.gz")
+        $stdout.should_receive(:print).with("I want to restore the database (yes/no): ")
+        $stdout.should_receive(:puts).with("\n")
+        $stdout.should_receive(:puts).with(red "Canceled")
+
+        lambda {
+          fake_stdin(["no"]) do
+            @backup.restore("better.tar.gz")
+          end
+        }.should raise_error(SystemExit)
+      end
+    end
+
+    it "should exit with 1 when filename is not specified" do
+      $stdout.should_receive(:puts).with(red "Filename is required")
+      lambda {
+        @backup.restore
+      }.should raise_error(SystemExit)
+    end
+
+    context "on backup not found" do
+      it "should display error message" do
+        response = {"message" => "Backup restore not found"}
+        exception = Shelly::Client::APIError.new(response.to_json, 404)
+        @client.stub(:database_backup).and_raise(exception)
+        $stdout.should_receive(:puts).with(red "Backup not found")
+        $stdout.should_receive(:puts).with("You can list available backups with 'shelly backup list' command")
+        @backup.restore("better.tar.gz")
+      end
+    end
+  end
 end

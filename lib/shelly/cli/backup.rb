@@ -63,13 +63,36 @@ module Shelly
         logged_in?
         multiple_clouds(options[:cloud], "backup create", "Select cloud to create snapshot of database")
         @app.request_backup(kind)
-        say "Backup requested. It can take up to several minutes for" +
+        say "Backup requested. It can take up to several minutes for " +
           "the backup process to finish and the backup to show up in backups list.", :green
       rescue Client::APIError => e
         if e.unauthorized?
           say_error "You have no access to '#{@app.code_name}' cloud defined in Cloudfile"
         else
           say_error e.message
+        end
+      end
+
+      desc "restore <filename>", "Restore database to state from filename"
+      method_option :cloud, :type => :string, :aliases => "-c",
+        :desc => "Specify which cloud to restore database snapshot for"
+      def restore(filename = nil)
+        logged_in?
+        multiple_clouds(options[:cloud], "backup restore <filename>", "Select cloud for which you want restore backup")
+        say_error "Filename is required" unless filename
+        backup = @app.database_backup(filename)
+        say "You are about restore database #{backup.kind} for cloud #{backup.code_name} to state from #{backup.filename}"
+        say_new_line
+        ask_to_restore_database
+        @app.restore_backup(filename)
+        say_new_line
+        say "Restore has been scheduled. Wait few minutes till database is restored."
+      rescue Client::APIError => e
+        if e.not_found?
+          say_error "Backup not found", :with_exit => false
+          say "You can list available backups with 'shelly backup list' command"
+        else
+          raise e
         end
       end
     end
