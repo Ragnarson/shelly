@@ -30,7 +30,7 @@ describe Shelly::CLI::Runner do
       runner.should be_debug
     end
 
-    it "should be failse if args doesn't include --debug option" do
+    it "should be false if args doesn't include --debug option" do
       runner = Shelly::CLI::Runner.new(%w(version))
       runner.should_not be_debug
     end
