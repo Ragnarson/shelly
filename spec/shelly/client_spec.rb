@@ -3,7 +3,7 @@ require "spec_helper"
 describe Shelly::Client::APIError do
   before do
     body = {"message" => "something went wrong", "errors" => [["first", "foo"]], "url" => "https://foo.bar"}
-    @error = Shelly::Client::APIError.new(body.to_json, 404)
+    @error = Shelly::Client::APIError.new(body, 404)
   end
 
   it "should return error message" do
@@ -28,7 +28,7 @@ describe Shelly::Client::APIError do
     end
     
     it "should return false if response status code is not 404" do
-      error = Shelly::Client::APIError.new({}.to_json, 500)
+      error = Shelly::Client::APIError.new({}, 500)
       error.should_not be_not_found
     end
   end
@@ -37,7 +37,7 @@ describe Shelly::Client::APIError do
     context "when error is caused by validation errors" do
       it "should return true" do
         body = {"message" => "Validation Failed"}
-        error = Shelly::Client::APIError.new(body.to_json, 422)
+        error = Shelly::Client::APIError.new(body, 422)
         error.should be_validation
       end
     end
@@ -53,7 +53,7 @@ describe Shelly::Client::APIError do
     context "when error is caused by unauthorized error" do
       it "should return true" do
         body = {"message" => "Unauthorized"}
-        error = Shelly::Client::APIError.new(body.to_json, 401)
+        error = Shelly::Client::APIError.new(body, 401)
         error.should be_unauthorized
       end
     end
@@ -237,7 +237,7 @@ describe Shelly::Client do
       @client.database_backup("foo", filename).should == expected
     end
   end
-  
+
   describe "#download_backup" do
     before do
       @filename = "2011.11.26.04.00.10.foo.postgres.tar.gz"
@@ -331,6 +331,13 @@ describe Shelly::Client do
           }.should raise_error(Shelly::Client::APIError, "random error happened")
         end
       end
+    end
+    
+    it "should return empty hash if response is not a valid JSON" do
+      JSON.should_receive(:parse).with("").and_raise(JSON::ParserError)
+      @response.stub(:code).and_return("204")
+      @response.stub(:body).and_return("")
+      @client.post("/api/apps/flower").should == {}
     end
   end
 

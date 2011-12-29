@@ -82,7 +82,7 @@ describe Shelly::CLI::User do
     context "on failure" do
       it "should raise an error if user does not have access to cloud" do
         response = {"message" => "Cloud foo-staging not found"}
-        exception = Shelly::Client::APIError.new(response.to_json, 404)
+        exception = Shelly::Client::APIError.new(response, 404)
         @client.stub(:app_users).and_raise(exception)
         $stdout.should_receive(:puts).with(red "You have no access to 'foo-staging' cloud defined in Cloudfile")
         invoke(@cli_user, :list)
@@ -143,7 +143,7 @@ describe Shelly::CLI::User do
     context "on failure" do
       it "should raise error if user doesnt have access to cloud" do
         response = {"message" => "Cloud foo-staging not found"}
-        exception = Shelly::Client::APIError.new(response.to_json, 404)
+        exception = Shelly::Client::APIError.new(response, 404)
         @client.stub(:send_invitation).and_raise(exception)
         $stdout.should_receive(:puts).with(red "You have no access to 'foo-staging' cloud defined in Cloudfile")
         invoke(@cli_user, :add, "megan@example.com")

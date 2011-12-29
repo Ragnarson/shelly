@@ -7,21 +7,21 @@ module Shelly
     class APIError < Exception
       attr_reader :status_code
       
-      def initialize(response_body, status_code)
-        @response = JSON.parse(response_body)
+      def initialize(body, status_code)
+        @body = body
         @status_code = status_code
       end
 
       def message
-        @response["message"]
+        @body["message"]
       end
 
       def errors
-        @response["errors"]
+        @body["errors"]
       end
 
       def url
-        @response["url"]
+        @body["url"]
       end
 
       def validation?
@@ -39,8 +39,8 @@ module Shelly
       end
 
       def each_error
-        @response["errors"].each do |index,message|
-          yield index.gsub('_',' ').capitalize + " " + message
+        errors.each do |field, message|
+          yield [field.gsub('_',' ').capitalize, message].join(" ")
         end
       end
     end
@@ -211,12 +211,11 @@ module Shelly
     end
 
     def process_response(response)
-      if [401, 404, 422, 500].include?(response.code)
-        raise APIError.new(response.body, response.code)
-      end
-
+      body = JSON.parse(response.body) rescue JSON::ParserError && {}
+      code = response.code
+      raise APIError.new(body, code) if (400..599).include?(code)
       response.return!
-      JSON.parse(response.body)
+      body
     end
   end
 end
