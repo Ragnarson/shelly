@@ -3,6 +3,7 @@ require "shelly/cli/runner"
 
 describe Shelly::CLI::Runner do
   before do
+    ENV['SHELLY_DEBUG'] = "false"
     @runner = Shelly::CLI::Runner.new(%w(version --debug))
   end
 
@@ -20,6 +21,13 @@ describe Shelly::CLI::Runner do
   describe "#debug?" do
     it "should be true if args include --debug option" do
       @runner.should be_debug
+    end
+    
+    it "should be true if SHELLY_DEBUG is set to true" do
+      runner = Shelly::CLI::Runner.new
+      runner.should_not be_debug
+      ENV['SHELLY_DEBUG'] = "true"
+      runner.should be_debug
     end
 
     it "should be failse if args doesn't include --debug option" do

@@ -6,13 +6,13 @@ module Shelly
       include Helpers
       attr_accessor :args
 
-      def initialize(args)
+      def initialize(args = [])
         super()
         @args = args
       end
 
       def debug?
-        args.include?("--debug")
+        args.include?("--debug") || ENV['SHELLY_DEBUG'] == "true"
       end
 
       def start
