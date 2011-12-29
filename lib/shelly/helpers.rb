@@ -45,6 +45,14 @@ module Shelly
       exit 1 unless delete_application == "yes"
     end
 
+    def inside_git_repository?
+      say_error "Must be run inside your project git repository" unless App.inside_git_repository?
+    end
+
+    def cloudfile_present?
+      say_error "No Cloudfile found" unless Cloudfile.present?
+    end
+
     def logged_in?
       user = Shelly::User.new
       user.token
@@ -74,4 +82,3 @@ module Shelly
 
   end
 end
-

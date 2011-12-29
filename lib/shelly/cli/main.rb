@@ -8,12 +8,16 @@ module Shelly
   module CLI
     class Main < Command
       include Thor::Actions
-      include Helpers
+
       register(User, "user", "user <command>", "Manages users using this cloud")
       register(Backup, "backup", "backup <command>", "Manages database backups from this cloud")
       register(Deploys, "deploys", "deploys <command>", "View cloud deploy logs")
       register(Config, "config", "config <command>", "Manages cloud configuration files")
       check_unknown_options!
+
+      before_hook :logged_in?, :only => [:add, :list, :start, :stop, :logs, :delete]
+      before_hook :inside_git_repository?, :only => [:add, :ip]
+      before_hook :cloudfile_present?, :only => [:logs, :stop, :start, :ip]
 
       map %w(-v --version) => :version
       desc "version", "Displays shelly version"
@@ -89,7 +93,6 @@ module Shelly
         :desc => "Array of your domains"
       desc "add", "Adds new cloud to Shelly Cloud"
       def add
-        say_error "Must be run inside your project git repository" unless App.inside_git_repository?
         check_options(options)
         @app = Shelly::App.new
         @app.code_name = options["code-name"] || ask_for_code_name
@@ -121,7 +124,6 @@ module Shelly
       desc "list", "Lists all your clouds"
       def list
         user = Shelly::User.new
-        user.token
         apps = user.apps
         unless apps.empty?
           say "You have following clouds available:", :green
@@ -141,8 +143,6 @@ module Shelly
 
       desc "ip", "Lists clouds IP's"
       def ip
-        say_error "Must be run inside your project git repository" unless App.inside_git_repository?
-        say_error "No Cloudfile found" unless Cloudfile.present?
         @cloudfile = Cloudfile.new
         @cloudfile.clouds.each do |cloud|
           begin
@@ -165,8 +165,6 @@ module Shelly
       method_option :cloud, :type => :string, :aliases => "-c",
         :desc => "Specify which cloud to start"
       def start
-        logged_in?
-        say_error "No Cloudfile found" unless Cloudfile.present?
         multiple_clouds(options[:cloud], "start", "Select cloud to start using:")
         @app.start
         say "Starting cloud #{@app.code_name}. Check status with:", :green
@@ -201,8 +199,6 @@ module Shelly
       method_option :cloud, :type => :string, :aliases => "-c",
         :desc => "Specify which cloud to stop"
       def stop
-        logged_in?
-        say_error "No Cloudfile found" unless Cloudfile.present?
         multiple_clouds(options[:cloud], "stop", "Select cloud to stop using:")
         @app.stop
         say "Cloud '#{@app.code_name}' stopped"
@@ -216,8 +212,6 @@ module Shelly
       method_option :cloud, :type => :string, :aliases => "-c",
         :desc => "Specify which cloud to delete"
       def delete
-        user = Shelly::User.new
-        user.token
         multiple_clouds(options[:cloud], "delete", "Select cloud to delete using:")
         say "You are about to delete application: #{@app.code_name}."
         say "Press Control-C at any moment to cancel."
@@ -244,8 +238,6 @@ module Shelly
         :desc => "Specify which cloud to show logs for"
       def logs
         cloud = options[:cloud]
-        logged_in?
-        say_error "No Cloudfile found" unless Cloudfile.present?
         multiple_clouds(cloud, "logs", "Select which to show logs for using:")
         begin
           logs = @app.application_logs

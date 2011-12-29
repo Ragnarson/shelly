@@ -4,6 +4,10 @@ module RSpec
       InputFaker.with_fake_input(strings) { yield }
     end
 
+    def invoke(object, *args)
+      object.class.send(:start, args.map { |arg| arg.to_s })
+    end
+
     def green(string)
       "\e[32m#{string}\e[0m"
     end
