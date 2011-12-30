@@ -3,7 +3,9 @@ require "core_ext/object"
 require "core_ext/hash"
 
 require "yaml"
-YAML::ENGINE.yamler = "syck"
+if YAML.const_defined?(:ENGINE)
+  YAML::ENGINE.yamler = 'syck'
+end
 
 require "shelly/helpers"
 require "shelly/model"
