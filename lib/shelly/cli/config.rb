@@ -34,10 +34,10 @@ module Shelly
               say "Cloud #{cloud} has no configuration files"
             end
           rescue Client::APIError => e
-            if e.unauthorized?
+            if e.not_found?
               say_error "You have no access to '#{@app.code_name}' cloud defined in Cloudfile"
             else
-              say_error e.message
+              raise e
             end
           end
         end
@@ -53,7 +53,7 @@ module Shelly
         say "Content of #{config["path"]}:", :green
         say config["content"]
       rescue Client::APIError => e
-        if e.unauthorized?
+        if e.not_found?
           say_error "You have no access to '#{@app.code_name}' cloud defined in Cloudfile"
         end
       end
@@ -69,7 +69,7 @@ module Shelly
         @app.create_config(path, output)
         say "File '#{path}' created, it will be used after next code deploy", :green
       rescue Client::APIError => e
-        if e.unauthorized?
+        if e.not_found?
           say_error "You have no access to '#{@app.code_name}' cloud defined in Cloudfile"
         elsif e.validation?
           e.each_error { |error| say_error error, :with_exit => false }
@@ -91,7 +91,7 @@ module Shelly
         @app.update_config(path, content)
         say "File '#{config["path"]}' updated, it will be used after next code deploy", :green
       rescue Client::APIError => e
-        if e.unauthorized?
+        if e.not_found?
           say_error "You have no access to '#{@app.code_name}' cloud defined in Cloudfile"
         elsif e.validation?
           e.each_error { |error| say_error error, :with_exit => false }
@@ -115,7 +115,7 @@ module Shelly
           say "File not deleted"
         end
       rescue Client::APIError => e
-        if e.unauthorized?
+        if e.not_found?
           say_error "You have no access to '#{@app.code_name}' cloud defined in Cloudfile"
         elsif e.validation?
           e.each_error { |error| say_error error, :with_exit => false }

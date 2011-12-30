@@ -19,7 +19,7 @@ module Shelly
             say "Cloud #{cloud}:"
             @app.users.each { |user| say "  #{user["email"]}" }
           rescue Client::APIError => e
-            if e.unauthorized?
+            if e.not_found?
               say_error "You have no access to '#{cloud}' cloud defined in Cloudfile", :with_exit => false
             else
               say_error e.message, :with_exit => false
@@ -39,7 +39,7 @@ module Shelly
           rescue Client::APIError => e
             if e.validation? && e.errors.include?(["email", "#{email} has already been taken"])
               say_error "User #{email} is already in the cloud #{cloud}", :with_exit => false
-            elsif e.unauthorized?
+            elsif e.not_found?
               say_error "You have no access to '#{cloud}' cloud defined in Cloudfile", :with_exit => false
             elsif e.validation?
               e.each_error { |error| say_error error, :with_exit => false }
@@ -50,11 +50,6 @@ module Shelly
           else
             say "Sending invitation to #{user_email} to work on #{cloud}", :green
           end
-        end
-      rescue Client::APIError => e
-        if e.unauthorized?
-          e.errors.each { |error| say_error error, :with_exit => false}
-          exit 1
         end
       end
     end

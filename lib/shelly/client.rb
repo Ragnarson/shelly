@@ -5,37 +5,40 @@ require "cgi"
 module Shelly
   class Client
     class APIError < Exception
-      attr_reader :status_code
+      attr_reader :status_code, :body
       
-      def initialize(body, status_code)
-        @body = body
+      def initialize(status_code, body = {})
         @status_code = status_code
+        @body = body
       end
 
       def message
-        @body["message"]
+        body["message"]
       end
 
       def errors
-        @body["errors"]
+        body["errors"]
       end
 
       def url
-        @body["url"]
+        body["url"]
       end
 
       def validation?
         message == "Validation Failed"
       end
-      
+
       def not_found?
         status_code == 404
       end
 
+      def resource_not_found
+        return unless not_found?
+        message =~ /Couldn't find (.*) with/ && $1.downcase.to_sym
+      end
+
       def unauthorized?
-        # FIXME: Return unauthorized if user has no access to cloud, checked by 401 status code
-        #        Return 404 if child of app doesn't exist, should be fixed in API
-        message == "Unauthorized" || message =~ /Cloud .+ not found/
+        status_code == 401
       end
 
       def each_error
@@ -213,7 +216,7 @@ module Shelly
     def process_response(response)
       body = JSON.parse(response.body) rescue JSON::ParserError && {}
       code = response.code
-      raise APIError.new(body, code) if (400..599).include?(code)
+      raise APIError.new(code, body) if (400..599).include?(code)
       response.return!
       body
     end

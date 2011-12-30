@@ -173,7 +173,7 @@ OUT
     context "on unsuccessful registration" do
       it "should display errors and exit with 1" do
         response = {"message" => "Validation Failed", "errors" => [["email", "has been already taken"]]}
-        exception = Shelly::Client::APIError.new(response, 422)
+        exception = Shelly::Client::APIError.new(422, response)
         @client.stub(:register_user).and_raise(exception)
         $stdout.should_receive(:puts).with("\e[31mEmail has been already taken\e[0m")
         lambda {
@@ -260,7 +260,7 @@ OUT
     context "on unauthorized user" do
       it "should exit with 1 and display error message" do
         response = {"message" => "Unauthorized", "url" => "https://admin.winniecloud.com/users/password/new"}
-        exception = Shelly::Client::APIError.new(response, 401)
+        exception = Shelly::Client::APIError.new(401, response)
         @client.stub(:token).and_raise(exception)
         $stdout.should_receive(:puts).with("\e[31mWrong email or password\e[0m")
         $stdout.should_receive(:puts).with("\e[31mYou can reset password by using link:\e[0m")
@@ -380,7 +380,7 @@ OUT
 
     it "should display validation errors if they are any" do
       response = {"message" => "Validation Failed", "errors" => [["code_name", "has been already taken"]]}
-      exception = Shelly::Client::APIError.new(response, 422)
+      exception = Shelly::Client::APIError.new(422, response)
       @app.should_receive(:create).and_raise(exception)
       $stdout.should_receive(:puts).with("\e[31mCode name has been already taken\e[0m")
       $stdout.should_receive(:puts).with("\e[31mFix erros in the below command and type it again to create your cloud\e[0m")
@@ -468,8 +468,7 @@ OUT
 
     context "on failure" do
       it "should display info that user is not logged in" do
-        body = {"message" => "Unauthorized"}
-        error = Shelly::Client::APIError.new(body, 401)
+        error = Shelly::Client::APIError.new(401)
         @client.stub(:token).and_raise(error)
         $stdout.should_receive(:puts).with(red "You are not logged in. To log in use:")
         $stdout.should_receive(:puts).with("  shelly login")
@@ -502,16 +501,15 @@ OUT
     end
 
     it "should exit if user doesn't have access to clouds in Cloudfile" do
-      response = {"message" => "Cloud foo-production not found"}
-      exception = Shelly::Client::APIError.new(response, 404)
+      response = {"message" => "Couldn't find Cloud with"}
+      exception = Shelly::Client::APIError.new(404, response)
       @client.stub(:start_cloud).and_raise(exception)
       $stdout.should_receive(:puts).with(red "You have no access to 'foo-production' cloud defined in Cloudfile")
       lambda { invoke(@main, :start) }.should raise_error(SystemExit)
     end
 
     it "should exit if user is not logged in" do
-      response = {"message" => "Unauthorized"}
-      exception = Shelly::Client::APIError.new(response, 401)
+      exception = Shelly::Client::APIError.new(401)
       @client.stub(:token).and_raise(exception)
       $stdout.should_receive(:puts).with(red "You are not logged in. To log in use:")
       $stdout.should_receive(:puts).with("  shelly login")
@@ -620,17 +618,13 @@ OUT
     end
 
     it "should exit if user doesn't have access to clouds in Cloudfile" do
-      response = {"message" => "Cloud foo-production not found"}
-      exception = Shelly::Client::APIError.new(response, 404)
-      @client.stub(:stop_cloud).and_raise(exception)
+      @client.stub(:stop_cloud).and_raise(Shelly::Client::APIError.new(404))
       $stdout.should_receive(:puts).with(red "You have no access to 'foo-production' cloud defined in Cloudfile")
       lambda { invoke(@main, :stop) }.should raise_error(SystemExit)
     end
 
     it "should exit if user is not logged in" do
-      response = {"message" => "Unauthorized"}
-      exception = Shelly::Client::APIError.new(response, 401)
-      @client.stub(:token).and_raise(exception)
+      @client.stub(:token).and_raise(Shelly::Client::APIError.new(401))
       $stdout.should_receive(:puts).with(red "You are not logged in. To log in use:")
       $stdout.should_receive(:puts).with("  shelly login")
       lambda { invoke(@main, :stop) }.should raise_error(SystemExit)
@@ -697,8 +691,7 @@ OUT
 
     context "on failure" do
       it "should raise an error if user does not have access to cloud" do
-        response = {"message" => "Cloud foo-staging not found"}
-        exception = Shelly::Client::APIError.new(response, 404)
+        exception = Shelly::Client::APIError.new(404, {"message" => "Cloud foo-staging not found"})
         @client.stub(:app).and_raise(exception)
         $stdout.should_receive(:puts).with(red "You have no access to 'foo-staging' cloud defined in Cloudfile")
         invoke(@main, :ip)
@@ -772,10 +765,9 @@ OUT
       end
 
       it "should raise Client::APIError" do
-        response = {"message" => "Application not found"}
-        exception = Shelly::Client::APIError.new(response, 404)
+        exception = Shelly::Client::APIError.new(404)
         @app.stub(:delete).and_raise(exception)
-        $stdout.should_receive(:puts).with("\e[31mApplication not found\e[0m")
+        $stdout.should_receive(:puts).with(red "You have no access to 'foo-bar' cloud defined in Cloudfile")
         lambda{
           fake_stdin(["yes", "yes", "yes"]) do
             invoke(@main, :delete, "--cloud", "foo-bar")
@@ -832,7 +824,7 @@ OUT
 
     it "should exit if user doesn't have access to clouds in Cloudfile" do
       response = {"message" => "Cloud foo-production not found"}
-      exception = Shelly::Client::APIError.new(response, 404)
+      exception = Shelly::Client::APIError.new(404, response)
       @client.stub(:application_logs).and_raise(exception)
       $stdout.should_receive(:puts).
         with(red "You have no access to cloud 'foo-production'")
@@ -840,8 +832,7 @@ OUT
     end
 
     it "should exit if user is not logged in" do
-      response = {"message" => "Unauthorized"}
-      exception = Shelly::Client::APIError.new(response, 401)
+      exception = Shelly::Client::APIError.new(401)
       @client.stub(:token).and_raise(exception)
       $stdout.should_receive(:puts).
         with(red "You are not logged in. To log in use:")

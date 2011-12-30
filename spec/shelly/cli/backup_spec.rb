@@ -30,8 +30,7 @@ describe Shelly::CLI::Backup do
     end
 
     it "should exit if user doesn't have access to cloud in Cloudfile" do
-      response = {"message" => "Cloud foo-staging not found"}
-      exception = Shelly::Client::APIError.new(response, 401)
+      exception = Shelly::Client::APIError.new(404, {"message" => "Couldn't find Cloud with"})
       @client.stub(:database_backups).and_raise(exception)
       $stdout.should_receive(:puts).with(red "You have no access to 'foo-staging' cloud defined in Cloudfile")
       lambda { invoke(@backup, :list) }.should raise_error(SystemExit)
@@ -104,7 +103,7 @@ describe Shelly::CLI::Backup do
 
       context "on backup not found" do
         it "it should display error message" do
-          exception = Shelly::Client::APIError.new({}.to_json, 404)
+          exception = Shelly::Client::APIError.new(404, {"message" => "Couldn't find Backup with"})
           @client.stub(:database_backup).and_raise(exception)
           $stdout.should_receive(:puts).with(red "Backup not found")
           $stdout.should_receive(:puts).with("You can list available backups with 'shelly backup list' command")
@@ -114,7 +113,7 @@ describe Shelly::CLI::Backup do
 
       context "on unsupported exception" do
         it "should re-raise it" do
-          exception = Shelly::Client::APIError.new({}, 500)
+          exception = Shelly::Client::APIError.new(500)
           @client.stub(:database_backup).and_raise(exception)
           $stdout.should_not_receive(:puts).with(red "Backup not found")
           $stdout.should_not_receive(:puts).with("You can list available backups with 'shelly backup list' command")
@@ -134,8 +133,7 @@ describe Shelly::CLI::Backup do
     end
 
     it "should exit if user doesn't have access to cloud in Cloudfile" do
-      response = {"message" => "Cloud foo-staging not found"}
-      exception = Shelly::Client::APIError.new(response, 404)
+      exception = Shelly::Client::APIError.new(404, {"message" => "Cloud foo-staging not found"})
       @client.stub(:request_backup).and_raise(exception)
       $stdout.should_receive(:puts).with(red "You have no access to 'foo-staging' cloud defined in Cloudfile")
       lambda { invoke(@backup, :create) }.should raise_error(SystemExit)
@@ -143,7 +141,7 @@ describe Shelly::CLI::Backup do
 
     it "should display errors and exit 1 when kind is not valid" do
       response = {"message" => "Wrong KIND argument. User one of following: postgresql, mongodb, redis"}
-      exception = Shelly::Client::APIError.new(response, 422)
+      exception = Shelly::Client::APIError.new(422, response)
       @client.should_receive(:request_backup).and_raise(exception)
       $stdout.should_receive(:puts).with(red response["message"])
       lambda { invoke(@backup, :create) }.should raise_error(SystemExit)

@@ -30,10 +30,10 @@ module Shelly
           say "No database backups available"
         end
       rescue Client::APIError => e
-        if e.unauthorized?
+        if e.not_found?
           say_error "You have no access to '#{@app.code_name}' cloud defined in Cloudfile"
         else
-          say_error e.message
+          raise e
         end
       end
 
@@ -49,11 +49,13 @@ module Shelly
         say_new_line
         say "Backup file saved to #{backup.filename}", :green
       rescue Client::APIError => e
-        if e.not_found?
+        case e.resource_not_found
+        when :cloud
+          say_error "You have no access to '#{@app.code_name}' cloud defined in Cloudfile"
+        when :backup
           say_error "Backup not found", :with_exit => false
           say "You can list available backups with 'shelly backup list' command"
-        else
-          raise e
+        else; raise e
         end
       end
 
@@ -66,7 +68,7 @@ module Shelly
         say "Backup requested. It can take up to several minutes for" +
           "the backup process to finish and the backup to show up in backups list.", :green
       rescue Client::APIError => e
-        if e.unauthorized?
+        if e.not_found?
           say_error "You have no access to '#{@app.code_name}' cloud defined in Cloudfile"
         else
           say_error e.message
