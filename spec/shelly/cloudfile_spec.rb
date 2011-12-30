@@ -22,4 +22,15 @@ describe Shelly::Cloudfile do
     end
   end
 
+  it "should allow improper yaml that works with syck" do
+    yaml = %Q{domains:
+  - *.example.com
+  - example.com
+    }
+    expect {
+      yaml = YAML.load(yaml)
+    }.to_not raise_error
+    yaml.should == {"domains" => ["*.example.com", "example.com"]}
+  end
+
 end
