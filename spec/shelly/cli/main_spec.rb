@@ -673,6 +673,14 @@ OUT
       Shelly::App.stub(:inside_git_repository?).and_return(true)
     end
 
+    it "should exit with message if command run outside git repository" do
+      Shelly::App.stub(:inside_git_repository?).and_return(false)
+      $stdout.should_receive(:puts).with("\e[31mMust be run inside your project git repository\e[0m")
+      lambda {
+        invoke(@main, :ip)
+      }.should raise_error(SystemExit)
+    end
+
     it "should exit with message if there is no Cloudfile" do
       File.delete("Cloudfile")
       $stdout.should_receive(:puts).with("\e[31mNo Cloudfile found\e[0m")
@@ -683,7 +691,7 @@ OUT
 
     context "on success" do
       it "should display mail and web server ip's" do
-        @client.stub(:app).and_return(response)
+        @client.stub(:app_ips).and_return(response)
         $stdout.should_receive(:puts).with("\e[32mCloud foo-production:\e[0m")
         $stdout.should_receive(:puts).with("  Web server IP: 22.22.22.22")
         $stdout.should_receive(:puts).with("  Mail server IP: 11.11.11.11")
@@ -696,10 +704,16 @@ OUT
     end
 
     context "on failure" do
+      it "should raise an error if user is not in git repository" do
+        Shelly::App.stub(:inside_git_repository?).and_return(false)
+        $stdout.should_receive(:puts).with("\e[31mMust be run inside your project git repository\e[0m")
+        lambda { invoke(@main, :ip) }.should raise_error(SystemExit)
+      end
+
       it "should raise an error if user does not have access to cloud" do
         response = {"message" => "Cloud foo-staging not found"}
         exception = Shelly::Client::APIError.new(response.to_json, 404)
-        @client.stub(:app).and_raise(exception)
+        @client.stub(:app_ips).and_raise(exception)
         $stdout.should_receive(:puts).with(red "You have no access to 'foo-staging' cloud defined in Cloudfile")
         invoke(@main, :ip)
       end

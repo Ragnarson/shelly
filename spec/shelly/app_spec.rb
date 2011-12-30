@@ -24,6 +24,13 @@ describe Shelly::App do
     end
   end
 
+  describe "#ips" do
+    it "should get app's ips" do
+      @client.should_receive(:app_ips).with("foo-staging")
+      @app.ips
+    end
+  end
+
   describe "#add_git_remote" do
     before do
       @app.stub(:git_url).and_return("git@git.shellycloud.com:foo-staging.git")
@@ -55,30 +62,6 @@ describe Shelly::App do
     it "should return only shelly genereted config files" do
       @client.should_receive(:app_configs).with("foo-staging").and_return([])
       @app.shelly_generated_configs
-    end
-  end
-  
-  describe "#attributes" do
-    before do
-      @response = {"web_server_ip" => "192.0.2.1", "mail_server_ip" => "192.0.2.3"}
-      @client.stub(:app).and_return(@response)
-    end
-    
-    it "should fetch app attributes from API and cache them" do
-      @client.should_receive(:app).with("foo-staging").exactly(:once).and_return(@response)
-      2.times { @app.attributes }
-    end
-    
-    describe "#web_server_ip" do
-      it "should return web server ip address" do
-        @app.web_server_ip.should == "192.0.2.1"
-      end
-    end
-    
-    describe "#mail_server_ip" do
-      it "should return mail server ip address" do
-        @app.mail_server_ip.should == "192.0.2.3"
-      end
     end
   end
 

@@ -143,14 +143,14 @@ module Shelly
 
       desc "ip", "Lists clouds IP's"
       def ip
-        say_error "No Cloudfile found" unless Cloudfile.present?
         @cloudfile = Cloudfile.new
         @cloudfile.clouds.each do |cloud|
           begin
             @app = App.new(cloud)
             say "Cloud #{cloud}:", :green
-            print_wrapped "Web server IP: #{@app.web_server_ip}", :ident => 2
-            print_wrapped "Mail server IP: #{@app.mail_server_ip}", :ident => 2
+            ips = @app.ips
+            print_wrapped "Web server IP: #{ips['web_server_ip']}", :ident => 2
+            print_wrapped "Mail server IP: #{ips['mail_server_ip']}", :ident => 2
           rescue Client::APIError => e
             if e.unauthorized?
               say_error "You have no access to '#{cloud}' cloud defined in Cloudfile", :with_exit => false

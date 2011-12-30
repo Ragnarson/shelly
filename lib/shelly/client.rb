@@ -115,10 +115,6 @@ module Shelly
     def apps
       get("/apps")
     end
-    
-    def app(code_name)
-      get("/apps/#{code_name}")
-    end
 
     def deploy_logs(cloud)
       get("/apps/#{cloud}/deploys")
@@ -150,6 +146,10 @@ module Shelly
 
     def app_users(cloud)
       get("/apps/#{cloud}/users")
+    end
+
+    def app_ips(cloud)
+      get("/apps/#{cloud}/ips")
     end
 
     def post(path, params = {})

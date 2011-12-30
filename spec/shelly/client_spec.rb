@@ -167,13 +167,12 @@ describe Shelly::Client do
       response.should == [{"email" => "test@example.com"}, {"email" => "test2@example.com"}]
     end
   end
-  
-  describe "#app" do
-    it "should fetch app from API" do
-      FakeWeb.register_uri(:get, api_url("apps/staging-foo"), 
-        :body => {:web_server_ip => "192.0.2.1", :mail_server_ip => "192.0.2.3"}.to_json)
-      response = @client.app("staging-foo")
-      response.should == {"web_server_ip" => "192.0.2.1", "mail_server_ip" => "192.0.2.3"}
+
+  describe "#app_ips" do
+    it "should send get request with app code_name" do
+      FakeWeb.register_uri(:get, api_url("apps/staging-foo/ips"), :body => {:mail_server_ip => "10.0.1.1", :web_server_ip => "88.198.21.187"}.to_json)
+      response = @client.app_ips("staging-foo")
+      response.should == {"mail_server_ip" => "10.0.1.1", "web_server_ip" => "88.198.21.187"}
     end
   end
 

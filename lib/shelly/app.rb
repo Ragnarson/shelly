@@ -1,13 +1,14 @@
 require 'erb'
 require 'launchy'
-require "shelly/backup"
 
 module Shelly
   class App < Model
     DATABASE_KINDS = %w(postgresql mongodb redis none)
 
     attr_accessor :code_name, :databases, :ruby_version, :environment,
-      :git_url, :domains, :web_server_ip, :mail_server_ip
+      :git_url, :domains
+
+    autoload :Backup, "shelly/backup"
 
     def initialize(code_name = nil)
       self.code_name = code_name
@@ -98,6 +99,10 @@ module Shelly
       File.basename(Dir.pwd)
     end
 
+    def ips
+      shelly.app_ips(code_name)
+    end
+
     def users
       shelly.app_users(code_name)
     end
@@ -128,18 +133,6 @@ module Shelly
 
     def delete_config(path)
       shelly.app_delete_config(code_name, path)
-    end
-
-    def attributes
-      @attributes ||= shelly.app(code_name)
-    end
-
-    def web_server_ip
-      attributes["web_server_ip"]
-    end
-
-    def mail_server_ip
-      attributes["mail_server_ip"]
     end
 
     def open_billing_page
