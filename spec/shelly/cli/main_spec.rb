@@ -737,7 +737,8 @@ OUT
         @app.should_not_receive(:delete)
         lambda{
           fake_stdin(["yes", "yes", "no"]) do
-            invoke(@main, :delete, "--cloud", "foo-staging")
+            @main.options = {:cloud => "foo-staging"}
+            invoke(@main, :delete)
           end
         }.should raise_error(SystemExit)
       end
@@ -753,7 +754,8 @@ OUT
         Shelly::App.stub(:inside_git_repository?).and_return(false)
         $stdout.should_receive(:puts).with("Missing git remote")
         fake_stdin(["yes", "yes", "yes"]) do
-          invoke(@main, :delete, "--cloud", "foo-staging")
+          @main.options = {:cloud => "foo-staging"}
+          invoke(@main, :delete)
         end
       end
     end
@@ -770,7 +772,8 @@ OUT
         $stdout.should_receive(:puts).with(red "You have no access to 'foo-bar' cloud defined in Cloudfile")
         lambda{
           fake_stdin(["yes", "yes", "yes"]) do
-            invoke(@main, :delete, "--cloud", "foo-bar")
+            @main.options = {:cloud => "foo-bar"}
+            invoke(@main, :delete)
           end
         }.should raise_error(SystemExit)
       end

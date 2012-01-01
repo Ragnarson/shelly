@@ -51,7 +51,7 @@ describe Shelly::CLI::User do
 
     it "should exit if user is not logged in" do
       response = {"message" => "Unauthorized", "url" => "https://admin.winniecloud.com/users/password/new"}
-      exception = Shelly::Client::APIError.new(response.to_json, 404)
+      exception = Shelly::Client::APIError.new(401, response)
       @client.stub(:token).and_raise(exception)
       $stdout.should_receive(:puts).with(red "You are not logged in. To log in use:")
       $stdout.should_receive(:puts).with("  shelly login")
