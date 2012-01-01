@@ -255,5 +255,11 @@ config
       end
     end
   end
+
+  describe "#to_s" do
+    it "should return code_name" do
+      @app.to_s.should == "foo-staging"
+    end
+  end
 end
 

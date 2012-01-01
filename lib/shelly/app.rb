@@ -150,5 +150,9 @@ module Shelly
     def self.inside_git_repository?
       system("git status > /dev/null 2>&1")
     end
+
+    def to_s
+      code_name
+    end
   end
 end
