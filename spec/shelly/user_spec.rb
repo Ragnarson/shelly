@@ -71,7 +71,7 @@ describe Shelly::User do
   end
 
   describe "#delete_credentials" do
-    it "should save credentials to file" do
+    it "should delete credentials from file" do
       @user.save_credentials
       File.exists?("~/.shelly/credentials").should be_true
       File.read("~/.shelly/credentials").should == "bob@example.com\nsecret"

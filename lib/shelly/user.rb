@@ -50,7 +50,9 @@ module Shelly
     end
 
     def delete_credentials
-      File.delete(credentials_path)
+      if File.exists?(credentials_path)
+        File.delete(credentials_path)
+      end
     end
 
     def ssh_key_exists?

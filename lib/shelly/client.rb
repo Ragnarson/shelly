@@ -108,7 +108,7 @@ module Shelly
     end
 
     def logout
-      delete("/token")
+      delete("/ssh_key")
     end
 
     def start_cloud(cloud)
