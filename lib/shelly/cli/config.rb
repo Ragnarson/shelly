@@ -57,7 +57,6 @@ module Shelly
         when :cloud
           say_error "You have no access to '#{@app.code_name}' cloud defined in Cloudfile"
         when :config
-          puts "conig!"
           say_error "Config '#{path}' not found", :with_exit => false
           say_error "You can list available config files with `shelly config list --cloud #{@app}`"
         else; raise e
@@ -97,9 +96,11 @@ module Shelly
         @app.update_config(path, content)
         say "File '#{config["path"]}' updated, it will be used after next code deploy", :green
       rescue Client::APIError => e
-        # FIXME: Handle case when file doesn't exist (404)
         if e.resource_not_found == :cloud
           say_error "You have no access to '#{@app.code_name}' cloud defined in Cloudfile"
+        elsif e.resource_not_found == :config
+          say_error "Config '#{path}' not found", :with_exit => false
+          say_error "You can list available config files with `shelly config list --cloud #{@app}`"
         elsif e.validation?
           e.each_error { |error| say_error error, :with_exit => false }
           exit 1
@@ -122,9 +123,11 @@ module Shelly
           say "File not deleted"
         end
       rescue Client::APIError => e
-        # FIXME: Handle case when file doesn't exist (404)
         if e.resource_not_found == :cloud
           say_error "You have no access to '#{@app.code_name}' cloud defined in Cloudfile"
+        elsif e.resource_not_found == :config
+          say_error "Config '#{path}' not found", :with_exit => false
+          say_error "You can list available config files with `shelly config list --cloud #{@app}`"
         elsif e.validation?
           e.each_error { |error| say_error error, :with_exit => false }
           exit 1

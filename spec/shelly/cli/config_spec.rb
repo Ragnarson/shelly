@@ -192,6 +192,31 @@ describe Shelly::CLI::Config do
       invoke(@config, :edit, "path")
     end
 
+    describe "on failure" do
+      context "when config doesn't exist" do
+        it "should display error message and exit with 1" do
+          exception = Shelly::Client::APIError.new(404, {"message" => "Couldn't find Config with"})
+          @client.should_receive(:app_config).and_raise(exception)
+          $stdout.should_receive(:puts).with(red "Config 'config/app.yml' not found")
+          $stdout.should_receive(:puts).with(red "You can list available config files with `shelly config list --cloud foo-staging`")
+          lambda {
+            invoke(@config, :edit, "config/app.yml")
+          }.should raise_error(SystemExit)
+        end
+      end
+
+      context "when user doesn't have access to cloud" do
+        it "should display error message and exit with 1" do
+          exception = Shelly::Client::APIError.new(404, {"message" => "Couldn't find Cloud with"})
+          @client.should_receive(:app_config).and_raise(exception)
+          $stdout.should_receive(:puts).with(red "You have no access to 'foo-staging' cloud defined in Cloudfile")
+          lambda {
+            invoke(@config, :edit, "config/app.yml")
+          }.should raise_error(SystemExit)
+        end
+      end
+    end
+
     context "multiple clouds" do
       before do
         File.open("Cloudfile", 'w') {|f| f.write("foo-staging:\nfoo-production:\n") }
@@ -260,5 +285,35 @@ describe Shelly::CLI::Config do
         end
       end
     end
+
+    describe "on failure" do
+      context "when config doesn't exist" do
+        it "should display error message and exit with 1" do
+          exception = Shelly::Client::APIError.new(404, {"message" => "Couldn't find Config with"})
+          @client.should_receive(:app_delete_config).and_raise(exception)
+          $stdout.should_receive(:puts).with(red "Config 'config/app.yml' not found")
+          $stdout.should_receive(:puts).with(red "You can list available config files with `shelly config list --cloud foo-staging`")
+          fake_stdin(["y"]) do
+            lambda {
+              invoke(@config, :delete, "config/app.yml")
+            }.should raise_error(SystemExit)
+          end
+        end
+      end
+
+      context "when user doesn't have access to cloud" do
+        it "should display error message and exit with 1" do
+          exception = Shelly::Client::APIError.new(404, {"message" => "Couldn't find Cloud with"})
+          @client.should_receive(:app_delete_config).and_raise(exception)
+          $stdout.should_receive(:puts).with(red "You have no access to 'foo-staging' cloud defined in Cloudfile")
+          fake_stdin(["y"]) do
+            lambda {
+              invoke(@config, :delete, "config/app.yml")
+            }.should raise_error(SystemExit)
+          end
+        end
+      end
+    end
+
   end
 end
