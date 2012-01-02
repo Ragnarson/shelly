@@ -60,13 +60,8 @@ module Shelly
         user.password = ask_for_password(:with_confirmation => false)
         user.login
         say "Login successful"
-        # FIXME: remove conflict boolean, move it to rescue block
-        begin user.upload_ssh_key
-          conflict = false
-        rescue RestClient::Conflict
-          conflict = true
-        end
-        say "Uploading your public SSH key" if conflict == false
+        user.upload_ssh_key
+        say "Uploading your public SSH key"
         list
       rescue Client::APIError => e
         if e.validation?
