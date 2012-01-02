@@ -70,6 +70,16 @@ describe Shelly::User do
     end
   end
 
+  describe "#delete_credentials" do
+    it "should save credentials to file" do
+      @user.save_credentials
+      File.exists?("~/.shelly/credentials").should be_true
+      File.read("~/.shelly/credentials").should == "bob@example.com\nsecret"
+      @user.delete_credentials
+      File.exists?("~/.shelly/credentials").should be_false
+    end
+  end
+
   describe "#load_credentials" do
     it "should load credentials from file" do
       config_dir = File.expand_path("~/.shelly")

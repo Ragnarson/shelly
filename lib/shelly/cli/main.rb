@@ -250,6 +250,14 @@ module Shelly
         end
       end
 
+      desc "logout", "Logout from Shelly Cloud"
+      def logout
+        user = Shelly::User.new
+        user.logout
+        say "Your public SSH key has been removed from Shelly Cloud"
+        say "You have been successfully logged out"
+      end
+
       # FIXME: move to helpers
       no_tasks do
         def check_options(options)

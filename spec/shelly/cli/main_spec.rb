@@ -33,6 +33,7 @@ Tasks:
   shelly ip                 # Lists clouds IP's
   shelly list               # Lists all your clouds
   shelly login [EMAIL]      # Logs user in to Shelly Cloud
+  shelly logout             # Logout from Shelly Cloud
   shelly logs               # Show latest application logs from each instance
   shelly register [EMAIL]   # Registers new user account on Shelly Cloud
   shelly start              # Starts the cloud
@@ -792,6 +793,26 @@ OUT
           invoke(@main, :delete)
         end
       end
+    end
+  end
+
+  describe "#logout" do
+    before do
+      @user = Shelly::User.new
+      @client.stub(:token).and_return("abc")
+      Shelly::User.stub(:new).and_return(@user)
+      FileUtils.mkdir_p("~/.ssh")
+      FileUtils.mkdir_p("~/.shelly")
+      File.open("~/.ssh/id_rsa.pub", "w") { |f| f << "ssh-key AAbbcc" }
+      File.open("~/.shelly/credentials", "w") { |f| f << "megan@fox.pl\nsecret" }
+      @client.stub(:logout)
+    end
+
+    it "should logout from shelly cloud and show message" do
+      $stdout.should_receive(:puts).with("Your public SSH key has been removed from Shelly Cloud")
+      $stdout.should_receive(:puts).with("You have been successfully logged out")
+      invoke(@main, :logout)
+      File.exists?("~/.shelly/credentials").should be_false
     end
   end
 
