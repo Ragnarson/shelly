@@ -50,18 +50,43 @@ describe Shelly::App do
 
   describe "#configs" do
     it "should get configs from client" do
-      @client.should_receive(:app_configs).with("foo-staging")
-      @app.configs
+      @client.should_receive(:app_configs).with("foo-staging").and_return(config_response)
+      @app.configs.should == config_response
     end
 
     it "should return only user config files" do
-      @client.should_receive(:app_configs).with("foo-staging").and_return([])
-      @app.user_configs
+      @client.should_receive(:app_configs).with("foo-staging").and_return(config_response)
+      @app.user_configs.should == [{"path" => "user_created", "created_by_user" => true}]
     end
 
     it "should return only shelly genereted config files" do
-      @client.should_receive(:app_configs).with("foo-staging").and_return([])
-      @app.shelly_generated_configs
+      @client.should_receive(:app_configs).with("foo-staging").and_return(config_response)
+      @app.shelly_generated_configs.should == [{"path" => "shelly_created", "created_by_user" => false}]
+    end
+
+    def config_response
+      [{"path" => "user_created", "created_by_user" => true},
+       {"path" => "shelly_created", "created_by_user" => false}]
+    end
+
+    it "should get config from client" do
+      @client.should_receive(:app_config).with("foo-staging", "path")
+      @app.config("path")
+    end
+
+    it "should create config using client" do
+      @client.should_receive(:app_create_config).with("foo-staging", "path", "content")
+      @app.create_config("path", "content")
+    end
+
+    it "should update config using client" do
+      @client.should_receive(:app_update_config).with("foo-staging", "path", "content")
+      @app.update_config("path", "content")
+    end
+
+    it "should delete config using client" do
+      @client.should_receive(:app_delete_config).with("foo-staging", "path")
+      @app.delete_config("path")
     end
   end
 

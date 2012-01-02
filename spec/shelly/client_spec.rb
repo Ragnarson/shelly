@@ -21,12 +21,12 @@ describe Shelly::Client::APIError do
   it "should return user friendly string" do
     @error.each_error{|error| error.should == "First foo"}
   end
-  
+
   describe "#not_found?" do
     it "should return true if response status code is 404" do
       @error.should be_not_found
     end
-    
+
     it "should return false if response status code is not 404" do
       error = Shelly::Client::APIError.new({}.to_json, 500)
       error.should_not be_not_found
@@ -71,7 +71,7 @@ describe Shelly::Client do
     ENV['SHELLY_URL'] = nil
     @client = Shelly::Client.new("bob@example.com", "secret")
   end
-  
+
   def api_url(resource = "")
     auth = "#{CGI.escape(@client.email)}:#{@client.password}@"
     "https://#{auth}admin.winniecloud.com/apiv2/#{resource}"
@@ -139,6 +139,38 @@ describe Shelly::Client do
       FakeWeb.register_uri(:get, api_url("apps/staging-foo/configs"), :body => [{:created_by_user => true, :path => "config/app.yml"}].to_json)
       response = @client.app_configs("staging-foo")
       response.should == [{"created_by_user" => true, "path" => "config/app.yml"}]
+    end
+  end
+
+  describe "#app_config" do
+    it "should send get request" do
+      FakeWeb.register_uri(:get, api_url("apps/staging-foo/configs/path"), :body => [{:content => "content", :path => "path"}].to_json)
+      response = @client.app_config("staging-foo", "path")
+      response.should == [{"content" => "content", "path" => "path"}]
+    end
+  end
+
+  describe "#app_create_config" do
+    it "should send post request" do
+      FakeWeb.register_uri(:post, api_url("apps/staging-foo/configs"), :body => {}.to_json, :status => 201)
+      response = @client.app_create_config("staging-foo", "path", "content")
+      response.should == {}
+    end
+  end
+
+  describe "#app_update_config" do
+    it "should send put request" do
+      FakeWeb.register_uri(:put, api_url("apps/staging-foo/configs/path"), :body => {}.to_json)
+      response = @client.app_update_config("staging-foo", "path", "content")
+      response.should == {}
+    end
+  end
+
+  describe "#app_delete_config" do
+    it "should send delete request" do
+      FakeWeb.register_uri(:delete, api_url("apps/staging-foo/configs/path"), :body => {}.to_json)
+      response = @client.app_delete_config("staging-foo", "path")
+      response.should == {}
     end
   end
 
@@ -221,7 +253,7 @@ describe Shelly::Client do
       @client.ssh_key_available?("ssh-key Abb")
     end
   end
-  
+
   describe "#database_backup" do
     it "should fetch backup description from API" do
       expected = {
@@ -232,11 +264,11 @@ describe Shelly::Client do
       filename = "2011.11.26.04.00.10.foo.postgres.tar.gz"
       url = api_url("apps/foo/database_backups/#{filename}")
       FakeWeb.register_uri(:get, url, :body => expected.to_json)
-      
+
       @client.database_backup("foo", filename).should == expected
     end
   end
-  
+
   describe "#download_backup" do
     before do
       @filename = "2011.11.26.04.00.10.foo.postgres.tar.gz"
@@ -246,18 +278,18 @@ describe Shelly::Client do
       response.stub(:read_body).and_yield("aaa").and_yield("bbbbb").and_yield("dddf")
       FakeWeb.register_uri(:get, url, :response => response)
     end
-    
+
     it "should write streamed database backup to file" do
       @client.download_backup("foo", @filename)
       File.read(@filename).should == %w(aaa bbbbb dddf).join
     end
-    
+
     it "should execute progress_callback with size of every chunk" do
       progress = mock(:update => true)
       progress.should_receive(:update).with(3)
       progress.should_receive(:update).with(5)
       progress.should_receive(:update).with(4)
-      
+
       callback = lambda { |size| progress.update(size) }
 
       @client.download_backup("foo", @filename, callback)
