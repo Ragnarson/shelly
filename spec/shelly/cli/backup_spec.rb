@@ -148,7 +148,7 @@ describe Shelly::CLI::Backup do
 
     it "should display information about request backup" do
       @client.stub(:request_backup)
-      $stdout.should_receive(:puts).with(green "Backup requested. It can take up to several minutes for" +
+      $stdout.should_receive(:puts).with(green "Backup requested. It can take up to several minutes for " +
           "the backup process to finish and the backup to show up in backups list.")
       @backup.create
     end
