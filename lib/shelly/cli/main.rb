@@ -143,16 +143,16 @@ module Shelly
 
       desc "ip", "Lists clouds IP's"
       def ip
+        say_error "No Cloudfile found" unless Cloudfile.present?
         @cloudfile = Cloudfile.new
         @cloudfile.clouds.each do |cloud|
           begin
             @app = App.new(cloud)
             say "Cloud #{cloud}:", :green
-            ips = @app.ips
-            print_wrapped "Web server IP: #{ips['web_server_ip']}", :ident => 2
-            print_wrapped "Mail server IP: #{ips['mail_server_ip']}", :ident => 2
+            print_wrapped "Web server IP: #{@app.web_server_ip}", :ident => 2
+            print_wrapped "Mail server IP: #{@app.mail_server_ip}", :ident => 2
           rescue Client::APIError => e
-            if e.unauthorized?
+            if e.not_found?
               say_error "You have no access to '#{cloud}' cloud defined in Cloudfile", :with_exit => false
             else
               say_error e.message, :with_exit => false
@@ -190,7 +190,7 @@ module Shelly
         end
         exit 1
       rescue Client::APIError => e
-        if e.unauthorized?
+        if e.not_found?
           say_error "You have no access to '#{@app.code_name}' cloud defined in Cloudfile"
         end
       end
@@ -203,7 +203,7 @@ module Shelly
         @app.stop
         say "Cloud '#{@app.code_name}' stopped"
       rescue Client::APIError => e
-        if e.unauthorized?
+        if e.not_found?
           say_error "You have no access to '#{@app.code_name}' cloud defined in Cloudfile"
         end
       end
@@ -230,7 +230,9 @@ module Shelly
           say "Missing git remote"
         end
       rescue Client::APIError => e
-        say_error e.message
+        if e.not_found?
+          say_error "You have no access to '#{@app.code_name}' cloud defined in Cloudfile"
+        end
       end
 
       desc "logs", "Show latest application logs from each instance"
@@ -247,7 +249,7 @@ module Shelly
             say log
           end
         rescue Client::APIError => e
-          if e.unauthorized?
+          if e.not_found?
             say_error "You have no access to cloud '#{cloud || @app.code_name}'"
           end
         end

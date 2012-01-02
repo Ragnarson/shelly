@@ -29,9 +29,7 @@ describe Shelly::CLI::Deploys do
     end
 
     it "should exit if user doesn't have access to cloud in Cloudfile" do
-      response = {"message" => "Cloud foo-staging not found"}
-      exception = Shelly::Client::APIError.new(response.to_json, 404)
-      @client.stub(:deploy_logs).and_raise(exception)
+      @client.stub(:deploy_logs).and_raise(Shelly::Client::APIError.new(404))
       $stdout.should_receive(:puts).with(red "You have no access to 'foo-staging' cloud defined in Cloudfile")
       lambda { invoke(@deploys, :list) }.should raise_error(SystemExit)
     end
@@ -88,12 +86,22 @@ describe Shelly::CLI::Deploys do
       }.should raise_error(SystemExit)
     end
 
-    it "should exit if user doesn't have access to cloud in Cloudfile" do
-      response = {"message" => "Cloud foo-staging not found"}
-      exception = Shelly::Client::APIError.new(response.to_json, 404)
-      @client.stub(:deploy_log).and_raise(exception)
-      $stdout.should_receive(:puts).with(red "You have no access to 'foo-staging' cloud defined in Cloudfile")
-      lambda { invoke(@deploys, :show, "last") }.should raise_error(SystemExit)
+    context "user doesn't have access to cloud" do
+      it "should exit 1 with message" do
+        exception = Shelly::Client::APIError.new(404, {"message" => "Couldn't find Cloud with"})
+        @client.stub(:deploy_log).and_raise(exception)
+        $stdout.should_receive(:puts).with(red "You have no access to 'foo-staging' cloud defined in Cloudfile")
+        lambda { @deploys.show("last") }.should raise_error(SystemExit)
+      end
+    end
+
+    context "log not found" do
+      it "should exit 1 with message" do
+        exception = Shelly::Client::APIError.new(404, {"message" => "Couldn't find Log with"})
+        @client.stub(:deploy_log).and_raise(exception)
+        $stdout.should_receive(:puts).with(red "Log not found, list all deploy logs using  `shelly deploys list --cloud=foo-staging`")
+        lambda { @deploys.show("last") }.should raise_error(SystemExit)
+      end
     end
 
     context "multiple clouds" do

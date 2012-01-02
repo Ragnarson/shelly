@@ -5,42 +5,45 @@ require "cgi"
 module Shelly
   class Client
     class APIError < Exception
-      attr_reader :status_code
+      attr_reader :status_code, :body
       
-      def initialize(response_body, status_code)
-        @response = JSON.parse(response_body)
+      def initialize(status_code, body = {})
         @status_code = status_code
+        @body = body
       end
 
       def message
-        @response["message"]
+        body["message"]
       end
 
       def errors
-        @response["errors"]
+        body["errors"]
       end
 
       def url
-        @response["url"]
+        body["url"]
       end
 
       def validation?
         message == "Validation Failed"
       end
-      
+
       def not_found?
         status_code == 404
       end
 
+      def resource_not_found
+        return unless not_found?
+        message =~ /Couldn't find (.*) with/ && $1.downcase.to_sym
+      end
+
       def unauthorized?
-        # FIXME: Return unauthorized if user has no access to cloud, checked by 401 status code
-        #        Return 404 if child of app doesn't exist, should be fixed in API
-        message == "Unauthorized" || message =~ /Cloud .+ not found/
+        status_code == 401
       end
 
       def each_error
-        @response["errors"].each do |index,message|
-          yield index.gsub('_',' ').capitalize + " " + message
+        errors.each do |field, message|
+          yield [field.gsub('_',' ').capitalize, message].join(" ")
         end
       end
     end
@@ -115,6 +118,10 @@ module Shelly
     def apps
       get("/apps")
     end
+    
+    def app(code_name)
+      get("/apps/#{code_name}")
+    end
 
     def deploy_logs(cloud)
       get("/apps/#{cloud}/deploys")
@@ -146,10 +153,6 @@ module Shelly
 
     def app_users(cloud)
       get("/apps/#{cloud}/users")
-    end
-
-    def app_ips(cloud)
-      get("/apps/#{cloud}/ips")
     end
 
     def post(path, params = {})
@@ -211,12 +214,11 @@ module Shelly
     end
 
     def process_response(response)
-      if [401, 404, 422, 500].include?(response.code)
-        raise APIError.new(response.body, response.code)
-      end
-
+      body = JSON.parse(response.body) rescue JSON::ParserError && {}
+      code = response.code
+      raise APIError.new(code, body) if (400..599).include?(code)
       response.return!
-      JSON.parse(response.body)
+      body
     end
   end
 end
