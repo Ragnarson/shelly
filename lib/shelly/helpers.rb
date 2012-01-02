@@ -53,6 +53,12 @@ module Shelly
       say_error "No Cloudfile found" unless Cloudfile.present?
     end
 
+    def ask_to_restore_database
+      delete_application_question = "I want to restore the database (yes/no):"
+      delete_application = ask(delete_application_question)
+      say_new_line say_error "Canceled" unless delete_application == "yes"
+    end
+
     def logged_in?
       user = Shelly::User.new
       user.token
