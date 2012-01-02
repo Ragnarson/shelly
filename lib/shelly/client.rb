@@ -137,8 +137,7 @@ module Shelly
     end
 
     def restore_backup(code_name, filename)
-      puts "/apps/#{code_name}/database_backups/restore"
-      put("/apps/#{code_name}/database_backups/restore", :id => filename)
+      put("/apps/#{code_name}/database_backups/#{filename}/restore")
     end
 
     def request_backup(code_name, kind = nil)
