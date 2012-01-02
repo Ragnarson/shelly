@@ -128,15 +128,15 @@ module Shelly
     end
 
     def deploy_logs(cloud)
-      get("/apps/#{cloud}/deploys")
+      get("/apps/#{cloud}/deployment_logs")
     end
 
     def deploy_log(cloud, log)
-      get("/apps/#{cloud}/deploys/#{log}")
+      get("/apps/#{cloud}/deployment_logs/#{log}")
     end
 
     def application_logs(cloud)
-      get("/apps/#{cloud}/logs")
+      get("/apps/#{cloud}/application_logs")
     end
 
     def database_backups(code_name)
