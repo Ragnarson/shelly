@@ -25,10 +25,10 @@ module Shelly
           say "No deploy logs available"
         end
       rescue Client::APIError => e
-        if e.unauthorized?
+        if e.not_found?
           say_error "You have no access to '#{@app.code_name}' cloud defined in Cloudfile"
         else
-          say_error e.message
+          raise e
         end
       end
 
@@ -56,12 +56,15 @@ module Shelly
           say("Starting thin", :green); say(content["thin_restart"])
         end
       rescue Client::APIError => e
-        if e.unauthorized?
-          say_error "You have no access to '#{@app.code_name}' cloud defined in Cloudfile"
-        elsif e.message == "Log not found"
-          say_error "Log not found, list all deploy logs using:", :with_exit => false
-          say "  shelly deploys list #{cloud}"
-          exit 1
+        if e.not_found?
+          case e.resource_not_found
+          when :cloud
+            say_error "You have no access to '#{@app.code_name}' cloud defined in Cloudfile"
+          when :log
+            say_error "Log not found, list all deploy logs using  `shelly deploys list --cloud=#{@app.code_name}`"
+          end
+        else
+          raise e
         end
       end
 

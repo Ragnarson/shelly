@@ -2,12 +2,13 @@ require "spec_helper"
 
 describe Shelly::Client::APIError do
   before do
-    body = {"message" => "something went wrong", "errors" => [["first", "foo"]], "url" => "https://foo.bar"}
-    @error = Shelly::Client::APIError.new(body.to_json, 404)
+    body = {"message" => "Couldn't find Cloud with code_name = fooo",
+      "errors" => [["first", "foo"]], "url" => "https://foo.bar"}
+    @error = Shelly::Client::APIError.new(404, body)
   end
 
   it "should return error message" do
-    @error.message.should == "something went wrong"
+    @error.message.should == "Couldn't find Cloud with code_name = fooo"
   end
 
   it "should return array of errors" do
@@ -19,7 +20,22 @@ describe Shelly::Client::APIError do
   end
 
   it "should return user friendly string" do
-    @error.each_error{|error| error.should == "First foo"}
+    @error.each_error { |error| error.should == "First foo" }
+  end
+
+  describe "#resource_not_found?" do
+    context "on 404 response" do
+      it "should return which resource was not found" do
+        @error.resource_not_found.should == :cloud
+      end
+    end
+
+    context "on non 404 response" do
+      it "should return nil" do
+        error = Shelly::Client::APIError.new(401)
+        error.resource_not_found.should be_nil
+      end
+    end
   end
 
   describe "#not_found?" do
@@ -28,7 +44,7 @@ describe Shelly::Client::APIError do
     end
 
     it "should return false if response status code is not 404" do
-      error = Shelly::Client::APIError.new({}.to_json, 500)
+      error = Shelly::Client::APIError.new(500)
       error.should_not be_not_found
     end
   end
@@ -37,7 +53,7 @@ describe Shelly::Client::APIError do
     context "when error is caused by validation errors" do
       it "should return true" do
         body = {"message" => "Validation Failed"}
-        error = Shelly::Client::APIError.new(body.to_json, 422)
+        error = Shelly::Client::APIError.new(422, body)
         error.should be_validation
       end
     end
@@ -52,8 +68,7 @@ describe Shelly::Client::APIError do
   describe "#unauthorized?" do
     context "when error is caused by unauthorized error" do
       it "should return true" do
-        body = {"message" => "Unauthorized"}
-        error = Shelly::Client::APIError.new(body.to_json, 401)
+        error = Shelly::Client::APIError.new(401)
         error.should be_unauthorized
       end
     end
@@ -199,12 +214,13 @@ describe Shelly::Client do
       response.should == [{"email" => "test@example.com"}, {"email" => "test2@example.com"}]
     end
   end
-
-  describe "#app_ips" do
-    it "should send get request with app code_name" do
-      FakeWeb.register_uri(:get, api_url("apps/staging-foo/ips"), :body => {:mail_server_ip => "10.0.1.1", :web_server_ip => "88.198.21.187"}.to_json)
-      response = @client.app_ips("staging-foo")
-      response.should == {"mail_server_ip" => "10.0.1.1", "web_server_ip" => "88.198.21.187"}
+  
+  describe "#app" do
+    it "should fetch app from API" do
+      FakeWeb.register_uri(:get, api_url("apps/staging-foo"), 
+        :body => {:web_server_ip => "192.0.2.1", :mail_server_ip => "192.0.2.3"}.to_json)
+      response = @client.app("staging-foo")
+      response.should == {"web_server_ip" => "192.0.2.1", "mail_server_ip" => "192.0.2.3"}
     end
   end
 
@@ -362,6 +378,13 @@ describe Shelly::Client do
           }.should raise_error(Shelly::Client::APIError, "random error happened")
         end
       end
+    end
+    
+    it "should return empty hash if response is not a valid JSON" do
+      JSON.should_receive(:parse).with("").and_raise(JSON::ParserError)
+      @response.stub(:code).and_return("204")
+      @response.stub(:body).and_return("")
+      @client.post("/api/apps/flower").should == {}
     end
   end
 

@@ -51,7 +51,7 @@ describe Shelly::CLI::User do
 
     it "should exit if user is not logged in" do
       response = {"message" => "Unauthorized", "url" => "https://admin.winniecloud.com/users/password/new"}
-      exception = Shelly::Client::APIError.new(response.to_json, 404)
+      exception = Shelly::Client::APIError.new(401, response)
       @client.stub(:token).and_raise(exception)
       $stdout.should_receive(:puts).with(red "You are not logged in. To log in use:")
       $stdout.should_receive(:puts).with("  shelly login")
@@ -81,8 +81,8 @@ describe Shelly::CLI::User do
 
     context "on failure" do
       it "should raise an error if user does not have access to cloud" do
-        response = {"message" => "Cloud foo-staging not found"}
-        exception = Shelly::Client::APIError.new(response.to_json, 404)
+        response = {"message" => "Couldn't find Cloud with code_name = foo-staging"}
+        exception = Shelly::Client::APIError.new(404, response)
         @client.stub(:app_users).and_raise(exception)
         $stdout.should_receive(:puts).with(red "You have no access to 'foo-staging' cloud defined in Cloudfile")
         invoke(@cli_user, :list)
@@ -143,7 +143,7 @@ describe Shelly::CLI::User do
     context "on failure" do
       it "should raise error if user doesnt have access to cloud" do
         response = {"message" => "Cloud foo-staging not found"}
-        exception = Shelly::Client::APIError.new(response.to_json, 404)
+        exception = Shelly::Client::APIError.new(404, response)
         @client.stub(:send_invitation).and_raise(exception)
         $stdout.should_receive(:puts).with(red "You have no access to 'foo-staging' cloud defined in Cloudfile")
         invoke(@cli_user, :add, "megan@example.com")
