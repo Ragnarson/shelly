@@ -252,6 +252,7 @@ module Shelly
 
       desc "logout", "Logout from Shelly Cloud"
       def logout
+        logged_in?
         user = Shelly::User.new
         user.logout
         say "Your public SSH key has been removed from Shelly Cloud"

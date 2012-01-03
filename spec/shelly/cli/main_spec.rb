@@ -803,6 +803,7 @@ OUT
       Shelly::User.stub(:new).and_return(@user)
       FileUtils.mkdir_p("~/.ssh")
       FileUtils.mkdir_p("~/.shelly")
+      File.open("Cloudfile", 'w') {|f| f.write("foo-production:\n") }
       File.open("~/.ssh/id_rsa.pub", "w") { |f| f << "ssh-key AAbbcc" }
       File.open("~/.shelly/credentials", "w") { |f| f << "megan@fox.pl\nsecret" }
       @client.stub(:logout)
@@ -813,6 +814,15 @@ OUT
       $stdout.should_receive(:puts).with("You have been successfully logged out")
       invoke(@main, :logout)
       File.exists?("~/.shelly/credentials").should be_false
+    end
+
+    it "should exit if user is not logged in" do
+      exception = Shelly::Client::APIError.new(401)
+      @client.stub(:token).and_raise(exception)
+      $stdout.should_receive(:puts).
+        with(red "You are not logged in. To log in use:")
+      $stdout.should_receive(:puts).with("  shelly login")
+      lambda { invoke(@main, :logs) }.should raise_error(SystemExit)
     end
   end
 
