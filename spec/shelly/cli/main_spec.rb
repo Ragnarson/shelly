@@ -803,14 +803,22 @@ OUT
       Shelly::User.stub(:new).and_return(@user)
       FileUtils.mkdir_p("~/.ssh")
       FileUtils.mkdir_p("~/.shelly")
-      File.open("Cloudfile", 'w') {|f| f.write("foo-production:\n") }
+      File.open("Cloudfile", 'w') { |f| f.write("foo-production:\n") }
       File.open("~/.ssh/id_rsa.pub", "w") { |f| f << "ssh-key AAbbcc" }
+      @key_path = File.expand_path("~/.ssh/id_rsa.pub")
       File.open("~/.shelly/credentials", "w") { |f| f << "megan@fox.pl\nsecret" }
       @client.stub(:logout)
     end
 
     it "should logout from shelly cloud and show message" do
       $stdout.should_receive(:puts).with("Your public SSH key has been removed from Shelly Cloud")
+      $stdout.should_receive(:puts).with("You have been successfully logged out")
+      invoke(@main, :logout)
+      File.exists?("~/.shelly/credentials").should be_false
+    end
+
+    it "should remove only credentiales when local ssh key doesn't exist" do
+      File.delete(@key_path)
       $stdout.should_receive(:puts).with("You have been successfully logged out")
       invoke(@main, :logout)
       File.exists?("~/.shelly/credentials").should be_false

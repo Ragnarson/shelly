@@ -107,8 +107,8 @@ module Shelly
       post("/ssh_key", :ssh_key => ssh_key)
     end
 
-    def logout
-      delete("/ssh_key")
+    def logout(ssh_key)
+      delete("/ssh_key", :ssh_key => ssh_key)
     end
 
     def start_cloud(cloud)

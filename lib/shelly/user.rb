@@ -26,8 +26,9 @@ module Shelly
     end
 
     def logout
-      shelly.logout
       delete_credentials
+      ssh_key = File.read(ssh_key_path)
+      shelly.logout(ssh_key)
     end
 
     def token

@@ -257,6 +257,8 @@ module Shelly
         user.logout
         say "Your public SSH key has been removed from Shelly Cloud"
         say "You have been successfully logged out"
+      rescue Errno::ENOENT => e
+        say "You have been successfully logged out"
       end
 
       # FIXME: move to helpers
