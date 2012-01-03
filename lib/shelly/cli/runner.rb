@@ -17,7 +17,7 @@ module Shelly
 
       def start
         Shelly::CLI::Main.start(args)
-      rescue Exception => e
+      rescue => e
         raise e if debug?
         say_error "Unknown error, to see debug information run command with --debug"
       end
