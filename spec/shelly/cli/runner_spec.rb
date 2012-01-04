@@ -43,7 +43,7 @@ describe Shelly::CLI::Runner do
     end
 
     it "should rescue interrupt exception and display message" do
-      Shelly::CLI::Main.stub(:start).and_raise(RuntimeError::Interrupt.new)
+      Shelly::CLI::Main.stub(:start).and_raise(Interrupt.new)
       runner = Shelly::CLI::Runner.new(%w(login))
       $stdout.should_receive(:puts).with("\n")
       $stdout.should_receive(:puts).with("[canceled]")
