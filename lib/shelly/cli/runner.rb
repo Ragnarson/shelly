@@ -17,11 +17,12 @@ module Shelly
 
       def start
         Shelly::CLI::Main.start(args)
-      rescue Interrupt => e
+      rescue SystemExit; raise
+      rescue Interrupt
         say_new_line
         say_error "[canceled]"
-      rescue => e
-        raise e if debug?
+      rescue Exception
+        raise if debug?
         say_error "Unknown error, to see debug information run command with --debug"
       end
     end
