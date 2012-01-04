@@ -1,83 +1,48 @@
 require "spec_helper"
 
-describe Shelly::Client::APIError do
+describe Shelly::Client::NotFoundException do
+  describe "#resource" do
+    it "should return name of not found resource" do
+      message = {"message" => "Couldn't find Log with"}
+      exception = Shelly::Client::NotFoundException.new(message)
+      exception.resource.should == :log
+    end
+  end
+end
+
+describe Shelly::Client::ValidationException do
+  before do
+    @body = {"message" => "Couldn't find Cloud with code_name = fooo",
+      "errors" => [["first", "foo"]], "url" => "https://foo.bar"}
+    @exception = Shelly::Client::ValidationException.new(@body)
+  end
+
+  describe "#errors" do
+    it "should return errors array" do
+      @exception.errors.should == [["first", "foo"]]
+    end
+  end
+
+  describe "#each_error" do
+    it "should return user friendly string" do
+      @exception.each_error { |error| error.should == "First foo" }
+    end
+  end
+end
+
+describe Shelly::Client::APIException do
   before do
     body = {"message" => "Couldn't find Cloud with code_name = fooo",
       "errors" => [["first", "foo"]], "url" => "https://foo.bar"}
-    @error = Shelly::Client::APIError.new(404, body)
+    @error = Shelly::Client::APIException.new(body)
   end
 
   it "should return error message" do
     @error.message.should == "Couldn't find Cloud with code_name = fooo"
   end
 
-  it "should return array of errors" do
-    @error.errors.should == [["first", "foo"]]
-  end
-
   it "should return url" do
     @error.url.should == "https://foo.bar"
-  end
-
-  it "should return user friendly string" do
-    @error.each_error { |error| error.should == "First foo" }
-  end
-
-  describe "#resource_not_found?" do
-    context "on 404 response" do
-      it "should return which resource was not found" do
-        @error.resource_not_found.should == :cloud
-      end
-    end
-
-    context "on non 404 response" do
-      it "should return nil" do
-        error = Shelly::Client::APIError.new(401)
-        error.resource_not_found.should be_nil
-      end
-    end
-  end
-
-  describe "#not_found?" do
-    it "should return true if response status code is 404" do
-      @error.should be_not_found
-    end
-
-    it "should return false if response status code is not 404" do
-      error = Shelly::Client::APIError.new(500)
-      error.should_not be_not_found
-    end
-  end
-
-  describe "#validation?" do
-    context "when error is caused by validation errors" do
-      it "should return true" do
-        body = {"message" => "Validation Failed"}
-        error = Shelly::Client::APIError.new(422, body)
-        error.should be_validation
-      end
-    end
-
-    context "when error is not caused by validation errors" do
-      it "should return false" do
-        @error.should_not be_validation
-      end
-    end
-  end
-
-  describe "#unauthorized?" do
-    context "when error is caused by unauthorized error" do
-      it "should return true" do
-        error = Shelly::Client::APIError.new(401)
-        error.should be_unauthorized
-      end
-    end
-
-    context "when error is not caused by unauthorized" do
-      it "should return false" do
-        @error.should_not be_unauthorized
-      end
-    end
   end
 end
 
@@ -367,16 +332,53 @@ describe Shelly::Client do
       @client.get('/account')
     end
 
-    %w(401, 404 422 500).each do |code|
-      context "on #{code} response code" do
-        it "should raise APIError" do
-          @response.stub(:code).and_return(code.to_i)
-          @response.stub(:body).and_return({"message" => "random error happened"}.to_json)
+    context "on 401 response" do
+      it "should raise UnauthorizedException" do
+        @response.stub(:code).and_return(401)
+        @response.stub(:body).and_return("")
+        lambda {
+          @client.post("/")
+        }.should raise_error(Shelly::Client::UnauthorizedException)
+      end
+    end
 
-          lambda {
-            @client.post("/api/apps/flower/command", :body => "puts User.count")
-          }.should raise_error(Shelly::Client::APIError, "random error happened")
-        end
+    context "on 404 response" do
+      it "should raise NotFoundException" do
+        @response.stub(:code).and_return(404)
+        @response.stub(:body).and_return("")
+        lambda {
+          @client.post("/")
+        }.should raise_error(Shelly::Client::NotFoundException)
+      end
+    end
+
+    context "on 409 response" do
+      it "should raise ConflictException" do
+        @response.stub(:code).and_return(409)
+        @response.stub(:body).and_return("")
+        lambda {
+          @client.post("/")
+        }.should raise_error(Shelly::Client::ConflictException)
+      end
+    end
+
+    context "on 422 response" do
+      it "should raise ValidationException" do
+        @response.stub(:code).and_return(422)
+        @response.stub(:body).and_return("")
+        lambda {
+          @client.post("/")
+        }.should raise_error(Shelly::Client::ValidationException)
+      end
+    end
+
+    context "on unsupported response" do
+      it "should raise generic APIException" do
+        @response.stub(:code).and_return(500)
+        @response.stub(:body).and_return("")
+        lambda {
+          @client.post("/")
+        }.should raise_error(Shelly::Client::APIException)
       end
     end
 
