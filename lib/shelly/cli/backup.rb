@@ -65,7 +65,7 @@ module Shelly
         say "Backup requested. It can take up to several minutes for " +
           "the backup process to finish and the backup to show up in backups list.", :green
       rescue Client::ValidationException => e
-        say_error e.message
+        say_error e[:message]
       rescue Client::NotFoundException => e
         raise unless e.resource == :cloud
         say_error "You have no access to '#{@app}' cloud defined in Cloudfile"

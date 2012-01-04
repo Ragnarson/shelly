@@ -523,21 +523,21 @@ OUT
 
     context "on failure" do
       it "should show information that cloud is running" do
-        raise_conflict(:state => "running")
+        raise_conflict("state" => "running")
         $stdout.should_receive(:puts).with(red "Not starting: cloud 'foo-production' is already running")
         lambda { invoke(@main, :start)  }.should raise_error(SystemExit)
       end
 
       %w{deploying configuring}.each do |state|
         it "should show information that cloud is #{state}" do
-          raise_conflict(:state => state)
+          raise_conflict("state" => state)
           $stdout.should_receive(:puts).with(red "Not starting: cloud 'foo-production' is currently deploying")
           lambda { invoke(@main, :start) }.should raise_error(SystemExit)
         end
       end
 
       it "should show information that cloud has no code" do
-        raise_conflict(:state => "no_code")
+        raise_conflict("state" => "no_code")
         $stdout.should_receive(:puts).with(red "Not starting: no source code provided")
         $stdout.should_receive(:puts).with(red "Push source code using:")
         $stdout.should_receive(:puts).with("  git push production master")
@@ -546,7 +546,7 @@ OUT
 
       %w{deploy_failed configuration_failed}.each do |state|
         it "should show information that cloud #{state}" do
-          raise_conflict(:state => state, :link => "http://example.com/logs")
+          raise_conflict("state" => state, "link" => "http://example.com/logs")
           $stdout.should_receive(:puts).with(red "Not starting: deployment failed")
           $stdout.should_receive(:puts).with(red "Support has been notified")
           $stdout.should_receive(:puts).with(red "See http://example.com/logs for reasons of failure")
@@ -554,16 +554,15 @@ OUT
         end
       end
       it "should open billing page" do
-        raise_conflict(:state => "no_billing")
+        raise_conflict("state" => "no_billing")
         $stdout.should_receive(:puts).with(red "Please fill in billing details to start foo-production. Opening browser.")
         @app.should_receive(:open_billing_page)
         lambda { invoke(@main, :start) }.should raise_error(SystemExit)
       end
 
       def raise_conflict(options = {})
-        options = {:state => "no_code"}.merge(options)
-        exception = RestClient::Conflict.new
-        exception.stub(:response).and_return(options.to_json)
+        body = {"state" => "no_code"}.merge(options)
+        exception = Shelly::Client::ConflictException.new(body)
         @client.stub(:start_cloud).and_raise(exception)
       end
     end

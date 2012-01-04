@@ -36,13 +36,12 @@ describe Shelly::Client::APIException do
       "errors" => [["first", "foo"]], "url" => "https://foo.bar"}
     @error = Shelly::Client::APIException.new(body)
   end
-
-  it "should return error message" do
-    @error.message.should == "Couldn't find Cloud with code_name = fooo"
-  end
-
-  it "should return url" do
-    @error.url.should == "https://foo.bar"
+  
+  describe "#[]" do
+    it "should return value of given key from response body" do
+      @error["message"].should == "Couldn't find Cloud with code_name = fooo"
+      @error[:message].should == "Couldn't find Cloud with code_name = fooo"
+    end
   end
 end
 

@@ -11,14 +11,9 @@ module Shelly
         @status_code = status_code
         @body = body
       end
-
-      def message
-        body["message"]
-      end
-
-      # FIXME: Get rid of it
-      def url
-        body["url"]
+      
+      def [](key)
+        body[key.to_s]
       end
     end
 
@@ -26,7 +21,7 @@ module Shelly
     class ConflictException < APIException; end
     class ValidationException < APIException
       def errors
-        body["errors"]
+        self[:errors]
       end
 
       def each_error
@@ -39,7 +34,7 @@ module Shelly
       # FIXME: We shouldn't get this from string, API should return hash
       # e.g. {"resource" => "cloud", "message" => "Not Found"}
       def resource
-        message =~ /Couldn't find (.*) with/ && $1.downcase.to_sym
+        self[:message] =~ /Couldn't find (.*) with/ && $1.downcase.to_sym
       end
     end
 

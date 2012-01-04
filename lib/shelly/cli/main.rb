@@ -67,7 +67,7 @@ module Shelly
       rescue Client::UnauthorizedException => e
         say_error "Wrong email or password", :with_exit => false
         say_error "You can reset password by using link:", :with_exit => false
-        say_error "#{e.url}"
+        say_error "#{e[:url]}"
       rescue Errno::ENOENT => e
         say_error e, :with_exit => false
         say_error "Use ssh-keygen to generate ssh key pair"
@@ -150,9 +150,8 @@ module Shelly
         @app.start
         say "Starting cloud #{@app.code_name}. Check status with:", :green
         say "  shelly list"
-      rescue RestClient::Conflict => e
-        response =  JSON.parse(e.response)
-        case response['state']
+      rescue Client::ConflictException => e
+        case e[:state]
         when "running"
           say_error "Not starting: cloud '#{@app.code_name}' is already running"
         when "deploying", "configuring"
@@ -164,7 +163,7 @@ module Shelly
         when "deploy_failed", "configuration_failed"
           say_error "Not starting: deployment failed", :with_exit => false
           say_error "Support has been notified", :with_exit => false
-          say_error "See #{response['link']} for reasons of failure"
+          say_error "See #{e[:link]} for reasons of failure"
         when "no_billing"
           say_error "Please fill in billing details to start foo-production. Opening browser.", :with_exit => false
           @app.open_billing_page
