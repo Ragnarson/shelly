@@ -49,7 +49,7 @@ module Shelly
         case e.resource
         when :cloud
           say_error "You have no access to '#{@app}' cloud defined in Cloudfile"
-        when :backup
+        when :database_backup
           say_error "Backup not found", :with_exit => false
           say "You can list available backups with `shelly backup list` command"
         else; raise
@@ -88,7 +88,7 @@ module Shelly
         case e.resource
         when :cloud
           say_error "You have no access to '#{@app}' cloud defined in Cloudfile"
-        when :backup
+        when :database_backup
           say_error "Backup not found", :with_exit => false
           say "You can list available backups with `shelly backup list` command"
         else; raise

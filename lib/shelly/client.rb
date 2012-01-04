@@ -31,10 +31,8 @@ module Shelly
       end
     end
     class NotFoundException < APIException
-      # FIXME: We shouldn't get this from string, API should return hash
-      # e.g. {"resource" => "cloud", "message" => "Not Found"}
       def resource
-        self[:message] =~ /Couldn't find (.*) with/ && $1.downcase.to_sym
+        self[:resource].to_sym
       end
     end
 

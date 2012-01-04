@@ -482,8 +482,7 @@ OUT
     end
 
     it "should exit if user doesn't have access to clouds in Cloudfile" do
-      body = {"message" => "Couldn't find Cloud with"}
-      exception = Shelly::Client::NotFoundException.new(body)
+      exception = Shelly::Client::NotFoundException.new("resource" => "cloud")
       @client.stub(:start_cloud).and_raise(exception)
       $stdout.should_receive(:puts).with(red "You have no access to 'foo-production' cloud defined in Cloudfile")
       lambda { invoke(@main, :start) }.should raise_error(SystemExit)
@@ -590,8 +589,7 @@ OUT
     end
 
     it "should exit if user doesn't have access to clouds in Cloudfile" do
-      body = {"message" => "Couldn't find Cloud with"}
-      @client.stub(:stop_cloud).and_raise(Shelly::Client::NotFoundException.new(body))
+      @client.stub(:stop_cloud).and_raise(Shelly::Client::NotFoundException.new("resource" => "cloud"))
       $stdout.should_receive(:puts).with(red "You have no access to 'foo-production' cloud defined in Cloudfile")
       lambda { invoke(@main, :stop) }.should raise_error(SystemExit)
     end
@@ -657,7 +655,7 @@ OUT
 
     context "on failure" do
       it "should raise an error if user does not have access to cloud" do
-        exception = Shelly::Client::NotFoundException.new({"message" => "Couldn't find Cloud with"})
+        exception = Shelly::Client::NotFoundException.new("resource" => "cloud")
         @client.stub(:app).and_raise(exception)
         $stdout.should_receive(:puts).with(red "You have no access to 'foo-staging' cloud defined in Cloudfile")
         invoke(@main, :ip)
@@ -733,7 +731,7 @@ OUT
       end
 
       it "should raise Client::NotFoundException" do
-        exception = Shelly::Client::NotFoundException.new({"message" => "Couldn't find Cloud with"})
+        exception = Shelly::Client::NotFoundException.new("resource" => "cloud")
         @app.stub(:delete).and_raise(exception)
         $stdout.should_receive(:puts).with(red "You have no access to 'foo-bar' cloud defined in Cloudfile")
         lambda{
@@ -829,7 +827,7 @@ OUT
     end
 
     it "should exit if user doesn't have access to clouds in Cloudfile" do
-      exception = Shelly::Client::NotFoundException.new({"message" => "Couldn't find Cloud with"})
+      exception = Shelly::Client::NotFoundException.new("resource" => "cloud")
       @client.stub(:application_logs).and_raise(exception)
       $stdout.should_receive(:puts).
         with(red "You have no access to 'foo-production' cloud defined in Cloudfile")

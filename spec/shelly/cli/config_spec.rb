@@ -34,8 +34,7 @@ describe Shelly::CLI::Config do
     end
 
     it "should exit if user doesn't have access to cloud in Cloudfile" do
-      response = {"message" => "Couldn't find Cloud with code_name = foo-staging"}
-      exception = Shelly::Client::NotFoundException.new(response)
+      exception = Shelly::Client::NotFoundException.new("resource" => "cloud")
       @client.stub(:app_configs).and_raise(exception)
       $stdout.should_receive(:puts).with(red "You have no access to 'foo-production' cloud defined in Cloudfile")
       lambda { invoke(@config, :list) }.should raise_error(SystemExit)
@@ -79,7 +78,7 @@ describe Shelly::CLI::Config do
     describe "on failure" do
       context "when config doesn't exist" do
         it "should display error message and exit with 1" do
-          exception = Shelly::Client::NotFoundException.new({"message" => "Couldn't find Config with"})
+          exception = Shelly::Client::NotFoundException.new("resource" => "config")
           @client.should_receive(:app_config).and_raise(exception)
           $stdout.should_receive(:puts).with(red "Config 'config/app.yml' not found")
           $stdout.should_receive(:puts).with(red "You can list available config files with `shelly config list --cloud foo-staging`")
@@ -91,7 +90,7 @@ describe Shelly::CLI::Config do
 
       context "when user doesn't have access to cloud" do
         it "should display error message and exit with 1" do
-          exception = Shelly::Client::NotFoundException.new({"message" => "Couldn't find Cloud with"})
+          exception = Shelly::Client::NotFoundException.new("resource" => "cloud")
           @client.should_receive(:app_config).and_raise(exception)
           $stdout.should_receive(:puts).with(red "You have no access to 'foo-staging' cloud defined in Cloudfile")
           lambda {
@@ -207,7 +206,7 @@ describe Shelly::CLI::Config do
     describe "on failure" do
       context "when config doesn't exist" do
         it "should display error message and exit with 1" do
-          exception = Shelly::Client::NotFoundException.new({"message" => "Couldn't find Config with"})
+          exception = Shelly::Client::NotFoundException.new("resource" => "config")
           @client.should_receive(:app_config).and_raise(exception)
           $stdout.should_receive(:puts).with(red "Config 'config/app.yml' not found")
           $stdout.should_receive(:puts).with(red "You can list available config files with `shelly config list --cloud foo-staging`")
@@ -219,7 +218,7 @@ describe Shelly::CLI::Config do
 
       context "when user doesn't have access to cloud" do
         it "should display error message and exit with 1" do
-          exception = Shelly::Client::NotFoundException.new({"message" => "Couldn't find Cloud with"})
+          exception = Shelly::Client::NotFoundException.new("resource" => "cloud")
           @client.should_receive(:app_config).and_raise(exception)
           $stdout.should_receive(:puts).with(red "You have no access to 'foo-staging' cloud defined in Cloudfile")
           lambda {
@@ -312,7 +311,7 @@ describe Shelly::CLI::Config do
     describe "on failure" do
       context "when config doesn't exist" do
         it "should display error message and exit with 1" do
-          exception = Shelly::Client::NotFoundException.new({"message" => "Couldn't find Config with"})
+          exception = Shelly::Client::NotFoundException.new("resource" => "config")
           @client.should_receive(:app_delete_config).and_raise(exception)
           $stdout.should_receive(:puts).with(red "Config 'config/app.yml' not found")
           $stdout.should_receive(:puts).with(red "You can list available config files with `shelly config list --cloud foo-staging`")
@@ -326,7 +325,7 @@ describe Shelly::CLI::Config do
 
       context "when user doesn't have access to cloud" do
         it "should display error message and exit with 1" do
-          exception = Shelly::Client::NotFoundException.new({"message" => "Couldn't find Cloud with"})
+          exception = Shelly::Client::NotFoundException.new("resource" => "cloud")
           @client.should_receive(:app_delete_config).and_raise(exception)
           $stdout.should_receive(:puts).with(red "You have no access to 'foo-staging' cloud defined in Cloudfile")
           fake_stdin(["y"]) do

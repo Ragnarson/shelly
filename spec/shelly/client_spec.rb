@@ -3,7 +3,7 @@ require "spec_helper"
 describe Shelly::Client::NotFoundException do
   describe "#resource" do
     it "should return name of not found resource" do
-      message = {"message" => "Couldn't find Log with"}
+      message = {"resource" => "log"}
       exception = Shelly::Client::NotFoundException.new(message)
       exception.resource.should == :log
     end
@@ -12,7 +12,7 @@ end
 
 describe Shelly::Client::ValidationException do
   before do
-    @body = {"message" => "Couldn't find Cloud with code_name = fooo",
+    @body = {"message" => "Validation Failed",
       "errors" => [["first", "foo"]], "url" => "https://foo.bar"}
     @exception = Shelly::Client::ValidationException.new(@body)
   end
@@ -32,15 +32,15 @@ end
 
 describe Shelly::Client::APIException do
   before do
-    body = {"message" => "Couldn't find Cloud with code_name = fooo",
+    body = {"message" => "Not Found",
       "errors" => [["first", "foo"]], "url" => "https://foo.bar"}
     @error = Shelly::Client::APIException.new(body)
   end
   
   describe "#[]" do
     it "should return value of given key from response body" do
-      @error["message"].should == "Couldn't find Cloud with code_name = fooo"
-      @error[:message].should == "Couldn't find Cloud with code_name = fooo"
+      @error["message"].should == "Not Found"
+      @error[:message].should == "Not Found"
     end
   end
 end

@@ -70,8 +70,7 @@ describe Shelly::CLI::User do
 
     context "on failure" do
       it "should exit with 1 if user does not have access to cloud" do
-        response = {"message" => "Couldn't find Cloud with code_name = foo-production"}
-        exception = Shelly::Client::NotFoundException.new(response)
+        exception = Shelly::Client::NotFoundException.new("resource" => "cloud")
         @client.stub(:app_users).and_raise(exception)
         $stdout.should_receive(:puts).with(red "You have no access to 'foo-production' cloud defined in Cloudfile")
         lambda { invoke(@cli_user, :list) }.should raise_error(SystemExit)
@@ -132,8 +131,7 @@ describe Shelly::CLI::User do
 
     context "on failure" do
       it "should raise error if user doesnt have access to cloud" do
-        response = {"message" => "Couldn't find Cloud with"}
-        exception = Shelly::Client::NotFoundException.new(response)
+        exception = Shelly::Client::NotFoundException.new("resource" => "cloud")
         @client.stub(:send_invitation).and_raise(exception)
         $stdout.should_receive(:puts).with(red "You have no access to 'foo-production' cloud defined in Cloudfile")
         lambda {

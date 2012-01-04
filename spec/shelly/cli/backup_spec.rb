@@ -30,7 +30,7 @@ describe Shelly::CLI::Backup do
     end
 
     it "should exit if user doesn't have access to cloud in Cloudfile" do
-      exception = Shelly::Client::NotFoundException.new({"message" => "Couldn't find Cloud with"})
+      exception = Shelly::Client::NotFoundException.new("resource" => "cloud")
       @client.stub(:database_backups).and_raise(exception)
       $stdout.should_receive(:puts).with(red "You have no access to 'foo-staging' cloud defined in Cloudfile")
       lambda { invoke(@backup, :list) }.should raise_error(SystemExit)
@@ -103,7 +103,7 @@ describe Shelly::CLI::Backup do
 
       context "on backup not found" do
         it "it should display error message" do
-          exception = Shelly::Client::NotFoundException.new({"message" => "Couldn't find Backup with"})
+          exception = Shelly::Client::NotFoundException.new({"resource" => "database_backup"})
           @client.stub(:database_backup).and_raise(exception)
           $stdout.should_receive(:puts).with(red "Backup not found")
           $stdout.should_receive(:puts).with("You can list available backups with `shelly backup list` command")
@@ -133,7 +133,7 @@ describe Shelly::CLI::Backup do
     end
 
     it "should exit if user doesn't have access to cloud in Cloudfile" do
-      exception = Shelly::Client::NotFoundException.new({"message" => "Couldn't find Cloud with"})
+      exception = Shelly::Client::NotFoundException.new({"resource" => "cloud"})
       @client.stub(:request_backup).and_raise(exception)
       $stdout.should_receive(:puts).with(red "You have no access to 'foo-staging' cloud defined in Cloudfile")
       lambda { invoke(@backup, :create) }.should raise_error(SystemExit)
@@ -199,7 +199,7 @@ describe Shelly::CLI::Backup do
 
     context "on backup not found" do
       it "should display error message" do
-        response = {"message" => "Couldn't find Backup with"}
+        response = {"resource" => "database_backup"}
         exception = Shelly::Client::NotFoundException.new(response)
         @client.stub(:database_backup).and_raise(exception)
         $stdout.should_receive(:puts).with(red "Backup not found")
