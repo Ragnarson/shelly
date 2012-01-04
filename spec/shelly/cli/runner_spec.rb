@@ -22,7 +22,7 @@ describe Shelly::CLI::Runner do
     it "should be true if args include --debug option" do
       @runner.should be_debug
     end
-    
+
     it "should be true if SHELLY_DEBUG is set to true" do
       runner = Shelly::CLI::Runner.new
       runner.should_not be_debug
@@ -40,6 +40,16 @@ describe Shelly::CLI::Runner do
     it "should start main CLI with given args" do
       Shelly::CLI::Main.should_receive(:start).with(%w(version --debug))
       @runner.start
+    end
+
+    it "should rescue interrupt exception and display message" do
+      Shelly::CLI::Main.stub(:start).and_raise(RuntimeError::Interrupt.new)
+      runner = Shelly::CLI::Runner.new(%w(login))
+      $stdout.should_receive(:puts).with("\n")
+      $stdout.should_receive(:puts).with("[canceled]")
+      lambda {
+        runner.start
+      }.should raise_error(SystemExit)
     end
 
     context "with --debug option (debug mode)" do
@@ -61,5 +71,6 @@ describe Shelly::CLI::Runner do
         }.should raise_error(SystemExit)
       end
     end
+
   end
 end
