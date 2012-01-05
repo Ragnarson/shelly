@@ -214,10 +214,10 @@ describe Shelly::Client do
       response.should == [{"email" => "test@example.com"}, {"email" => "test2@example.com"}]
     end
   end
-  
+
   describe "#app" do
     it "should fetch app from API" do
-      FakeWeb.register_uri(:get, api_url("apps/staging-foo"), 
+      FakeWeb.register_uri(:get, api_url("apps/staging-foo"),
         :body => {:web_server_ip => "192.0.2.1", :mail_server_ip => "192.0.2.3"}.to_json)
       response = @client.app("staging-foo")
       response.should == {"web_server_ip" => "192.0.2.1", "mail_server_ip" => "192.0.2.3"}
@@ -235,7 +235,7 @@ describe Shelly::Client do
 
   describe "#add_ssh_key" do
     it "should send put with give SSH key" do
-      @client.should_receive(:post).with("/ssh_key", {:ssh_key => "abc"})
+      @client.should_receive(:post).with("/ssh_keys", {:ssh_key => "abc"})
       @client.add_ssh_key("abc")
     end
   end
@@ -379,7 +379,7 @@ describe Shelly::Client do
         end
       end
     end
-    
+
     it "should return empty hash if response is not a valid JSON" do
       JSON.should_receive(:parse).with("").and_raise(JSON::ParserError)
       @response.stub(:code).and_return("204")

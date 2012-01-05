@@ -258,6 +258,7 @@ module Shelly
         say "Your public SSH key has been removed from Shelly Cloud"
         say "You have been successfully logged out"
       rescue Errno::ENOENT => e
+        user.delete_credentials
         say "You have been successfully logged out"
       end
 

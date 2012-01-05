@@ -818,7 +818,7 @@ OUT
     end
 
     it "should remove only credentiales when local ssh key doesn't exist" do
-      File.delete(@key_path)
+      FileUtils.rm_rf(@key_path)
       $stdout.should_receive(:puts).with("You have been successfully logged out")
       invoke(@main, :logout)
       File.exists?("~/.shelly/credentials").should be_false
