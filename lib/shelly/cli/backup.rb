@@ -8,7 +8,7 @@ module Shelly
       namespace :backup
       include Helpers
 
-      before_hook :logged_in?, :only => [:list, :get, :create]
+      before_hook :logged_in?, :only => [:list, :get, :create, :restore]
       before_hook :cloudfile_present?, :only => [:list]
 
       desc "list", "List database backups"
@@ -79,7 +79,6 @@ module Shelly
       method_option :cloud, :type => :string, :aliases => "-c",
         :desc => "Specify which cloud to restore database snapshot for"
       def restore(filename = nil)
-        logged_in?
         multiple_clouds(options[:cloud], "backup restore <filename>", "Select cloud for which you want restore backup")
         say_error "Filename is required" unless filename
         backup = @app.database_backup(filename)

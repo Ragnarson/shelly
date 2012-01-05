@@ -15,7 +15,7 @@ module Shelly
       register(Config, "config", "config <command>", "Manages cloud configuration files")
       check_unknown_options!
 
-      before_hook :logged_in?, :only => [:add, :list, :start, :stop, :logs, :delete]
+      before_hook :logged_in?, :only => [:add, :list, :start, :stop, :logs, :delete, :ip]
       before_hook :inside_git_repository?, :only => [:add, :ip]
       before_hook :cloudfile_present?, :only => [:logs, :stop, :start, :ip]
 
@@ -138,7 +138,6 @@ module Shelly
 
       desc "ip", "Lists clouds IP's"
       def ip
-        say_error "No Cloudfile found" unless Cloudfile.present?
         @cloudfile = Cloudfile.new
         @cloudfile.clouds.each do |cloud|
           begin

@@ -657,6 +657,7 @@ OUT
     before do
       File.open("Cloudfile", 'w') {|f| f.write("foo-staging:\nfoo-production:\n") }
       Shelly::App.stub(:inside_git_repository?).and_return(true)
+      @client.stub(:token).and_return("abc")
     end
 
     it "should exit with message if there is no Cloudfile" do
