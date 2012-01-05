@@ -301,7 +301,7 @@ module Shelly
             databases = ask("Unknown database kind. Supported are: #{kinds.join(", ")}:")
           end while not valid
 
-          databases.empty? ? ["postgresql"] : databases
+          databases.empty? ? ["postgresql"] : databases - ["none"]
         end
 
         def info_adding_cloudfile_to_repository

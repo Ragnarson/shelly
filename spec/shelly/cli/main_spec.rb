@@ -363,6 +363,15 @@ OUT
       end
     end
 
+    context "when user provided 'none' database" do
+      it "shouldn't take it into account" do
+        @app.should_receive(:databases=).with(["postgresql"])
+        fake_stdin(["", "postgresql, none"]) do
+          invoke(@main, :add)
+        end
+      end
+    end
+
     it "should create the app on shelly cloud" do
       @app.should_receive(:create)
       fake_stdin(["", ""]) do
