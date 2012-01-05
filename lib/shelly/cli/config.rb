@@ -33,12 +33,9 @@ module Shelly
             else
               say "Cloud #{cloud} has no configuration files"
             end
-          rescue Client::APIError => e
-            if e.resource_not_found == :cloud
-              say_error "You have no access to '#{@app}' cloud defined in Cloudfile"
-            else
-              raise e
-            end
+          rescue Client::NotFoundException => e
+            raise unless e.resource == :cloud
+            say_error "You have no access to '#{@app}' cloud defined in Cloudfile"
           end
         end
       end
@@ -52,14 +49,14 @@ module Shelly
         config = @app.config(path)
         say "Content of #{config["path"]}:", :green
         say config["content"]
-      rescue Client::APIError => e
-        case e.resource_not_found
+      rescue Client::NotFoundException => e
+        case e.resource
         when :cloud
           say_error "You have no access to '#{@app.code_name}' cloud defined in Cloudfile"
         when :config
           say_error "Config '#{path}' not found", :with_exit => false
           say_error "You can list available config files with `shelly config list --cloud #{@app}`"
-        else; raise e
+        else raise
         end
       end
 
@@ -73,15 +70,12 @@ module Shelly
         multiple_clouds(options[:cloud], "create #{path}", "Specify cloud using:")
         @app.create_config(path, output)
         say "File '#{path}' created, it will be used after next code deploy", :green
-      rescue Client::APIError => e
-        if e.resource_not_found == :cloud
-          say_error "You have no access to '#{@app.code_name}' cloud defined in Cloudfile"
-        elsif e.validation?
-          e.each_error { |error| say_error error, :with_exit => false }
-          exit 1
-        else
-          say_error e.message
-        end
+      rescue Client::NotFoundException => e
+        raise unless e.resource == :cloud
+        say_error "You have no access to '#{@app.code_name}' cloud defined in Cloudfile"
+      rescue Client::ValidationException => e
+        e.each_error { |error| say_error error, :with_exit => false }
+        exit 1
       end
 
       map "update" => :edit
@@ -95,18 +89,18 @@ module Shelly
         content = open_editor(config["path"], config["content"])
         @app.update_config(path, content)
         say "File '#{config["path"]}' updated, it will be used after next code deploy", :green
-      rescue Client::APIError => e
-        if e.resource_not_found == :cloud
+      rescue Client::NotFoundException => e
+        case e.resource
+        when :cloud
           say_error "You have no access to '#{@app.code_name}' cloud defined in Cloudfile"
-        elsif e.resource_not_found == :config
+        when :config
           say_error "Config '#{path}' not found", :with_exit => false
           say_error "You can list available config files with `shelly config list --cloud #{@app}`"
-        elsif e.validation?
-          e.each_error { |error| say_error error, :with_exit => false }
-          exit 1
-        else
-          say_error e.message
+        else raise
         end
+      rescue Client::ValidationException => e
+        e.each_error { |error| say_error error, :with_exit => false }
+        exit 1
       end
 
       method_option :cloud, :type => :string, :aliases => "-c",
@@ -122,17 +116,14 @@ module Shelly
         else
           say "File not deleted"
         end
-      rescue Client::APIError => e
-        if e.resource_not_found == :cloud
+      rescue Client::NotFoundException => e
+        case e.resource
+        when :cloud
           say_error "You have no access to '#{@app.code_name}' cloud defined in Cloudfile"
-        elsif e.resource_not_found == :config
+        when :config
           say_error "Config '#{path}' not found", :with_exit => false
           say_error "You can list available config files with `shelly config list --cloud #{@app}`"
-        elsif e.validation?
-          e.each_error { |error| say_error error, :with_exit => false }
-          exit 1
-        else
-          say_error e.message
+        else raise
         end
       end
 

@@ -72,7 +72,7 @@ describe Shelly::CLI::Runner do
       end
       
       it "should caught exception thrown by API Client" do
-        Shelly::CLI::Main.stub(:start).and_raise(Shelly::Client::APIError.new(401))
+        Shelly::CLI::Main.stub(:start).and_raise(Shelly::Client::APIException.new)
         runner = Shelly::CLI::Runner.new(%w(version))
         $stdout.should_receive(:puts).with("Unknown error, to see debug information run command with --debug")
         lambda {
