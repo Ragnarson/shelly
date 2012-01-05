@@ -15,7 +15,7 @@ module Shelly
       register(Config, "config", "config <command>", "Manages cloud configuration files")
       check_unknown_options!
 
-      before_hook :logged_in?, :only => [:add, :list, :start, :stop, :logs, :delete, :ip]
+      before_hook :logged_in?, :only => [:add, :list, :start, :stop, :logs, :delete, :ip, :logout]
       before_hook :inside_git_repository?, :only => [:add, :ip]
       before_hook :cloudfile_present?, :only => [:logs, :stop, :start, :ip]
 
@@ -247,6 +247,13 @@ module Shelly
             say_error "You have no access to cloud '#{cloud || @app.code_name}'"
           end
         end
+      end
+
+      desc "logout", "Logout from Shelly Cloud"
+      def logout
+        user = Shelly::User.new
+        say "Your public SSH key has been removed from Shelly Cloud" if user.delete_ssh_key
+        say "You have been successfully logged out" if user.delete_credentials
       end
 
       # FIXME: move to helpers
