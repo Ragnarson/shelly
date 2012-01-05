@@ -25,6 +25,12 @@ module Shelly
       save_credentials
     end
 
+    def logout
+      ssh_key = File.read(ssh_key_path)
+      shelly.logout(ssh_key)
+      delete_credentials
+    end
+
     def token
       shelly.token["token"]
     end
@@ -42,6 +48,12 @@ module Shelly
       FileUtils.mkdir_p(config_dir) unless credentials_exists?
       File.open(credentials_path, 'w') { |file| file << "#{email}\n#{password}" }
       set_credentials_permissions
+    end
+
+    def delete_credentials
+      if File.exists?(credentials_path)
+        File.delete(credentials_path)
+      end
     end
 
     def ssh_key_exists?
