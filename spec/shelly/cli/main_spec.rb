@@ -33,6 +33,7 @@ Tasks:
   shelly ip                 # Lists clouds IP's
   shelly list               # Lists all your clouds
   shelly login [EMAIL]      # Logs user in to Shelly Cloud
+  shelly logout             # Logout from Shelly Cloud
   shelly logs               # Show latest application logs from each instance
   shelly register [EMAIL]   # Registers new user account on Shelly Cloud
   shelly start              # Starts the cloud
@@ -85,7 +86,7 @@ OUT
     end
 
     it "should check ssh key in database" do
-      @user.stub(:ssh_key_registered?).and_raise(RestClient::Conflict)
+      @user.stub(:ssh_key_registered?).and_raise(Shelly::Client::ConflictException.new)
       $stdout.should_receive(:puts).with("\e[31mUser with your ssh key already exists.\e[0m")
       $stdout.should_receive(:puts).with("\e[31mYou can login using: shelly login [EMAIL]\e[0m")
       lambda {
@@ -172,8 +173,8 @@ OUT
 
     context "on unsuccessful registration" do
       it "should display errors and exit with 1" do
-        response = {"message" => "Validation Failed", "errors" => [["email", "has been already taken"]]}
-        exception = Shelly::Client::APIError.new(422, response)
+        body = {"message" => "Validation Failed", "errors" => [["email", "has been already taken"]]}
+        exception = Shelly::Client::ValidationException.new(body)
         @client.stub(:register_user).and_raise(exception)
         $stdout.should_receive(:puts).with("\e[31mEmail has been already taken\e[0m")
         lambda {
@@ -252,7 +253,7 @@ OUT
     context "on unauthorized user" do
       it "should exit with 1 and display error message" do
         response = {"message" => "Unauthorized", "url" => "https://admin.winniecloud.com/users/password/new"}
-        exception = Shelly::Client::APIError.new(401, response)
+        exception = Shelly::Client::UnauthorizedException.new(response)
         @client.stub(:token).and_raise(exception)
         $stdout.should_receive(:puts).with("\e[31mWrong email or password\e[0m")
         $stdout.should_receive(:puts).with("\e[31mYou can reset password by using link:\e[0m")
@@ -380,8 +381,8 @@ OUT
     end
 
     it "should display validation errors if they are any" do
-      response = {"message" => "Validation Failed", "errors" => [["code_name", "has been already taken"]]}
-      exception = Shelly::Client::APIError.new(422, response)
+      body = {"message" => "Validation Failed", "errors" => [["code_name", "has been already taken"]]}
+      exception = Shelly::Client::ValidationException.new(body)
       @app.should_receive(:create).and_raise(exception)
       $stdout.should_receive(:puts).with("\e[31mCode name has been already taken\e[0m")
       $stdout.should_receive(:puts).with("\e[31mFix erros in the below command and type it again to create your cloud\e[0m")
@@ -466,18 +467,6 @@ OUT
       $stdout.should_receive(:puts).with("\e[32mYou have no clouds yet\e[0m")
       invoke(@main, :status)
     end
-
-    context "on failure" do
-      it "should display info that user is not logged in" do
-        error = Shelly::Client::APIError.new(401)
-        @client.stub(:token).and_raise(error)
-        $stdout.should_receive(:puts).with(red "You are not logged in. To log in use:")
-        $stdout.should_receive(:puts).with("  shelly login")
-        lambda {
-          invoke(@main, :list)
-        }.should raise_error(SystemExit)
-      end
-    end
   end
 
   describe "#start" do
@@ -502,18 +491,9 @@ OUT
     end
 
     it "should exit if user doesn't have access to clouds in Cloudfile" do
-      response = {"message" => "Couldn't find Cloud with"}
-      exception = Shelly::Client::APIError.new(404, response)
+      exception = Shelly::Client::NotFoundException.new("resource" => "cloud")
       @client.stub(:start_cloud).and_raise(exception)
       $stdout.should_receive(:puts).with(red "You have no access to 'foo-production' cloud defined in Cloudfile")
-      lambda { invoke(@main, :start) }.should raise_error(SystemExit)
-    end
-
-    it "should exit if user is not logged in" do
-      exception = Shelly::Client::APIError.new(401)
-      @client.stub(:token).and_raise(exception)
-      $stdout.should_receive(:puts).with(red "You are not logged in. To log in use:")
-      $stdout.should_receive(:puts).with("  shelly login")
       lambda { invoke(@main, :start) }.should raise_error(SystemExit)
     end
 
@@ -551,21 +531,21 @@ OUT
 
     context "on failure" do
       it "should show information that cloud is running" do
-        raise_conflict(:state => "running")
+        raise_conflict("state" => "running")
         $stdout.should_receive(:puts).with(red "Not starting: cloud 'foo-production' is already running")
         lambda { invoke(@main, :start)  }.should raise_error(SystemExit)
       end
 
       %w{deploying configuring}.each do |state|
         it "should show information that cloud is #{state}" do
-          raise_conflict(:state => state)
+          raise_conflict("state" => state)
           $stdout.should_receive(:puts).with(red "Not starting: cloud 'foo-production' is currently deploying")
           lambda { invoke(@main, :start) }.should raise_error(SystemExit)
         end
       end
 
       it "should show information that cloud has no code" do
-        raise_conflict(:state => "no_code")
+        raise_conflict("state" => "no_code")
         $stdout.should_receive(:puts).with(red "Not starting: no source code provided")
         $stdout.should_receive(:puts).with(red "Push source code using:")
         $stdout.should_receive(:puts).with("  git push production master")
@@ -574,7 +554,7 @@ OUT
 
       %w{deploy_failed configuration_failed}.each do |state|
         it "should show information that cloud #{state}" do
-          raise_conflict(:state => state, :link => "http://example.com/logs")
+          raise_conflict("state" => state, "link" => "http://example.com/logs")
           $stdout.should_receive(:puts).with(red "Not starting: deployment failed")
           $stdout.should_receive(:puts).with(red "Support has been notified")
           $stdout.should_receive(:puts).with(red "See http://example.com/logs for reasons of failure")
@@ -582,16 +562,15 @@ OUT
         end
       end
       it "should open billing page" do
-        raise_conflict(:state => "no_billing")
+        raise_conflict("state" => "no_billing")
         $stdout.should_receive(:puts).with(red "Please fill in billing details to start foo-production. Opening browser.")
         @app.should_receive(:open_billing_page)
         lambda { invoke(@main, :start) }.should raise_error(SystemExit)
       end
 
       def raise_conflict(options = {})
-        options = {:state => "no_code"}.merge(options)
-        exception = RestClient::Conflict.new
-        exception.stub(:response).and_return(options.to_json)
+        body = {"state" => "no_code"}.merge(options)
+        exception = Shelly::Client::ConflictException.new(body)
         @client.stub(:start_cloud).and_raise(exception)
       end
     end
@@ -619,15 +598,8 @@ OUT
     end
 
     it "should exit if user doesn't have access to clouds in Cloudfile" do
-      @client.stub(:stop_cloud).and_raise(Shelly::Client::APIError.new(404))
+      @client.stub(:stop_cloud).and_raise(Shelly::Client::NotFoundException.new("resource" => "cloud"))
       $stdout.should_receive(:puts).with(red "You have no access to 'foo-production' cloud defined in Cloudfile")
-      lambda { invoke(@main, :stop) }.should raise_error(SystemExit)
-    end
-
-    it "should exit if user is not logged in" do
-      @client.stub(:token).and_raise(Shelly::Client::APIError.new(401))
-      $stdout.should_receive(:puts).with(red "You are not logged in. To log in use:")
-      $stdout.should_receive(:puts).with("  shelly login")
       lambda { invoke(@main, :stop) }.should raise_error(SystemExit)
     end
 
@@ -662,11 +634,10 @@ OUT
     end
   end
 
-  describe "#ips" do
+  describe "#ip" do
     before do
       File.open("Cloudfile", 'w') {|f| f.write("foo-staging:\nfoo-production:\n") }
-      Shelly::App.stub(:inside_git_repository?).and_return(true)
-      @client.stub(:token).and_return("abc")
+      @main.stub(:logged_in?).and_return(true)
     end
 
     it "should exit with message if there is no Cloudfile" do
@@ -693,7 +664,7 @@ OUT
 
     context "on failure" do
       it "should raise an error if user does not have access to cloud" do
-        exception = Shelly::Client::APIError.new(404, {"message" => "Cloud foo-staging not found"})
+        exception = Shelly::Client::NotFoundException.new("resource" => "cloud")
         @client.stub(:app).and_raise(exception)
         $stdout.should_receive(:puts).with(red "You have no access to 'foo-staging' cloud defined in Cloudfile")
         invoke(@main, :ip)
@@ -768,8 +739,8 @@ OUT
           f.write("foo-staging:\n") }
       end
 
-      it "should raise Client::APIError" do
-        exception = Shelly::Client::APIError.new(404)
+      it "should raise Client::NotFoundException" do
+        exception = Shelly::Client::NotFoundException.new("resource" => "cloud")
         @app.stub(:delete).and_raise(exception)
         $stdout.should_receive(:puts).with(red "You have no access to 'foo-bar' cloud defined in Cloudfile")
         lambda{
@@ -805,6 +776,43 @@ OUT
     end
   end
 
+  describe "#logout" do
+    before do
+      @user = Shelly::User.new
+      @client.stub(:token).and_return("abc")
+      Shelly::User.stub(:new).and_return(@user)
+      FileUtils.mkdir_p("~/.ssh")
+      FileUtils.mkdir_p("~/.shelly")
+      File.open("Cloudfile", 'w') { |f| f.write("foo-production:\n") }
+      File.open("~/.ssh/id_rsa.pub", "w") { |f| f << "ssh-key AAbbcc" }
+      @key_path = File.expand_path("~/.ssh/id_rsa.pub")
+      File.open("~/.shelly/credentials", "w") { |f| f << "megan@fox.pl\nsecret" }
+      @client.stub(:logout).and_return(true)
+    end
+
+    it "should logout from shelly cloud and show message" do
+      $stdout.should_receive(:puts).with("Your public SSH key has been removed from Shelly Cloud")
+      $stdout.should_receive(:puts).with("You have been successfully logged out")
+      invoke(@main, :logout)
+      File.exists?("~/.shelly/credentials").should be_false
+    end
+
+    it "should remove only credentiales when local ssh key doesn't exist" do
+      FileUtils.rm_rf(@key_path)
+      $stdout.should_receive(:puts).with("You have been successfully logged out")
+      invoke(@main, :logout)
+      File.exists?("~/.shelly/credentials").should be_false
+    end
+
+    it "should exit if user is not logged in" do
+      exception = Shelly::Client::UnauthorizedException.new
+      @client.stub(:token).and_raise(exception)
+      $stdout.should_receive(:puts).
+        with(red "You are not logged in. To log in use: `shelly login`")
+      lambda { invoke(@main, :logs) }.should raise_error(SystemExit)
+    end
+  end
+
   describe "#logs" do
     before do
       @user = Shelly::User.new
@@ -828,20 +836,10 @@ OUT
     end
 
     it "should exit if user doesn't have access to clouds in Cloudfile" do
-      response = {"message" => "Cloud foo-production not found"}
-      exception = Shelly::Client::APIError.new(404, response)
+      exception = Shelly::Client::NotFoundException.new("resource" => "cloud")
       @client.stub(:application_logs).and_raise(exception)
       $stdout.should_receive(:puts).
-        with(red "You have no access to cloud 'foo-production'")
-      lambda { invoke(@main, :logs) }.should raise_error(SystemExit)
-    end
-
-    it "should exit if user is not logged in" do
-      exception = Shelly::Client::APIError.new(401)
-      @client.stub(:token).and_raise(exception)
-      $stdout.should_receive(:puts).
-        with(red "You are not logged in. To log in use:")
-      $stdout.should_receive(:puts).with("  shelly login")
+        with(red "You have no access to 'foo-production' cloud defined in Cloudfile")
       lambda { invoke(@main, :logs) }.should raise_error(SystemExit)
     end
 

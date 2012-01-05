@@ -70,6 +70,16 @@ describe Shelly::User do
     end
   end
 
+  describe "#delete_credentials" do
+    it "should delete credentials from file" do
+      @user.save_credentials
+      File.exists?("~/.shelly/credentials").should be_true
+      File.read("~/.shelly/credentials").should == "bob@example.com\nsecret"
+      @user.delete_credentials
+      File.exists?("~/.shelly/credentials").should be_false
+    end
+  end
+
   describe "#load_credentials" do
     it "should load credentials from file" do
       config_dir = File.expand_path("~/.shelly")
@@ -117,6 +127,19 @@ describe Shelly::User do
     it "should read and check if ssh key exists in database" do
       @client.should_receive(:ssh_key_available?).with('ssh-key AAbbcc')
       @user.ssh_key_registered?
+    end
+  end
+
+  describe "#delete_ssh_key" do
+    it "should invoke logout when ssh key exists" do
+      @client.should_receive(:logout).with('ssh-key AAbbcc')
+      @user.delete_ssh_key
+    end
+
+    it "should not invoke logout when ssh key doesn't exist" do
+      FileUtils.rm_rf("~/.ssh/id_rsa.pub")
+      @client.should_not_receive(:logout)
+      @user.delete_ssh_key
     end
   end
 

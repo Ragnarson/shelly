@@ -18,7 +18,7 @@ describe Shelly::CLI::Backup do
     before do
       FileUtils.mkdir_p("/projects/foo")
       Dir.chdir("/projects/foo")
-      File.open("Cloudfile", 'w') {|f| f.write("foo-staging:\n") }
+      File.open("Cloudfile", 'w') { |f| f.write("foo-staging:\n") }
     end
 
     it "should exit with message if there is no Cloudfile" do
@@ -30,7 +30,7 @@ describe Shelly::CLI::Backup do
     end
 
     it "should exit if user doesn't have access to cloud in Cloudfile" do
-      exception = Shelly::Client::APIError.new(404, {"message" => "Couldn't find Cloud with"})
+      exception = Shelly::Client::NotFoundException.new("resource" => "cloud")
       @client.stub(:database_backups).and_raise(exception)
       $stdout.should_receive(:puts).with(red "You have no access to 'foo-staging' cloud defined in Cloudfile")
       lambda { invoke(@backup, :list) }.should raise_error(SystemExit)
@@ -103,23 +103,23 @@ describe Shelly::CLI::Backup do
 
       context "on backup not found" do
         it "it should display error message" do
-          exception = Shelly::Client::APIError.new(404, {"message" => "Couldn't find Backup with"})
+          exception = Shelly::Client::NotFoundException.new({"resource" => "database_backup"})
           @client.stub(:database_backup).and_raise(exception)
           $stdout.should_receive(:puts).with(red "Backup not found")
-          $stdout.should_receive(:puts).with("You can list available backups with 'shelly backup list' command")
+          $stdout.should_receive(:puts).with("You can list available backups with `shelly backup list` command")
           invoke(@backup, :get, "better.tar.gz")
         end
       end
 
       context "on unsupported exception" do
         it "should re-raise it" do
-          exception = Shelly::Client::APIError.new(500)
+          exception = Shelly::Client::APIException.new
           @client.stub(:database_backup).and_raise(exception)
           $stdout.should_not_receive(:puts).with(red "Backup not found")
-          $stdout.should_not_receive(:puts).with("You can list available backups with 'shelly backup list' command")
+          $stdout.should_not_receive(:puts).with("You can list available backups with `shelly backup list` command")
           lambda {
             invoke(@backup, :get, "better.tar.gz")
-          }.should raise_error(Shelly::Client::APIError)
+          }.should raise_error(Shelly::Client::APIException)
         end
       end
     end
@@ -133,7 +133,7 @@ describe Shelly::CLI::Backup do
     end
 
     it "should exit if user doesn't have access to cloud in Cloudfile" do
-      exception = Shelly::Client::APIError.new(404, {"message" => "Cloud foo-staging not found"})
+      exception = Shelly::Client::NotFoundException.new({"resource" => "cloud"})
       @client.stub(:request_backup).and_raise(exception)
       $stdout.should_receive(:puts).with(red "You have no access to 'foo-staging' cloud defined in Cloudfile")
       lambda { invoke(@backup, :create) }.should raise_error(SystemExit)
@@ -141,7 +141,7 @@ describe Shelly::CLI::Backup do
 
     it "should display errors and exit 1 when kind is not valid" do
       response = {"message" => "Wrong KIND argument. User one of following: postgresql, mongodb, redis"}
-      exception = Shelly::Client::APIError.new(422, response)
+      exception = Shelly::Client::ValidationException.new(response)
       @client.should_receive(:request_backup).and_raise(exception)
       $stdout.should_receive(:puts).with(red response["message"])
       lambda { invoke(@backup, :create) }.should raise_error(SystemExit)
@@ -199,11 +199,11 @@ describe Shelly::CLI::Backup do
 
     context "on backup not found" do
       it "should display error message" do
-        response = {"message" => "Backup restore not found"}
-        exception = Shelly::Client::APIError.new(404, response)
+        response = {"resource" => "database_backup"}
+        exception = Shelly::Client::NotFoundException.new(response)
         @client.stub(:database_backup).and_raise(exception)
         $stdout.should_receive(:puts).with(red "Backup not found")
-        $stdout.should_receive(:puts).with("You can list available backups with 'shelly backup list' command")
+        $stdout.should_receive(:puts).with("You can list available backups with `shelly backup list` command")
         @backup.restore("better.tar.gz")
       end
     end

@@ -44,6 +44,14 @@ module Shelly
       set_credentials_permissions
     end
 
+    def delete_credentials
+      File.delete(credentials_path) if credentials_exists?
+    end
+
+    def delete_ssh_key
+      shelly.logout(File.read(ssh_key_path)) if ssh_key_exists?
+    end
+
     def ssh_key_exists?
       File.exists?(ssh_key_path)
     end
@@ -53,8 +61,8 @@ module Shelly
     end
 
     def ssh_key_registered?
-    	ssh_key = File.read(ssh_key_path).strip
-    	shelly.ssh_key_available?(ssh_key)
+      ssh_key = File.read(ssh_key_path).strip
+      shelly.ssh_key_available?(ssh_key)
     end
 
     def self.guess_email

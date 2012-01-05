@@ -49,17 +49,6 @@ describe Shelly::CLI::User do
       }.should raise_error(SystemExit)
     end
 
-    it "should exit if user is not logged in" do
-      response = {"message" => "Unauthorized", "url" => "https://admin.winniecloud.com/users/password/new"}
-      exception = Shelly::Client::APIError.new(401, response)
-      @client.stub(:token).and_raise(exception)
-      $stdout.should_receive(:puts).with(red "You are not logged in. To log in use:")
-      $stdout.should_receive(:puts).with("  shelly login")
-      lambda {
-        invoke(@cli_user, :list)
-      }.should raise_error(SystemExit)
-    end
-
     context "on success" do
       it "should receive clouds from the Cloudfile" do
         @client.stub(:app_users).and_return(response)
@@ -80,17 +69,17 @@ describe Shelly::CLI::User do
     end
 
     context "on failure" do
-      it "should raise an error if user does not have access to cloud" do
-        response = {"message" => "Couldn't find Cloud with code_name = foo-staging"}
-        exception = Shelly::Client::APIError.new(404, response)
+      it "should exit with 1 if user does not have access to cloud" do
+        exception = Shelly::Client::NotFoundException.new("resource" => "cloud")
         @client.stub(:app_users).and_raise(exception)
-        $stdout.should_receive(:puts).with(red "You have no access to 'foo-staging' cloud defined in Cloudfile")
-        invoke(@cli_user, :list)
+        $stdout.should_receive(:puts).with(red "You have no access to 'foo-production' cloud defined in Cloudfile")
+        lambda { invoke(@cli_user, :list) }.should raise_error(SystemExit)
       end
     end
   end
 
   describe "#add" do
+    # FIXME: it can have common before with #list
     before do
       FileUtils.mkdir_p("/projects/foo")
       Dir.chdir("/projects/foo")
@@ -142,11 +131,12 @@ describe Shelly::CLI::User do
 
     context "on failure" do
       it "should raise error if user doesnt have access to cloud" do
-        response = {"message" => "Cloud foo-staging not found"}
-        exception = Shelly::Client::APIError.new(404, response)
+        exception = Shelly::Client::NotFoundException.new("resource" => "cloud")
         @client.stub(:send_invitation).and_raise(exception)
-        $stdout.should_receive(:puts).with(red "You have no access to 'foo-staging' cloud defined in Cloudfile")
-        invoke(@cli_user, :add, "megan@example.com")
+        $stdout.should_receive(:puts).with(red "You have no access to 'foo-production' cloud defined in Cloudfile")
+        lambda {
+          invoke(@cli_user, :add, "megan@example.com")
+        }.should raise_error(SystemExit)
       end
     end
   end

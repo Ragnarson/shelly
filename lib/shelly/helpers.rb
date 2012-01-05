@@ -63,12 +63,8 @@ module Shelly
       user = Shelly::User.new
       user.token
       user
-    rescue Client::APIError => e
-      if e.unauthorized?
-        say_error "You are not logged in. To log in use:", :with_exit => false
-        say "  shelly login"
-        exit 1
-      end
+    rescue Client::UnauthorizedException
+      say_error "You are not logged in. To log in use: `shelly login`"
     end
 
     def multiple_clouds(cloud, action, message)
