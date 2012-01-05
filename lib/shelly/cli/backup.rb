@@ -29,12 +29,9 @@ module Shelly
         else
           say "No database backups available"
         end
-      rescue Client::APIError => e
-        if e.not_found?
-          say_error "You have no access to '#{@app.code_name}' cloud defined in Cloudfile"
-        else
-          raise e
-        end
+      rescue Client::NotFoundException => e
+        raise unless e.resource == :cloud
+        say_error "You have no access to '#{@app}' cloud defined in Cloudfile"
       end
 
       method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify which cloud list backups for"
@@ -48,14 +45,14 @@ module Shelly
 
         say_new_line
         say "Backup file saved to #{backup.filename}", :green
-      rescue Client::APIError => e
-        case e.resource_not_found
+      rescue Client::NotFoundException => e
+        case e.resource
         when :cloud
-          say_error "You have no access to '#{@app.code_name}' cloud defined in Cloudfile"
-        when :backup
+          say_error "You have no access to '#{@app}' cloud defined in Cloudfile"
+        when :database_backup
           say_error "Backup not found", :with_exit => false
-          say "You can list available backups with 'shelly backup list' command"
-        else; raise e
+          say "You can list available backups with `shelly backup list` command"
+        else; raise
         end
       end
 
@@ -67,12 +64,11 @@ module Shelly
         @app.request_backup(kind)
         say "Backup requested. It can take up to several minutes for " +
           "the backup process to finish and the backup to show up in backups list.", :green
-      rescue Client::APIError => e
-        if e.not_found?
-          say_error "You have no access to '#{@app.code_name}' cloud defined in Cloudfile"
-        else
-          say_error e.message
-        end
+      rescue Client::ValidationException => e
+        say_error e[:message]
+      rescue Client::NotFoundException => e
+        raise unless e.resource == :cloud
+        say_error "You have no access to '#{@app}' cloud defined in Cloudfile"
       end
 
       desc "restore <filename>", "Restore database to state from filename"
@@ -88,12 +84,14 @@ module Shelly
         @app.restore_backup(filename)
         say_new_line
         say "Restore has been scheduled. Wait few minutes till database is restored."
-      rescue Client::APIError => e
-        if e.not_found?
+      rescue Client::NotFoundException => e
+        case e.resource
+        when :cloud
+          say_error "You have no access to '#{@app}' cloud defined in Cloudfile"
+        when :database_backup
           say_error "Backup not found", :with_exit => false
-          say "You can list available backups with 'shelly backup list' command"
-        else
-          raise e
+          say "You can list available backups with `shelly backup list` command"
+        else; raise
         end
       end
     end

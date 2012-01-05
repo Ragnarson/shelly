@@ -4,47 +4,35 @@ require "cgi"
 
 module Shelly
   class Client
-    class APIError < Exception
+    class APIException < Exception
       attr_reader :status_code, :body
 
-      def initialize(status_code, body = {})
+      def initialize(body = {}, status_code = nil)
         @status_code = status_code
         @body = body
       end
-
-      def message
-        body["message"]
+      
+      def [](key)
+        body[key.to_s]
       end
+    end
 
+    class UnauthorizedException < APIException; end
+    class ConflictException < APIException; end
+    class ValidationException < APIException
       def errors
-        body["errors"]
-      end
-
-      def url
-        body["url"]
-      end
-
-      def validation?
-        message == "Validation Failed"
-      end
-
-      def not_found?
-        status_code == 404
-      end
-
-      def resource_not_found
-        return unless not_found?
-        message =~ /Couldn't find (.*) with/ && $1.downcase.to_sym
-      end
-
-      def unauthorized?
-        status_code == 401
+        self[:errors]
       end
 
       def each_error
         errors.each do |field, message|
           yield [field.gsub('_',' ').capitalize, message].join(" ")
         end
+      end
+    end
+    class NotFoundException < APIException
+      def resource
+        self[:resource].to_sym
       end
     end
 
@@ -128,15 +116,15 @@ module Shelly
     end
 
     def deploy_logs(cloud)
-      get("/apps/#{cloud}/deploys")
+      get("/apps/#{cloud}/deployment_logs")
     end
 
     def deploy_log(cloud, log)
-      get("/apps/#{cloud}/deploys/#{log}")
+      get("/apps/#{cloud}/deployment_logs/#{log}")
     end
 
     def application_logs(cloud)
-      get("/apps/#{cloud}/logs")
+      get("/apps/#{cloud}/application_logs")
     end
 
     def database_backups(code_name)
@@ -224,10 +212,18 @@ module Shelly
     def process_response(response)
       body = JSON.parse(response.body) rescue JSON::ParserError && {}
       code = response.code
-      raise APIError.new(code, body) if (400..599).include?(code)
+      if (400..599).include?(code)
+        exception_class = case response.code
+        when 401; UnauthorizedException
+        when 404; NotFoundException
+        when 409; ConflictException
+        when 422; ValidationException
+        else; APIException
+        end
+        raise exception_class.new(body, code)
+      end
       response.return!
       body
     end
   end
 end
-

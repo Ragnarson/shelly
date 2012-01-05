@@ -1,3 +1,8 @@
+if ENV["COVERAGE"]
+  require "simplecov"
+  SimpleCov.start
+end
+
 require "rspec"
 require "shelly"
 require "helpers"
@@ -12,4 +17,3 @@ RSpec.configure do |config|
   config.include RSpec::Helpers
   config.include FakeFS::SpecHelpers
 end
-

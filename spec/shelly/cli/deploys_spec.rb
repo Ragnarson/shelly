@@ -29,7 +29,7 @@ describe Shelly::CLI::Deploys do
     end
 
     it "should exit if user doesn't have access to cloud in Cloudfile" do
-      @client.stub(:deploy_logs).and_raise(Shelly::Client::APIError.new(404))
+      @client.stub(:deploy_logs).and_raise(Shelly::Client::NotFoundException.new("resource" => "cloud"))
       $stdout.should_receive(:puts).with(red "You have no access to 'foo-staging' cloud defined in Cloudfile")
       lambda { invoke(@deploys, :list) }.should raise_error(SystemExit)
     end
@@ -88,7 +88,7 @@ describe Shelly::CLI::Deploys do
 
     context "user doesn't have access to cloud" do
       it "should exit 1 with message" do
-        exception = Shelly::Client::APIError.new(404, {"message" => "Couldn't find Cloud with"})
+        exception = Shelly::Client::NotFoundException.new("resource" => "cloud")
         @client.stub(:deploy_log).and_raise(exception)
         $stdout.should_receive(:puts).with(red "You have no access to 'foo-staging' cloud defined in Cloudfile")
         lambda { @deploys.show("last") }.should raise_error(SystemExit)
@@ -97,7 +97,7 @@ describe Shelly::CLI::Deploys do
 
     context "log not found" do
       it "should exit 1 with message" do
-        exception = Shelly::Client::APIError.new(404, {"message" => "Couldn't find Log with"})
+        exception = Shelly::Client::NotFoundException.new("resource" => "log")
         @client.stub(:deploy_log).and_raise(exception)
         $stdout.should_receive(:puts).with(red "Log not found, list all deploy logs using  `shelly deploys list --cloud=foo-staging`")
         lambda { @deploys.show("last") }.should raise_error(SystemExit)

@@ -15,8 +15,9 @@ module Shelly
       register(Config, "config", "config <command>", "Manages cloud configuration files")
       check_unknown_options!
 
+      # FIXME: it should be possible to pass single symbol, instead of one element array
       before_hook :logged_in?, :only => [:add, :list, :start, :stop, :logs, :delete, :ip, :logout]
-      before_hook :inside_git_repository?, :only => [:add, :ip]
+      before_hook :inside_git_repository?, :only => [:add]
       before_hook :cloudfile_present?, :only => [:logs, :stop, :start, :ip]
 
       map %w(-v --version) => :version
@@ -38,12 +39,10 @@ module Shelly
         end
         say "Successfully registered!"
         say "Check you mailbox for email address confirmation"
-      rescue Client::APIError => e
-        if e.validation?
-          e.each_error { |error| say_error "#{error}", :with_exit => false }
-          exit 1
-        end
-      rescue RestClient::Conflict
+      rescue Client::ValidationException => e
+        e.each_error { |error| say_error "#{error}", :with_exit => false }
+        exit 1
+      rescue Client::ConflictException
         say_error "User with your ssh key already exists.", :with_exit => false
         say_error "You can login using: shelly login [EMAIL]", :with_exit => false
         exit 1
@@ -63,16 +62,12 @@ module Shelly
         user.upload_ssh_key
         say "Uploading your public SSH key"
         list
-      rescue Client::APIError => e
-        if e.validation?
-          e.each_error { |error| say_error "#{error}", :with_exit => false }
-        end
-        if e.unauthorized?
-          say_error "Wrong email or password", :with_exit => false
-          say_error "You can reset password by using link:", :with_exit => false
-          say_error "#{e.url}", :with_exit => false
-        end
-        exit 1
+      rescue Client::ValidationException => e
+        e.each_error { |error| say_error "#{error}", :with_exit => false }
+      rescue Client::UnauthorizedException => e
+        say_error "Wrong email or password", :with_exit => false
+        say_error "You can reset password by using link:", :with_exit => false
+        say_error "#{e[:url]}"
       rescue Errno::ENOENT => e
         say_error e, :with_exit => false
         say_error "Use ssh-keygen to generate ssh key pair"
@@ -107,13 +102,11 @@ module Shelly
         info_adding_cloudfile_to_repository
         info_deploying_to_shellycloud
 
-      rescue Client::APIError => e
-        if e.validation?
-          e.each_error { |error| say_error error, :with_exit => false }
-          say_new_line
-          say_error "Fix erros in the below command and type it again to create your cloud" , :with_exit => false
-          say_error "shelly add --code-name=#{@app.code_name} --databases=#{@app.databases.join} --domains=#{@app.code_name}.shellyapp.com"
-        end
+      rescue Client::ValidationException => e
+        e.each_error { |error| say_error error, :with_exit => false }
+        say_new_line
+        say_error "Fix erros in the below command and type it again to create your cloud" , :with_exit => false
+        say_error "shelly add --code-name=#{@app.code_name} --databases=#{@app.databases.join} --domains=#{@app.code_name}.shellyapp.com"
       end
 
       desc "list", "Lists all your clouds"
@@ -129,11 +122,8 @@ module Shelly
         else
           say "You have no clouds yet", :green
         end
-      rescue Client::APIError => e
-        if e.unauthorized?
-          say_error "You are not logged in, use `shelly login`"
-        end
       end
+
       map "status" => :list
 
       desc "ip", "Lists clouds IP's"
@@ -145,12 +135,9 @@ module Shelly
             say "Cloud #{cloud}:", :green
             print_wrapped "Web server IP: #{@app.web_server_ip}", :ident => 2
             print_wrapped "Mail server IP: #{@app.mail_server_ip}", :ident => 2
-          rescue Client::APIError => e
-            if e.not_found?
-              say_error "You have no access to '#{cloud}' cloud defined in Cloudfile", :with_exit => false
-            else
-              say_error e.message, :with_exit => false
-            end
+          rescue Client::NotFoundException => e
+            raise unless e.resource == :cloud
+            say_error "You have no access to '#{cloud}' cloud defined in Cloudfile", :with_exit => false
           end
         end
       end
@@ -163,9 +150,8 @@ module Shelly
         @app.start
         say "Starting cloud #{@app.code_name}. Check status with:", :green
         say "  shelly list"
-      rescue RestClient::Conflict => e
-        response =  JSON.parse(e.response)
-        case response['state']
+      rescue Client::ConflictException => e
+        case e[:state]
         when "running"
           say_error "Not starting: cloud '#{@app.code_name}' is already running"
         when "deploying", "configuring"
@@ -177,16 +163,15 @@ module Shelly
         when "deploy_failed", "configuration_failed"
           say_error "Not starting: deployment failed", :with_exit => false
           say_error "Support has been notified", :with_exit => false
-          say_error "See #{response['link']} for reasons of failure"
+          say_error "See #{e[:link]} for reasons of failure"
         when "no_billing"
           say_error "Please fill in billing details to start foo-production. Opening browser.", :with_exit => false
           @app.open_billing_page
         end
         exit 1
-      rescue Client::APIError => e
-        if e.not_found?
-          say_error "You have no access to '#{@app.code_name}' cloud defined in Cloudfile"
-        end
+      rescue Client::NotFoundException => e
+        raise unless e.resource == :cloud
+        say_error "You have no access to '#{@app.code_name}' cloud defined in Cloudfile"
       end
 
       desc "stop", "Stops the cloud"
@@ -196,10 +181,9 @@ module Shelly
         multiple_clouds(options[:cloud], "stop", "Select cloud to stop using:")
         @app.stop
         say "Cloud '#{@app.code_name}' stopped"
-      rescue Client::APIError => e
-        if e.not_found?
-          say_error "You have no access to '#{@app.code_name}' cloud defined in Cloudfile"
-        end
+      rescue Client::NotFoundException => e
+        raise unless e.resource == :cloud
+        say_error "You have no access to '#{@app.code_name}' cloud defined in Cloudfile"
       end
 
       desc "delete", "Delete cloud from Shelly Cloud"
@@ -223,10 +207,9 @@ module Shelly
         else
           say "Missing git remote"
         end
-      rescue Client::APIError => e
-        if e.not_found?
-          say_error "You have no access to '#{@app.code_name}' cloud defined in Cloudfile"
-        end
+      rescue Client::NotFoundException => e
+        raise unless e.resource == :cloud
+        say_error "You have no access to '#{@app.code_name}' cloud defined in Cloudfile"
       end
 
       desc "logs", "Show latest application logs from each instance"
@@ -242,10 +225,9 @@ module Shelly
             say "Instance #{i+1}:", :green
             say log
           end
-        rescue Client::APIError => e
-          if e.not_found?
-            say_error "You have no access to cloud '#{cloud || @app.code_name}'"
-          end
+        rescue Client::NotFoundException => e
+          raise unless e.resource == :cloud
+          say_error "You have no access to '#{cloud || @app.code_name}' cloud defined in Cloudfile"
         end
       end
 
