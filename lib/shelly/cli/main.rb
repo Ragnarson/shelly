@@ -15,7 +15,7 @@ module Shelly
       register(Config, "config", "config <command>", "Manages cloud configuration files")
       check_unknown_options!
 
-      before_hook :logged_in?, :only => [:add, :list, :start, :stop, :logs, :delete]
+      before_hook :logged_in?, :only => [:add, :list, :start, :stop, :logs, :delete, :logout]
       before_hook :inside_git_repository?, :only => [:add, :ip]
       before_hook :cloudfile_present?, :only => [:logs, :stop, :start, :ip]
 
@@ -252,14 +252,9 @@ module Shelly
 
       desc "logout", "Logout from Shelly Cloud"
       def logout
-        logged_in?
         user = Shelly::User.new
-        user.logout
-        say "Your public SSH key has been removed from Shelly Cloud"
-        say "You have been successfully logged out"
-      rescue Errno::ENOENT => e
-        user.delete_credentials
-        say "You have been successfully logged out"
+        say "Your public SSH key has been removed from Shelly Cloud" if user.delete_ssh_key
+        say "You have been successfully logged out" if user.delete_credentials
       end
 
       # FIXME: move to helpers

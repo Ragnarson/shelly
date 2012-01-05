@@ -130,6 +130,19 @@ describe Shelly::User do
     end
   end
 
+  describe "#delete_ssh_key" do
+    it "should invoke logout when ssh key exists" do
+      @client.should_receive(:logout).with('ssh-key AAbbcc')
+      @user.delete_ssh_key
+    end
+
+    it "should not invoke logout when ssh key doesn't exist" do
+      FileUtils.rm_rf("~/.ssh/id_rsa.pub")
+      @client.should_not_receive(:logout)
+      @user.delete_ssh_key
+    end
+  end
+
   describe "#upload_ssh_key" do
     it "should read and upload user's public SSH key" do
       @client.should_receive(:add_ssh_key).with("ssh-key AAbbcc")

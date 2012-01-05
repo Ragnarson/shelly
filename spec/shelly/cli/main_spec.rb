@@ -807,7 +807,7 @@ OUT
       File.open("~/.ssh/id_rsa.pub", "w") { |f| f << "ssh-key AAbbcc" }
       @key_path = File.expand_path("~/.ssh/id_rsa.pub")
       File.open("~/.shelly/credentials", "w") { |f| f << "megan@fox.pl\nsecret" }
-      @client.stub(:logout)
+      @client.stub(:logout).and_return(true)
     end
 
     it "should logout from shelly cloud and show message" do
