@@ -148,14 +148,14 @@ module Shelly
       def start
         multiple_clouds(options[:cloud], "start", "Select cloud to start using:")
         @app.start
-        say "Starting cloud #{@app.code_name}. Check status with:", :green
+        say "Starting cloud #{@app}. Check status with:", :green
         say "  shelly list"
       rescue Client::ConflictException => e
         case e[:state]
         when "running"
-          say_error "Not starting: cloud '#{@app.code_name}' is already running"
+          say_error "Not starting: cloud '#{@app}' is already running"
         when "deploying", "configuring"
-          say_error "Not starting: cloud '#{@app.code_name}' is currently deploying"
+          say_error "Not starting: cloud '#{@app}' is currently deploying"
         when "no_code"
           say_error "Not starting: no source code provided", :with_exit => false
           say_error "Push source code using:", :with_exit => false
@@ -163,7 +163,7 @@ module Shelly
         when "deploy_failed", "configuration_failed"
           say_error "Not starting: deployment failed", :with_exit => false
           say_error "Support has been notified", :with_exit => false
-          say_error "See #{e[:link]} for reasons of failure"
+          say_error "Check `shelly deploys show last --cloud #{@app}` for reasons of failure"
         when "no_billing"
           say_error "Please fill in billing details to start foo-production. Opening browser.", :with_exit => false
           @app.open_billing_page
@@ -171,7 +171,7 @@ module Shelly
         exit 1
       rescue Client::NotFoundException => e
         raise unless e.resource == :cloud
-        say_error "You have no access to '#{@app.code_name}' cloud defined in Cloudfile"
+        say_error "You have no access to '#{@app}' cloud defined in Cloudfile"
       end
 
       desc "stop", "Stops the cloud"
