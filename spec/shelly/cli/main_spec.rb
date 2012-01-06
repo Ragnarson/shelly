@@ -575,10 +575,11 @@ OUT
 
       %w{deploy_failed configuration_failed}.each do |state|
         it "should show information that cloud #{state}" do
-          raise_conflict("state" => state, "link" => "http://example.com/logs")
+          raise_conflict("state" => state)
           $stdout.should_receive(:puts).with(red "Not starting: deployment failed")
           $stdout.should_receive(:puts).with(red "Support has been notified")
-          $stdout.should_receive(:puts).with(red "See http://example.com/logs for reasons of failure")
+          $stdout.should_receive(:puts).
+            with(red "Check `shelly deploys show last --cloud foo-production` for reasons of failure")
           lambda { invoke(@main, :start) }.should raise_error(SystemExit)
         end
       end
