@@ -94,6 +94,10 @@ module Shelly
       shelly.stop_cloud(code_name)
     end
 
+    def redeploy
+      shelly.redeploy(code_name)
+    end
+
     def cloudfile_path
       File.join(Dir.pwd, "Cloudfile")
     end

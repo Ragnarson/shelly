@@ -151,6 +151,10 @@ module Shelly
       get("/apps/#{cloud}/users")
     end
 
+    def redeploy(cloud)
+      post("/apps/#{cloud}/deploys")
+    end
+
     def post(path, params = {})
       request(path, :post, params)
     end

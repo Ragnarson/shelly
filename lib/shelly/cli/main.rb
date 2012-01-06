@@ -238,6 +238,28 @@ module Shelly
         say "You have been successfully logged out" if user.delete_credentials
       end
 
+      desc "redeploy", "Redeploy application"
+      method_option :cloud, :type => :string, :aliases => "-c",
+        :desc => "Specify which cloud to redeploy application for"
+      def redeploy
+        multiple_clouds(options[:cloud], "redeploy", "Select which cloud to redeploy application for:")
+        @app.redeploy
+        say "Redeploying your application for cloud '#{@app}'", :green
+      rescue Client::ConflictException => e
+        case e[:state]
+        when "deploying", "configuring"
+          say_error "Your application is being redeployed at the moment"
+        when "no_code", "no_billing", "turned_off"
+          say_error "Cloud #{@app} is not running", :with_exit => false
+          say "Start your cloud with `shelly start --cloud #{@app}`"
+          exit 1
+        else raise
+        end
+      rescue Client::NotFoundException => e
+        raise unless e.resource == :cloud
+        say_error "You have no access to '#{@app}' cloud defined in Cloudfile"
+      end
+
       # FIXME: move to helpers
       no_tasks do
         def check_options(options)
@@ -245,6 +267,7 @@ module Shelly
             unless ["code-name", "databases", "domains"].all? do |option|
               options.include?(option.to_s) && options[option.to_s] != option.to_s
             end && valid_databases?(options["databases"])
+            # FIXME: ' to `
               say_error "Try 'shelly help add' for more information"
             end
           end

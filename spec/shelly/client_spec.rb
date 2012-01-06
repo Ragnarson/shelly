@@ -219,6 +219,14 @@ describe Shelly::Client do
     end
   end
 
+  describe "#redeploy" do
+    it "should send post to deploys resource for given cloud" do
+      FakeWeb.register_uri(:post, api_url("apps/staging-foo/deploys"), :body => "")
+      response = @client.redeploy("staging-foo")
+      response.should == {}
+    end
+  end
+
   describe "#stop_cloud" do
     it "should sent delete request with cloud's code_name" do
       FakeWeb.register_uri(:put, api_url("apps/staging-foo/stop"), :body => {}.to_json)
