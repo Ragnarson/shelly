@@ -25,12 +25,12 @@ describe Shelly::CLI::Config do
       File.open("Cloudfile", 'w') {|f| f.write("foo-staging:\nfoo-production:\n") }
     end
 
-    it "should exit with message if there is no Cloudfile" do
-      File.delete("Cloudfile")
-      $stdout.should_receive(:puts).with(red "No Cloudfile found")
-      lambda {
-        invoke(@config, :list)
-      }.should raise_error(SystemExit)
+    it "should ensure user has logged in" do
+      hooks(@config, :list).should include(:logged_in?)
+    end
+
+    it "should ensure that Cloudfile is present" do
+      hooks(@config, :list).should include(:cloudfile_present?)
     end
 
     it "should exit if user doesn't have access to cloud in Cloudfile" do
@@ -57,10 +57,13 @@ describe Shelly::CLI::Config do
   end
 
   describe "#show" do
-    it "should exit with message if there is no Cloudfile" do
-      File.delete("Cloudfile")
-      $stdout.should_receive(:puts).with(red "No Cloudfile found")
-      lambda { invoke(@config, :show) }.should raise_error(SystemExit)
+
+    it "should ensure user has logged in" do
+      hooks(@config, :show).should include(:logged_in?)
+    end
+
+    it "should ensure that Cloudfile is present" do
+      hooks(@config, :show).should include(:cloudfile_present?)
     end
 
     it "should exit if no path was specified" do
@@ -119,10 +122,12 @@ describe Shelly::CLI::Config do
   end
 
   describe "#create" do
-    it "should exit with message if there is no Cloudfile" do
-      File.delete("Cloudfile")
-      $stdout.should_receive(:puts).with(red "No Cloudfile found")
-      lambda { invoke(@config, :create, "path") }.should raise_error(SystemExit)
+    it "should ensure user has logged in" do
+      hooks(@config, :create).should include(:logged_in?)
+    end
+
+    it "should ensure that Cloudfile is present" do
+      hooks(@config, :create).should include(:cloudfile_present?)
     end
 
     it "should exit if no path was specified" do
@@ -177,10 +182,12 @@ describe Shelly::CLI::Config do
 
 
   describe "#edit" do
-    it "should exit with message if there is no Cloudfile" do
-      File.delete("Cloudfile")
-      $stdout.should_receive(:puts).with(red "No Cloudfile found")
-      lambda { invoke(@config, :edit, "path") }.should raise_error(SystemExit)
+    it "should ensure user has logged in" do
+      hooks(@config, :edit).should include(:logged_in?)
+    end
+
+    it "should ensure that Cloudfile is present" do
+      hooks(@config, :edit).should include(:cloudfile_present?)
     end
 
     it "should exit if no path was specified" do
@@ -261,10 +268,12 @@ describe Shelly::CLI::Config do
   end
 
   describe "#delete" do
-    it "should exit with message if there is no Cloudfile" do
-      File.delete("Cloudfile")
-      $stdout.should_receive(:puts).with(red "No Cloudfile found")
-      lambda { invoke(@config, :delete) }.should raise_error(SystemExit)
+    it "should ensure user has logged in" do
+      hooks(@config, :delete).should include(:logged_in?)
+    end
+
+    it "should ensure that Cloudfile is present" do
+      hooks(@config, :delete).should include(:cloudfile_present?)
     end
 
     it "should exit if no path was specified" do

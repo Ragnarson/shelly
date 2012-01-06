@@ -5,6 +5,10 @@ class Thor
       @hook[method] = options
     end
 
+    def hooks
+      @hook
+    end
+
     def send(*args)
       if args.first == :dispatch && !args[2].empty?
         running_task = args[2].first

@@ -7,7 +7,6 @@ module Shelly
       include Helpers
 
       before_hook :logged_in?, :only => [:list, :add]
-      before_hook :inside_git_repository?, :only => [:list, :add]
       before_hook :cloudfile_present?, :only => [:list, :add]
 
       desc "list", "List users with access to clouds defined in Cloudfile"

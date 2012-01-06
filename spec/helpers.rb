@@ -15,5 +15,12 @@ module RSpec
     def red(string)
       "\e[31m#{string}\e[0m"
     end
+
+    def hooks(model, method)
+      model.class.hooks.inject([]) do |result, v|
+        result << v[0] if v[1][:only].include?(method)
+        result
+      end
+    end
   end
 end

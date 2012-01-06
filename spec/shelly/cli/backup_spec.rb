@@ -21,12 +21,12 @@ describe Shelly::CLI::Backup do
       File.open("Cloudfile", 'w') { |f| f.write("foo-staging:\n") }
     end
 
-    it "should exit with message if there is no Cloudfile" do
-      File.delete("Cloudfile")
-      $stdout.should_receive(:puts).with("\e[31mNo Cloudfile found\e[0m")
-      lambda {
-        invoke(@backup, :list)
-      }.should raise_error(SystemExit)
+    it "should ensure user has logged in" do
+      hooks(@backup, :list).should include(:logged_in?)
+    end
+
+    it "should ensure that Cloudfile is present" do
+      hooks(@backup, :list).should include(:cloudfile_present?)
     end
 
     it "should exit if user doesn't have access to cloud in Cloudfile" do
@@ -69,6 +69,10 @@ describe Shelly::CLI::Backup do
         Shelly::DownloadProgressBar.stub(:new).and_return(@bar)
         @client.stub(:database_backup).and_return({"filename" => "better.tar.gz", "size" => 12345})
         $stdout.stub(:puts)
+      end
+
+      it "should ensure user has logged in" do
+        hooks(@backup, :get).should include(:logged_in?)
       end
 
       it "should make sure that cloud is choosen" do
@@ -132,6 +136,10 @@ describe Shelly::CLI::Backup do
       File.open("Cloudfile", 'w') {|f| f.write("foo-staging:\n") }
     end
 
+    it "should ensure user has logged in" do
+      hooks(@backup, :create).should include(:logged_in?)
+    end
+
     it "should exit if user doesn't have access to cloud in Cloudfile" do
       exception = Shelly::Client::NotFoundException.new({"resource" => "cloud"})
       @client.stub(:request_backup).and_raise(exception)
@@ -162,6 +170,10 @@ describe Shelly::CLI::Backup do
       $stdout.stub(:puts)
     end
 
+    it "should ensure user has logged in" do
+      hooks(@backup, :restore).should include(:logged_in?)
+    end
+
     it "should restore database" do
       $stdout.should_receive(:puts).with("You are about restore database postgre for cloud foo-staging to state from better.tar.gz")
       $stdout.should_receive(:print).with("I want to restore the database (yes/no): ")
@@ -171,7 +183,7 @@ describe Shelly::CLI::Backup do
       $stdout.should_receive(:puts).with("Restore has been scheduled. Wait few minutes till database is restored.")
 
       fake_stdin(["yes"]) do
-        @backup.restore("better.tar.gz")
+        invoke(@backup, :restore, "better.tar.gz")
       end
     end
 
@@ -184,7 +196,7 @@ describe Shelly::CLI::Backup do
 
         lambda {
           fake_stdin(["no"]) do
-            @backup.restore("better.tar.gz")
+            invoke(@backup, :restore, "better.tar.gz")
           end
         }.should raise_error(SystemExit)
       end
@@ -193,7 +205,7 @@ describe Shelly::CLI::Backup do
     it "should exit with 1 when filename is not specified" do
       $stdout.should_receive(:puts).with(red "Filename is required")
       lambda {
-        @backup.restore
+        invoke(@backup, :restore)
       }.should raise_error(SystemExit)
     end
 
@@ -204,7 +216,7 @@ describe Shelly::CLI::Backup do
         @client.stub(:database_backup).and_raise(exception)
         $stdout.should_receive(:puts).with(red "Backup not found")
         $stdout.should_receive(:puts).with("You can list available backups with `shelly backup list` command")
-        @backup.restore("better.tar.gz")
+        invoke(@backup, :restore, "better.tar.gz")
       end
     end
   end

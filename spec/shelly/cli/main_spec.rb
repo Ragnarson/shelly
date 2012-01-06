@@ -282,6 +282,7 @@ OUT
       @client.stub(:token).and_return("abc")
     end
 
+    # This spec tests inside_git_repository? hook
     it "should exit with message if command run outside git repository" do
       Shelly::App.stub(:inside_git_repository?).and_return(false)
       $stdout.should_receive(:puts).with("\e[31mMust be run inside your project git repository\e[0m")
@@ -292,8 +293,19 @@ OUT
       }.should raise_error(SystemExit)
     end
 
-    context "command line options" do
+    # This spec tests logged_in? hook
+    it "should exit with message if user is not logged in" do
+      exception = Shelly::Client::UnauthorizedException.new
+      @client.stub(:token).and_raise(exception)
+      $stdout.should_receive(:puts).with(red "You are not logged in. To log in use: `shelly login`")
+      lambda {
+        fake_stdin(["", ""]) do
+          invoke(@main, :add)
+        end
+      }.should raise_error(SystemExit)
+    end
 
+    context "command line options" do
       context "invalid params" do
         it "should show help and exit if not all options are passed" do
           $stdout.should_receive(:puts).with("\e[31mTry 'shelly help add' for more information\e[0m")
@@ -449,6 +461,10 @@ OUT
       Shelly::User.stub(:new).and_return(@user)
     end
 
+    it "should ensure user has logged in" do
+      hooks(@main, :list).should include(:logged_in?)
+    end
+
     it "should display user's clouds" do
       $stdout.should_receive(:puts).with("\e[32mYou have following clouds available:\e[0m")
       $stdout.should_receive(:puts).with(/abc\s+\|  running/)
@@ -482,12 +498,17 @@ OUT
       Shelly::App.stub(:new).and_return(@app)
     end
 
+    # This spec tests cloudfile_present? hook
     it "should exit if there is no Cloudfile" do
       File.delete("Cloudfile")
       $stdout.should_receive(:puts).with("\e[31mNo Cloudfile found\e[0m")
       lambda {
         invoke(@main, :start)
       }.should raise_error(SystemExit)
+    end
+
+    it "should ensure user has logged in" do
+      hooks(@main, :start).should include(:logged_in?)
     end
 
     it "should exit if user doesn't have access to clouds in Cloudfile" do
@@ -561,6 +582,7 @@ OUT
           lambda { invoke(@main, :start) }.should raise_error(SystemExit)
         end
       end
+
       it "should open billing page" do
         raise_conflict("state" => "no_billing")
         $stdout.should_receive(:puts).with(red "Please fill in billing details to start foo-production. Opening browser.")
@@ -589,12 +611,12 @@ OUT
       Shelly::App.stub(:new).and_return(@app)
     end
 
-    it "should exit if there is no Cloudfile" do
-      File.delete("Cloudfile")
-      $stdout.should_receive(:puts).with("\e[31mNo Cloudfile found\e[0m")
-      lambda {
-        invoke(@main, :stop)
-      }.should raise_error(SystemExit)
+    it "should ensure user has logged in" do
+      hooks(@main, :stop).should include(:logged_in?)
+    end
+
+    it "should ensure that Cloudfile is present" do
+      hooks(@main, :stop).should include(:cloudfile_present?)
     end
 
     it "should exit if user doesn't have access to clouds in Cloudfile" do
@@ -640,12 +662,12 @@ OUT
       @main.stub(:logged_in?).and_return(true)
     end
 
-    it "should exit with message if there is no Cloudfile" do
-      File.delete("Cloudfile")
-      $stdout.should_receive(:puts).with("\e[31mNo Cloudfile found\e[0m")
-      lambda {
-        invoke(@main, :ip)
-      }.should raise_error(SystemExit)
+    it "should ensure user has logged in" do
+      hooks(@main, :ip).should include(:logged_in?)
+    end
+
+    it "should ensure that Cloudfile is present" do
+      hooks(@main, :ip).should include(:cloudfile_present?)
     end
 
     context "on success" do
@@ -681,6 +703,10 @@ OUT
       @app.stub(:delete)
       Shelly::User.stub(:new).and_return(@user)
       Shelly::App.stub(:new).and_return(@app)
+    end
+
+    it "should ensure user has logged in" do
+      hooks(@main, :delete).should include(:logged_in?)
     end
 
     context "when cloud is given" do
@@ -790,6 +816,10 @@ OUT
       @client.stub(:logout).and_return(true)
     end
 
+    it "should ensure user has logged in" do
+      hooks(@main, :logout).should include(:logged_in?)
+    end
+
     it "should logout from shelly cloud and show message" do
       $stdout.should_receive(:puts).with("Your public SSH key has been removed from Shelly Cloud")
       $stdout.should_receive(:puts).with("You have been successfully logged out")
@@ -802,14 +832,6 @@ OUT
       $stdout.should_receive(:puts).with("You have been successfully logged out")
       invoke(@main, :logout)
       File.exists?("~/.shelly/credentials").should be_false
-    end
-
-    it "should exit if user is not logged in" do
-      exception = Shelly::Client::UnauthorizedException.new
-      @client.stub(:token).and_raise(exception)
-      $stdout.should_receive(:puts).
-        with(red "You are not logged in. To log in use: `shelly login`")
-      lambda { invoke(@main, :logs) }.should raise_error(SystemExit)
     end
   end
 
@@ -827,12 +849,12 @@ OUT
       Shelly::App.stub(:new).and_return(@app)
     end
 
-    it "should exit if there is no Cloudfile" do
-      File.delete("Cloudfile")
-      $stdout.should_receive(:puts).with("\e[31mNo Cloudfile found\e[0m")
-      lambda {
-        invoke(@main, :logs)
-      }.should raise_error(SystemExit)
+    it "should ensure user has logged in" do
+      hooks(@main, :logs).should include(:logged_in?)
+    end
+
+    it "should ensure that Cloudfile is present" do
+      hooks(@main, :logs).should include(:cloudfile_present?)
     end
 
     it "should exit if user doesn't have access to clouds in Cloudfile" do

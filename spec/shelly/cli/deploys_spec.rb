@@ -20,12 +20,12 @@ describe Shelly::CLI::Deploys do
       @client.stub(:token).and_return("abc")
     end
 
-    it "should exit with message if there is no Cloudfile" do
-      File.delete("Cloudfile")
-      $stdout.should_receive(:puts).with("\e[31mNo Cloudfile found\e[0m")
-      lambda {
-        invoke(@deploys, :list)
-      }.should raise_error(SystemExit)
+    it "should ensure user has logged in" do
+      hooks(@deploys, :list).should include(:logged_in?)
+    end
+
+    it "should ensure that Cloudfile is present" do
+      hooks(@deploys, :list).should include(:cloudfile_present?)
     end
 
     it "should exit if user doesn't have access to cloud in Cloudfile" do
@@ -78,12 +78,12 @@ describe Shelly::CLI::Deploys do
       @client.stub(:token).and_return("abc")
     end
 
-    it "should exit with message if there is no Cloudfile" do
-      File.delete("Cloudfile")
-      $stdout.should_receive(:puts).with("\e[31mNo Cloudfile found\e[0m")
-      lambda {
-        invoke(@deploys, :show)
-      }.should raise_error(SystemExit)
+    it "should ensure user has logged in" do
+      hooks(@deploys, :show).should include(:logged_in?)
+    end
+
+    it "should ensure that Cloudfile is present" do
+      hooks(@deploys, :show).should include(:cloudfile_present?)
     end
 
     context "user doesn't have access to cloud" do

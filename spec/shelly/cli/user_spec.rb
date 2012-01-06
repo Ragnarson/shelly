@@ -12,6 +12,9 @@ describe Shelly::CLI::User do
     $stdout.stub(:puts)
     $stdout.stub(:print)
     @client.stub(:token).and_return("abc")
+    FileUtils.mkdir_p("/projects/foo")
+    Dir.chdir("/projects/foo")
+    File.open("Cloudfile", 'w') {|f| f.write("foo-staging:\nfoo-production:\n") }
   end
 
   describe "#help" do
@@ -25,28 +28,16 @@ describe Shelly::CLI::User do
 
   describe "#list" do
     before do
-      FileUtils.mkdir_p("/projects/foo")
-      Dir.chdir("/projects/foo")
-      File.open("Cloudfile", 'w') {|f| f.write("foo-staging:\nfoo-production:\n") }
-      Shelly::App.stub(:inside_git_repository?).and_return(true)
       @cloudfile = Shelly::Cloudfile.new
       Shelly::Cloudfile.stub(:new).and_return(@cloudfile)
     end
 
-    it "should exit with message if command run outside git repository" do
-      Shelly::App.stub(:inside_git_repository?).and_return(false)
-      $stdout.should_receive(:puts).with("\e[31mMust be run inside your project git repository\e[0m")
-      lambda {
-        invoke(@cli_user, :list)
-      }.should raise_error(SystemExit)
+    it "should ensure user has logged in" do
+      hooks(@cli_user, :list).should include(:logged_in?)
     end
 
-    it "should exit with message if there is no Cloudfile" do
-      File.delete("Cloudfile")
-      $stdout.should_receive(:puts).with("\e[31mNo Cloudfile found\e[0m")
-      lambda {
-        invoke(@cli_user, :list)
-      }.should raise_error(SystemExit)
+    it "should ensure that Cloudfile is present" do
+      hooks(@cli_user, :list).should include(:cloudfile_present?)
     end
 
     context "on success" do
@@ -79,32 +70,18 @@ describe Shelly::CLI::User do
   end
 
   describe "#add" do
-    # FIXME: it can have common before with #list
     before do
-      FileUtils.mkdir_p("/projects/foo")
-      Dir.chdir("/projects/foo")
-      File.open("Cloudfile", 'w') {|f| f.write("foo-staging:\nfoo-production:\n") }
-      Shelly::App.stub(:inside_git_repository?).and_return(true)
-      @client.stub(:token).and_return("abc")
       @user = Shelly::User.new
       @client.stub(:apps).and_return([{"code_name" => "abc"}, {"code_name" => "fooo"}])
       Shelly::User.stub(:new).and_return(@user)
     end
 
-    it "should exit with message if there is no Cloudfile" do
-      File.delete("Cloudfile")
-      $stdout.should_receive(:puts).with("\e[31mNo Cloudfile found\e[0m")
-      lambda {
-        invoke(@cli_user, :add)
-      }.should raise_error(SystemExit)
+    it "should ensure user has logged in" do
+      hooks(@cli_user, :add).should include(:logged_in?)
     end
 
-    it "should exit with message if command run outside git repository" do
-      Shelly::App.stub(:inside_git_repository?).and_return(false)
-      $stdout.should_receive(:puts).with("\e[31mMust be run inside your project git repository\e[0m")
-      lambda {
-        invoke(@cli_user, :add)
-      }.should raise_error(SystemExit)
+    it "should ensure that Cloudfile is present" do
+      hooks(@cli_user, :add).should include(:cloudfile_present?)
     end
 
     context "on success" do
