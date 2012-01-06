@@ -70,7 +70,7 @@ describe Shelly::CLI::Runner do
           runner.start
         }.should raise_error(SystemExit)
       end
-      
+
       it "should caught exception thrown by API Client" do
         Shelly::CLI::Main.stub(:start).and_raise(Shelly::Client::APIException.new)
         runner = Shelly::CLI::Runner.new(%w(version))
@@ -79,7 +79,7 @@ describe Shelly::CLI::Runner do
           runner.start
         }.should raise_error(SystemExit)
       end
-      
+
       it "should re-reise SystemExit exceptions" do
         Shelly::CLI::Main.stub(:start).and_raise(SystemExit.new)
         $stdout.should_not_receive(:puts).with("Unknown error, to see debug information run command with --debug")

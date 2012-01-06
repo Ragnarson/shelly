@@ -36,7 +36,7 @@ describe Shelly::Client::APIException do
       "errors" => [["first", "foo"]], "url" => "https://foo.bar"}
     @error = Shelly::Client::APIException.new(body)
   end
-  
+
   describe "#[]" do
     it "should return value of given key from response body" do
       @error["message"].should == "Not Found"
