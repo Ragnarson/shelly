@@ -11,7 +11,7 @@ module Shelly
         @status_code = status_code
         @body = body
       end
-      
+
       def [](key)
         body[key.to_s]
       end
@@ -113,6 +113,10 @@ module Shelly
 
     def app(code_name)
       get("/apps/#{code_name}")
+    end
+
+    def run(cloud, code)
+      post("/apps/#{cloud}/run", :body => code)
     end
 
     def deploy_logs(cloud)

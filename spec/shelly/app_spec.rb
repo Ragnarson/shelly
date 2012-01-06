@@ -281,6 +281,26 @@ config
     end
   end
 
+  describe "#run" do
+    before do
+      @response = {
+        "result" => "4"
+      }
+      @client.stub(:run).and_return(@response)
+      File.open("to_run.rb", 'w') {|f| f.write("User.count\n") }
+    end
+
+    it "should return result of executed code" do
+      @client.should_receive(:run).with("foo-staging", "2 + 2")
+      @app.run("2 + 2").should == "4"
+    end
+
+    it "should send contents of file when file exists" do
+      @client.should_receive(:run).with("foo-staging", "User.count\n")
+      @app.run("to_run.rb")
+    end
+  end
+
   describe "#to_s" do
     it "should return code_name" do
       @app.to_s.should == "foo-staging"

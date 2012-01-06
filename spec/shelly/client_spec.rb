@@ -36,7 +36,7 @@ describe Shelly::Client::APIException do
       "errors" => [["first", "foo"]], "url" => "https://foo.bar"}
     @error = Shelly::Client::APIException.new(body)
   end
-  
+
   describe "#[]" do
     it "should return value of given key from response body" do
       @error["message"].should == "Not Found"
@@ -185,6 +185,15 @@ describe Shelly::Client do
         :body => {:web_server_ip => "192.0.2.1", :mail_server_ip => "192.0.2.3"}.to_json)
       response = @client.app("staging-foo")
       response.should == {"web_server_ip" => "192.0.2.1", "mail_server_ip" => "192.0.2.3"}
+    end
+  end
+
+  describe "#run" do
+    it "should send post request with app code_name and code" do
+      FakeWeb.register_uri(:post, api_url("apps/staging-foo/run"),
+                           :body => {:result => "4"}.to_json)
+      response = @client.run("staging-foo", "2 + 2")
+      response.should == {"result" => "4"}
     end
   end
 
