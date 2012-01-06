@@ -11,9 +11,9 @@ module Shelly
       before_hook :logged_in?, :only => [:list, :get, :create, :restore]
       before_hook :cloudfile_present?, :only => [:list]
 
-      desc "list", "List database backups"
-      method_option :cloud, :type => :string, :aliases => "-c",
-        :desc => "Specify which cloud to list backups for"
+      class_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
+
+      desc "list", "List available database backups"
       def list
         multiple_clouds(options[:cloud], "backup list", "Select cloud to view database backups for using:")
         backups = @app.database_backups
@@ -34,10 +34,13 @@ module Shelly
         say_error "You have no access to '#{@app}' cloud defined in Cloudfile"
       end
 
-      method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify which cloud list backups for"
-      desc "get [FILENAME]", "Downloads specified or last backup to current directory"
+      desc "get [FILENAME]", "Download database backup"
+      long_desc %{
+        Download given database backup to current directory.
+        If filename is not specyfied, latest database backup will be downloaded.
+      }
       def get(handler = "last")
-        multiple_clouds(options[:cloud], "backup get [FILENAME]", "Select cloud for which you want download backup")
+        multiple_clouds(options[:cloud], "backup get #{handler}", "Select cloud to download database backup for using:")
 
         backup = @app.database_backup(handler)
         bar = Shelly::DownloadProgressBar.new(backup.size)
@@ -56,11 +59,13 @@ module Shelly
         end
       end
 
-      desc "create [KIND]", "Creates current snapshot of given database. Default: all databases."
-      method_option :cloud, :type => :string, :aliases => "-c",
-        :desc => "Specify which cloud to create database snapshot for"
+      desc "create [DB_KIND]", "Create backup of given database"
+      long_desc %{
+        Create backup of given database.
+        If database kind is not specified, backup of all configured databases will be performed.
+      }
       def create(kind = nil)
-        multiple_clouds(options[:cloud], "backup create", "Select cloud to create snapshot of database")
+        multiple_clouds(options[:cloud], "backup create [DB_KIND]", "Select cloud to create database backup for")
         @app.request_backup(kind)
         say "Backup requested. It can take up to several minutes for " +
           "the backup process to finish and the backup to show up in backups list.", :green
@@ -71,19 +76,16 @@ module Shelly
         say_error "You have no access to '#{@app}' cloud defined in Cloudfile"
       end
 
-      desc "restore <filename>", "Restore database to state from filename"
-      method_option :cloud, :type => :string, :aliases => "-c",
-        :desc => "Specify which cloud to restore database snapshot for"
-      def restore(filename = nil)
-        multiple_clouds(options[:cloud], "backup restore <filename>", "Select cloud for which you want restore backup")
-        say_error "Filename is required" unless filename
+      desc "restore FILENAME", "Restore database to state from given backup"
+      def restore(filename)
+        multiple_clouds(options[:cloud], "backup restore FILENAME", "Select cloud for which you want restore backup")
         backup = @app.database_backup(filename)
         say "You are about restore database #{backup.kind} for cloud #{backup.code_name} to state from #{backup.filename}"
         say_new_line
         ask_to_restore_database
         @app.restore_backup(filename)
         say_new_line
-        say "Restore has been scheduled. Wait few minutes till database is restored."
+        say "Restore has been scheduled. Wait a few minutes till database is restored."
       rescue Client::NotFoundException => e
         case e.resource
         when :cloud
