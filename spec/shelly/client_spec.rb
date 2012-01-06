@@ -36,7 +36,7 @@ describe Shelly::Client::APIException do
       "errors" => [["first", "foo"]], "url" => "https://foo.bar"}
     @error = Shelly::Client::APIException.new(body)
   end
-  
+
   describe "#[]" do
     it "should return value of given key from response body" do
       @error["message"].should == "Not Found"
@@ -215,6 +215,14 @@ describe Shelly::Client do
     it "should sent post request with cloud's code_name" do
       FakeWeb.register_uri(:put, api_url("apps/staging-foo/start"), :body => {}.to_json)
       response = @client.start_cloud("staging-foo")
+      response.should == {}
+    end
+  end
+
+  describe "#redeploy" do
+    it "should send post to deploys resource for given cloud" do
+      FakeWeb.register_uri(:post, api_url("apps/staging-foo/deploys"), :body => "")
+      response = @client.redeploy("staging-foo")
       response.should == {}
     end
   end

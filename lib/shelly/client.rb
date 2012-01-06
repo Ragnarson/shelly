@@ -11,7 +11,7 @@ module Shelly
         @status_code = status_code
         @body = body
       end
-      
+
       def [](key)
         body[key.to_s]
       end
@@ -149,6 +149,10 @@ module Shelly
 
     def app_users(cloud)
       get("/apps/#{cloud}/users")
+    end
+
+    def redeploy(cloud)
+      post("/apps/#{cloud}/deploys")
     end
 
     def post(path, params = {})

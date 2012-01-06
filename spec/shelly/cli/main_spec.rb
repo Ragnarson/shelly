@@ -35,6 +35,7 @@ Tasks:
   shelly login [EMAIL]      # Logs user in to Shelly Cloud
   shelly logout             # Logout from Shelly Cloud
   shelly logs               # Show latest application logs from each instance
+  shelly redeploy           # Redeploy application
   shelly register [EMAIL]   # Registers new user account on Shelly Cloud
   shelly start              # Starts the cloud
   shelly stop               # Stops the cloud
@@ -842,7 +843,7 @@ OUT
       @client.stub(:token).and_return("abc")
       FileUtils.mkdir_p("/projects/foo")
       Dir.chdir("/projects/foo")
-      File.open("Cloudfile", 'w') {|f| f.write("foo-production:\n") }
+      File.open("Cloudfile", 'w') { |f| f.write("foo-production:\n") }
       Shelly::User.stub(:new).and_return(@user)
       @client.stub(:apps).and_return([{"code_name" => "foo-production"},
                                      {"code_name" => "foo-staging"}])
@@ -912,6 +913,84 @@ OUT
         $stdout.should_receive(:puts).with(green "Instance 2:")
         $stdout.should_receive(:puts).with("log2")
         invoke(@main, :logs)
+      end
+    end
+  end
+
+  describe "#redeploy" do
+    before do
+      @user = Shelly::User.new
+      @client.stub(:token).and_return("abc")
+      @app = Shelly::App.new
+      Shelly::App.stub(:new).and_return(@app)
+      FileUtils.mkdir_p("/projects/foo")
+      Dir.chdir("/projects/foo")
+      File.open("Cloudfile", 'w') { |f| f.write("foo-production:\n") }
+    end
+
+    it "should redeploy the application" do
+      $stdout.should_receive(:puts).with(green "Redeploying your application for cloud 'foo-production'")
+      @app.should_receive(:redeploy)
+      invoke(@main, :redeploy)
+    end
+
+    context "on redeploy failure" do
+      %w(deploying configuring).each do |state|
+        context "when application is in #{state} state" do
+          it "should display error that deploy is in progress" do
+            exception = Shelly::Client::ConflictException.new("state" => state)
+            @client.should_receive(:redeploy).with("foo-production").and_raise(exception)
+            $stdout.should_receive(:puts).with(red "Your application is being redeployed at the moment")
+            lambda {
+              invoke(@main, :redeploy)
+            }.should raise_error(SystemExit)
+          end
+        end
+      end
+
+      %w(no_code no_billing turned_off).each do |state|
+        context "when application is in #{state} state" do
+          it "should display error that cloud is not running" do
+            exception = Shelly::Client::ConflictException.new("state" => state)
+            @client.should_receive(:redeploy).with("foo-production").and_raise(exception)
+            $stdout.should_receive(:puts).with(red "Cloud foo-production is not running")
+            $stdout.should_receive(:puts).with("Start your cloud with `shelly start --cloud foo-production`")
+            lambda {
+              invoke(@main, :redeploy)
+            }.should raise_error(SystemExit)
+          end
+        end
+      end
+
+      it "should re-raise exception on unknown state" do
+        exception = Shelly::Client::ConflictException.new("state" => "doing_something")
+        @client.should_receive(:redeploy).with("foo-production").and_raise(exception)
+        lambda {
+          invoke(@main, :redeploy)
+        }.should raise_error(Shelly::Client::ConflictException)
+      end
+    end
+
+    context "on multiple clouds in Cloudfile" do
+      before do
+        File.open("Cloudfile", 'w') { |f| f.write("foo-staging:\nfoo-production:\n") }
+      end
+
+      it "should show information to redeploy application for specific cloud and exit" do
+        $stdout.should_receive(:puts).
+          with("You have multiple clouds in Cloudfile. Select which cloud to redeploy application for:")
+        $stdout.should_receive(:puts).with("  shelly redeploy --cloud foo-production")
+        $stdout.should_receive(:puts).with("Available clouds:")
+        $stdout.should_receive(:puts).with(" * foo-production")
+        $stdout.should_receive(:puts).with(" * foo-staging")
+        lambda { invoke(@main, :redeploy) }.should raise_error(SystemExit)
+      end
+
+      it "should fetch from command line which cloud to redeploy application for" do
+        @client.should_receive(:redeploy).with("foo-staging")
+        $stdout.should_receive(:puts).with(green "Redeploying your application for cloud 'foo-staging'")
+        @main.options = {:cloud => "foo-staging"}
+        invoke(@main, :redeploy)
       end
     end
   end
