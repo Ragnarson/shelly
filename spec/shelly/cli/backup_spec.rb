@@ -42,8 +42,8 @@ describe Shelly::CLI::Backup do
       end
 
       it "should show information to select specific cloud and exit" do
-        $stdout.should_receive(:puts).with("You have multiple clouds in Cloudfile. Select cloud to view database backups for using:")
-        $stdout.should_receive(:puts).with("  shelly backup list --cloud foo-production")
+        $stdout.should_receive(:puts).with(red "You have multiple clouds in Cloudfile.")
+        $stdout.should_receive(:puts).with("Select cloud using `shelly backup list --cloud foo-production`")
         $stdout.should_receive(:puts).with("Available clouds:")
         $stdout.should_receive(:puts).with(" * foo-production")
         $stdout.should_receive(:puts).with(" * foo-staging")

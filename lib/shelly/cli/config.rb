@@ -45,7 +45,7 @@ module Shelly
       desc "show PATH", "View configuration file"
       def show(path = nil)
         say_error "No configuration file specified" unless path
-        multiple_clouds(options[:cloud], "show #{path}", "Specify cloud using:")
+        multiple_clouds(options[:cloud], "show #{path}")
         config = @app.config(path)
         say "Content of #{config["path"]}:", :green
         say config["content"]
@@ -66,7 +66,7 @@ module Shelly
       def create(path = nil)
         say_error "No path specified" unless path
         output = open_editor(path)
-        multiple_clouds(options[:cloud], "create #{path}", "Specify cloud using:")
+        multiple_clouds(options[:cloud], "create #{path}")
         @app.create_config(path, output)
         say "File '#{path}' created.", :green
         say "To make changes to running application redeploy it using:"
@@ -84,7 +84,7 @@ module Shelly
       desc "edit PATH", "Edit configuration file"
       def edit(path = nil)
         say_error "No configuration file specified" unless path
-        multiple_clouds(options[:cloud], "edit #{path}", "Specify cloud using:")
+        multiple_clouds(options[:cloud], "edit #{path}")
         config = @app.config(path)
         content = open_editor(config["path"], config["content"])
         @app.update_config(path, content)
@@ -109,7 +109,7 @@ module Shelly
       desc "delete PATH", "Delete configuration file"
       def delete(path = nil)
         say_error "No configuration file specified" unless path
-        multiple_clouds(options[:cloud], "delete #{path}", "Specify cloud using:")
+        multiple_clouds(options[:cloud], "delete #{path}")
         answer = yes?("Are you sure you want to delete 'path' (yes/no): ")
         if answer
           @app.delete_config(path)

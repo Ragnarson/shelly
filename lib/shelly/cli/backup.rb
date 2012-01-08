@@ -15,7 +15,7 @@ module Shelly
 
       desc "list", "List available database backups"
       def list
-        multiple_clouds(options[:cloud], "backup list", "Select cloud to view database backups for using:")
+        multiple_clouds(options[:cloud], "backup list")
         backups = @app.database_backups
         if backups.present?
           to_display = [["Filename", "|  Size"]]
@@ -40,7 +40,7 @@ module Shelly
         If filename is not specyfied, latest database backup will be downloaded.
       }
       def get(handler = "last")
-        multiple_clouds(options[:cloud], "backup get #{handler}", "Select cloud to download database backup for using:")
+        multiple_clouds(options[:cloud], "backup get #{handler}")
 
         backup = @app.database_backup(handler)
         bar = Shelly::DownloadProgressBar.new(backup.size)
@@ -65,7 +65,7 @@ module Shelly
         If database kind is not specified, backup of all configured databases will be performed.
       }
       def create(kind = nil)
-        multiple_clouds(options[:cloud], "backup create [DB_KIND]", "Select cloud to create database backup for")
+        multiple_clouds(options[:cloud], "backup create [DB_KIND]")
         @app.request_backup(kind)
         say "Backup requested. It can take up to several minutes for " +
           "the backup process to finish and the backup to show up in backups list.", :green
@@ -78,7 +78,7 @@ module Shelly
 
       desc "restore FILENAME", "Restore database to state from given backup"
       def restore(filename)
-        multiple_clouds(options[:cloud], "backup restore FILENAME", "Select cloud for which you want restore backup")
+        multiple_clouds(options[:cloud], "backup restore FILENAME")
         backup = @app.database_backup(filename)
         say "You are about restore database #{backup.kind} for cloud #{backup.code_name} to state from #{backup.filename}"
         say_new_line

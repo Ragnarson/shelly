@@ -145,7 +145,7 @@ module Shelly
       desc "start", "Start the cloud"
       method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
       def start
-        multiple_clouds(options[:cloud], "start", "Select cloud to start using:")
+        multiple_clouds(options[:cloud], "start")
         @app.start
         say "Starting cloud #{@app}. Check status with:", :green
         say "  shelly list"
@@ -176,7 +176,7 @@ module Shelly
       desc "stop", "Stop the cloud"
       method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
       def stop
-        multiple_clouds(options[:cloud], "stop", "Select cloud to stop using:")
+        multiple_clouds(options[:cloud], "stop")
         @app.stop
         say "Cloud '#{@app.code_name}' stopped"
       rescue Client::NotFoundException => e
@@ -187,7 +187,7 @@ module Shelly
       desc "delete", "Delete the cloud"
       method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
       def delete
-        multiple_clouds(options[:cloud], "delete", "Select cloud to delete using:")
+        multiple_clouds(options[:cloud], "delete")
         say "You are about to delete application: #{@app.code_name}."
         say "Press Control-C at any moment to cancel."
         say "Please confirm each question by typing yes and pressing Enter."
@@ -213,7 +213,7 @@ module Shelly
       method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
       def logs
         cloud = options[:cloud]
-        multiple_clouds(cloud, "logs", "Select which to show logs for using:")
+        multiple_clouds(cloud, "logs")
         begin
           logs = @app.application_logs
           say "Cloud #{@app.code_name}:", :green
@@ -238,7 +238,7 @@ module Shelly
       method_option :cloud, :type => :string, :aliases => "-c",
         :desc => "Specify which cloud to redeploy application for"
       def redeploy
-        multiple_clouds(options[:cloud], "redeploy", "Select which cloud to redeploy application for:")
+        multiple_clouds(options[:cloud], "redeploy")
         @app.redeploy
         say "Redeploying your application for cloud '#{@app}'", :green
       rescue Client::ConflictException => e

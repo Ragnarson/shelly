@@ -40,8 +40,8 @@ describe Shelly::CLI::Deploys do
       end
 
       it "should show information to select specific cloud and exit" do
-        $stdout.should_receive(:puts).with("You have multiple clouds in Cloudfile. Select cloud to view deploy logs using:")
-        $stdout.should_receive(:puts).with("  shelly deploys list --cloud foo-production")
+        $stdout.should_receive(:puts).with(red "You have multiple clouds in Cloudfile.")
+        $stdout.should_receive(:puts).with("Select cloud using `shelly deploys list --cloud foo-production`")
         $stdout.should_receive(:puts).with("Available clouds:")
         $stdout.should_receive(:puts).with(" * foo-production")
         $stdout.should_receive(:puts).with(" * foo-staging")
@@ -110,8 +110,8 @@ describe Shelly::CLI::Deploys do
       end
 
       it "should show information to select specific cloud and exit" do
-        $stdout.should_receive(:puts).with("You have multiple clouds in Cloudfile. Select log and cloud to view deploy logs using:")
-        $stdout.should_receive(:puts).with("  shelly deploys show last --cloud foo-production")
+        $stdout.should_receive(:puts).with(red "You have multiple clouds in Cloudfile.")
+        $stdout.should_receive(:puts).with("Select cloud using `shelly deploys show last --cloud foo-production`")
         $stdout.should_receive(:puts).with("Available clouds:")
         $stdout.should_receive(:puts).with(" * foo-production")
         $stdout.should_receive(:puts).with(" * foo-staging")
