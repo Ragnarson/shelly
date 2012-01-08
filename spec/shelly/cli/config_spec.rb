@@ -109,7 +109,8 @@ describe Shelly::CLI::Config do
       end
 
       it "should show info to select cloud and exit" do
-        $stdout.should_receive(:puts).with("You have multiple clouds in Cloudfile. Specify cloud using:")
+        $stdout.should_receive(:puts).with(red "You have multiple clouds in Cloudfile.")
+        $stdout.should_receive(:puts).with("Select cloud using `shelly show path --cloud foo-production`")
         lambda { invoke(@config, :show, "path") }.should raise_error(SystemExit)
       end
 
@@ -167,7 +168,8 @@ describe Shelly::CLI::Config do
 
       it "should show info to select cloud and exit" do
         @config.stub(:system) {true}
-        $stdout.should_receive(:puts).with("You have multiple clouds in Cloudfile. Specify cloud using:")
+        $stdout.should_receive(:puts).with(red "You have multiple clouds in Cloudfile.")
+        $stdout.should_receive(:puts).with("Select cloud using `shelly create path --cloud foo-production`")
         lambda { @config.create("path") }.should raise_error(SystemExit)
       end
 
@@ -253,7 +255,8 @@ describe Shelly::CLI::Config do
 
       it "should show info to select cloud and exit" do
         @config.stub(:system) {true}
-        $stdout.should_receive(:puts).with("You have multiple clouds in Cloudfile. Specify cloud using:")
+        $stdout.should_receive(:puts).with(red "You have multiple clouds in Cloudfile.")
+        $stdout.should_receive(:puts).with("Select cloud using `shelly edit path --cloud foo-production`")
         lambda { invoke(@config, :edit, "path") }.should raise_error(SystemExit)
       end
 
@@ -303,7 +306,8 @@ describe Shelly::CLI::Config do
       end
 
       it "should show info to select cloud and exit" do
-        $stdout.should_receive(:puts).with("You have multiple clouds in Cloudfile. Specify cloud using:")
+        $stdout.should_receive(:puts).with(red "You have multiple clouds in Cloudfile.")
+        $stdout.should_receive(:puts).with("Select cloud using `shelly delete path --cloud foo-production`")
         lambda { invoke(@config, :delete, "path") }.should raise_error(SystemExit)
       end
 

@@ -534,8 +534,8 @@ OUT
       end
 
       it "should show information to start specific cloud and exit" do
-        $stdout.should_receive(:puts).with("You have multiple clouds in Cloudfile. Select cloud to start using:")
-        $stdout.should_receive(:puts).with("  shelly start --cloud foo-production")
+        $stdout.should_receive(:puts).with(red "You have multiple clouds in Cloudfile.")
+        $stdout.should_receive(:puts).with("Select cloud using `shelly start --cloud foo-production`")
         $stdout.should_receive(:puts).with("Available clouds:")
         $stdout.should_receive(:puts).with(" * foo-production")
         $stdout.should_receive(:puts).with(" * foo-staging")
@@ -641,8 +641,8 @@ OUT
       end
 
       it "should show information to start specific cloud and exit" do
-        $stdout.should_receive(:puts).with("You have multiple clouds in Cloudfile. Select cloud to stop using:")
-        $stdout.should_receive(:puts).with("  shelly stop --cloud foo-production")
+        $stdout.should_receive(:puts).with(red "You have multiple clouds in Cloudfile.")
+        $stdout.should_receive(:puts).with("Select cloud using `shelly stop --cloud foo-production`")
         $stdout.should_receive(:puts).with("Available clouds:")
         $stdout.should_receive(:puts).with(" * foo-production")
         $stdout.should_receive(:puts).with(" * foo-staging")
@@ -884,9 +884,8 @@ OUT
       end
 
       it "should show information to print logs for specific cloud and exit" do
-        $stdout.should_receive(:puts).
-          with("You have multiple clouds in Cloudfile. Select which to show logs for using:")
-        $stdout.should_receive(:puts).with("  shelly logs --cloud foo-production")
+        $stdout.should_receive(:puts).with(red "You have multiple clouds in Cloudfile.")
+        $stdout.should_receive(:puts).with("Select cloud using `shelly logs --cloud foo-production`")
         $stdout.should_receive(:puts).with("Available clouds:")
         $stdout.should_receive(:puts).with(" * foo-production")
         $stdout.should_receive(:puts).with(" * foo-staging")
@@ -977,9 +976,8 @@ OUT
       end
 
       it "should show information to redeploy application for specific cloud and exit" do
-        $stdout.should_receive(:puts).
-          with("You have multiple clouds in Cloudfile. Select which cloud to redeploy application for:")
-        $stdout.should_receive(:puts).with("  shelly redeploy --cloud foo-production")
+        $stdout.should_receive(:puts).with(red "You have multiple clouds in Cloudfile.")
+        $stdout.should_receive(:puts).with("Select cloud using `shelly redeploy --cloud foo-production`")
         $stdout.should_receive(:puts).with("Available clouds:")
         $stdout.should_receive(:puts).with(" * foo-production")
         $stdout.should_receive(:puts).with(" * foo-staging")

@@ -67,11 +67,11 @@ module Shelly
       say_error "You are not logged in. To log in use: `shelly login`"
     end
 
-    def multiple_clouds(cloud, action, message)
+    def multiple_clouds(cloud, action)
       clouds = Cloudfile.new.clouds
       if clouds.count > 1 && cloud.nil?
-        say "You have multiple clouds in Cloudfile. #{message}"
-        say "  shelly #{action} --cloud #{clouds.first}"
+        say_error "You have multiple clouds in Cloudfile.", :with_exit => false
+        say "Select cloud using `shelly #{action} --cloud #{clouds.first}`"
         say "Available clouds:"
         clouds.each do |cloud|
           say " * #{cloud}"
@@ -81,6 +81,5 @@ module Shelly
       @app = Shelly::App.new
       @app.code_name = cloud || clouds.first
     end
-
   end
 end
