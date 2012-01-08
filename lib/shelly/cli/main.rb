@@ -143,8 +143,7 @@ module Shelly
       end
 
       desc "start", "Start the cloud"
-      method_option :cloud, :type => :string, :aliases => "-c",
-        :desc => "Specify which cloud to start"
+      method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
       def start
         multiple_clouds(options[:cloud], "start", "Select cloud to start using:")
         @app.start
@@ -175,8 +174,7 @@ module Shelly
       end
 
       desc "stop", "Stop the cloud"
-      method_option :cloud, :type => :string, :aliases => "-c",
-        :desc => "Specify which cloud to stop"
+      method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
       def stop
         multiple_clouds(options[:cloud], "stop", "Select cloud to stop using:")
         @app.stop
@@ -187,8 +185,7 @@ module Shelly
       end
 
       desc "delete", "Delete the cloud"
-      method_option :cloud, :type => :string, :aliases => "-c",
-        :desc => "Specify which cloud to delete"
+      method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
       def delete
         multiple_clouds(options[:cloud], "delete", "Select cloud to delete using:")
         say "You are about to delete application: #{@app.code_name}."
@@ -213,8 +210,7 @@ module Shelly
       end
 
       desc "logs", "Show latest application logs"
-      method_option :cloud, :type => :string, :aliases => "-c",
-        :desc => "Specify which cloud to show logs for"
+      method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
       def logs
         cloud = options[:cloud]
         multiple_clouds(cloud, "logs", "Select which to show logs for using:")

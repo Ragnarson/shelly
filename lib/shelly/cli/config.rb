@@ -40,8 +40,7 @@ module Shelly
         end
       end
 
-      method_option :cloud, :type => :string, :aliases => "-c",
-        :desc => "Specify which cloud to show configuration file for"
+      method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
       desc "show PATH", "View configuration file"
       def show(path = nil)
         say_error "No configuration file specified" unless path
@@ -61,8 +60,7 @@ module Shelly
       end
 
       map "new" => :create
-      method_option :cloud, :type => :string, :aliases => "-c",
-        :desc => "Specify which cloud to create configuration file for"
+      method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
       desc "create PATH", "Create configuration file"
       def create(path = nil)
         say_error "No path specified" unless path
@@ -79,8 +77,7 @@ module Shelly
       end
 
       map "update" => :edit
-      method_option :cloud, :type => :string, :aliases => "-c",
-        :desc => "Specify which cloud to edit configuration file for"
+      method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
       desc "edit PATH", "Edit configuration file"
       def edit(path = nil)
         say_error "No configuration file specified" unless path
@@ -103,8 +100,7 @@ module Shelly
         exit 1
       end
 
-      method_option :cloud, :type => :string, :aliases => "-c",
-        :desc => "Specify for which cloud to delete configuration file for"
+      method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
       desc "delete PATH", "Delete configuration file"
       def delete(path = nil)
         say_error "No configuration file specified" unless path

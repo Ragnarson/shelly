@@ -11,8 +11,7 @@ module Shelly
       before_hook :cloudfile_present?, :only => [:list, :show]
 
       desc "list", "Lists deploy logs"
-      method_option :cloud, :type => :string, :aliases => "-c",
-        :desc => "Specify which cloud to show deploy logs for"
+      method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
       def list
         multiple_clouds(options[:cloud], "deploys list", "Select cloud to view deploy logs using:")
         logs = @app.deploy_logs
@@ -30,8 +29,7 @@ module Shelly
       end
 
       desc "show LOG", "Show specific deploy log"
-      method_option :cloud, :type => :string, :aliases => "-c",
-        :desc => "Specify which cloud to show deploy logs for"
+      method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
       def show(log = nil)
         specify_log(log)
         multiple_clouds(options[:cloud], "deploys show #{log}", "Select log and cloud to view deploy logs using:")
