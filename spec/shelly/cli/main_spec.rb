@@ -55,7 +55,7 @@ Usage:
   shelly logs
 
 Options:
-  -c, [--cloud=CLOUD]  # Specify which cloud to show logs for
+  -c, [--cloud=CLOUD]  # Specify cloud
       [--debug]        # Show debug information
 
 Show latest application logs
