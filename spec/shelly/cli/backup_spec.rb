@@ -42,8 +42,8 @@ describe Shelly::CLI::Backup do
       end
 
       it "should show information to select specific cloud and exit" do
-        $stdout.should_receive(:puts).with("You have multiple clouds in Cloudfile. Select cloud to view database backups for using:")
-        $stdout.should_receive(:puts).with("  shelly backup list --cloud foo-production")
+        $stdout.should_receive(:puts).with(red "You have multiple clouds in Cloudfile.")
+        $stdout.should_receive(:puts).with("Select cloud using `shelly backup list --cloud foo-production`")
         $stdout.should_receive(:puts).with("Available clouds:")
         $stdout.should_receive(:puts).with(" * foo-production")
         $stdout.should_receive(:puts).with(" * foo-staging")
@@ -180,7 +180,7 @@ describe Shelly::CLI::Backup do
       $stdout.should_receive(:puts).with("\n")
       @client.stub(:restore_backup).with("todo-list-test","better.tar.gz")
       $stdout.should_receive(:puts).with("\n")
-      $stdout.should_receive(:puts).with("Restore has been scheduled. Wait few minutes till database is restored.")
+      $stdout.should_receive(:puts).with("Restore has been scheduled. Wait a few minutes till database is restored.")
 
       fake_stdin(["yes"]) do
         invoke(@backup, :restore, "better.tar.gz")
@@ -200,13 +200,6 @@ describe Shelly::CLI::Backup do
           end
         }.should raise_error(SystemExit)
       end
-    end
-
-    it "should exit with 1 when filename is not specified" do
-      $stdout.should_receive(:puts).with(red "Filename is required")
-      lambda {
-        invoke(@backup, :restore)
-      }.should raise_error(SystemExit)
     end
 
     context "on backup not found" do
