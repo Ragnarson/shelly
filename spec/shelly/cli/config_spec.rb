@@ -144,7 +144,9 @@ describe Shelly::CLI::Config do
     it "should create file" do
       @config.should_receive(:system).with(/vim \/tmp\/shelly-edit/).and_return(true)
       @client.should_receive(:app_create_config).with("foo-staging", "path", "\n").and_return({})
-      $stdout.should_receive(:puts).with(green "File 'path' created, it will be used after next code deploy")
+      $stdout.should_receive(:puts).with(green "File 'path' created.")
+      $stdout.should_receive(:puts).with("To make changes to running application redeploy it using:")
+      $stdout.should_receive(:puts).with("`shelly redeploy --cloud foo-staging`")
       invoke(@config, :create, "path")
     end
 
@@ -206,7 +208,9 @@ describe Shelly::CLI::Config do
       @client.should_receive(:app_config).with("foo-staging", "path").and_return({"path" => "test.rb", "content" => "example content"})
       @config.should_receive(:system).with(/vim \/tmp\/shelly-edit/).and_return(true)
       @client.should_receive(:app_update_config).with("foo-staging", "path", "example content\n").and_return({"path" => "test.rb", "content" => "example content"})
-      $stdout.should_receive(:puts).with(green "File 'test.rb' updated, it will be used after next code deploy")
+      $stdout.should_receive(:puts).with(green "File 'test.rb' updated.")
+      $stdout.should_receive(:puts).with("To make changes to running application redeploy it using:")
+      $stdout.should_receive(:puts).with("`shelly redeploy --cloud foo-staging`")
       invoke(@config, :edit, "path")
     end
 
@@ -283,7 +287,9 @@ describe Shelly::CLI::Config do
 
     it "should delete configuration file" do
       @client.should_receive(:app_delete_config).with("foo-staging", "path").and_return({})
-      $stdout.should_receive(:puts).with(green "File deleted, redeploy your cloud to make changes")
+      $stdout.should_receive(:puts).with(green "File 'path' deleted.")
+      $stdout.should_receive(:puts).with("To make changes to running application redeploy it using:")
+      $stdout.should_receive(:puts).with("`shelly redeploy --cloud foo-staging`")
       fake_stdin(["y"]) do
         invoke(@config, :delete, "path")
       end
@@ -309,7 +315,9 @@ describe Shelly::CLI::Config do
 
       it "should use cloud specified by parameter" do
         @client.should_receive(:app_delete_config).with("foo-production", "path").and_return({})
-        $stdout.should_receive(:puts).with(green "File deleted, redeploy your cloud to make changes")
+        $stdout.should_receive(:puts).with(green "File 'path' deleted.")
+        $stdout.should_receive(:puts).with("To make changes to running application redeploy it using:")
+        $stdout.should_receive(:puts).with("`shelly redeploy --cloud foo-production`")
         @config.options = {:cloud => "foo-production"}
         fake_stdin(["y"]) do
           invoke(@config, :delete, "path")

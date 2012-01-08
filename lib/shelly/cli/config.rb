@@ -69,7 +69,9 @@ module Shelly
         output = open_editor(path)
         multiple_clouds(options[:cloud], "create #{path}", "Specify cloud using:")
         @app.create_config(path, output)
-        say "File '#{path}' created, it will be used after next code deploy", :green
+        say "File '#{path}' created.", :green
+        say "To make changes to running application redeploy it using:"
+        say "`shelly redeploy --cloud #{@app}`"
       rescue Client::NotFoundException => e
         raise unless e.resource == :cloud
         say_error "You have no access to '#{@app.code_name}' cloud defined in Cloudfile"
@@ -88,7 +90,9 @@ module Shelly
         config = @app.config(path)
         content = open_editor(config["path"], config["content"])
         @app.update_config(path, content)
-        say "File '#{config["path"]}' updated, it will be used after next code deploy", :green
+        say "File '#{config["path"]}' updated.", :green
+        say "To make changes to running application redeploy it using:"
+        say "`shelly redeploy --cloud #{@app}`"
       rescue Client::NotFoundException => e
         case e.resource
         when :cloud
@@ -112,7 +116,9 @@ module Shelly
         answer = yes?("Are you sure you want to delete 'path' (yes/no): ")
         if answer
           @app.delete_config(path)
-          say "File deleted, redeploy your cloud to make changes", :green
+          say "File '#{path}' deleted.", :green
+          say "To make changes to running application redeploy it using:"
+          say "`shelly redeploy --cloud #{@app}`"
         else
           say "File not deleted"
         end
