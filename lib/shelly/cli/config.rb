@@ -39,7 +39,8 @@ module Shelly
           end
         end
       end
-
+      
+      # FIXME: Check if path argument is present via Thor (mandatory arguments)
       method_option :cloud, :type => :string, :aliases => "-c",
         :desc => "Specify which cloud to show configuration file for"
       desc "show PATH", "View configuration file"
