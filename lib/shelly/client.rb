@@ -115,6 +115,10 @@ module Shelly
       get("/apps/#{code_name}")
     end
 
+    def run(cloud, code)
+      post("/apps/#{cloud}/run", :body => code)
+    end
+
     def deploy_logs(cloud)
       get("/apps/#{cloud}/deployment_logs")
     end

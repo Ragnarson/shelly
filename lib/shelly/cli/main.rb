@@ -16,7 +16,7 @@ module Shelly
       check_unknown_options!
 
       # FIXME: it should be possible to pass single symbol, instead of one element array
-      before_hook :logged_in?, :only => [:add, :list, :start, :stop, :logs, :delete, :ip, :logout]
+      before_hook :logged_in?, :only => [:add, :list, :start, :stop, :logs, :delete, :ip, :logout, :execute]
       before_hook :inside_git_repository?, :only => [:add]
       before_hook :cloudfile_present?, :only => [:logs, :stop, :start, :ip]
 
@@ -232,6 +232,25 @@ module Shelly
         user = Shelly::User.new
         say "Your public SSH key has been removed from Shelly Cloud" if user.delete_ssh_key
         say "You have been successfully logged out" if user.delete_credentials
+      end
+
+      desc "execute [CODE]", "Run code on one of application servers"
+      method_option :cloud, :type => :string, :aliases => "-c",
+        :desc => "Specify which cloud to run code for"
+      long_desc "Run code given in parameter on one of application servers. If a file name is given, run contents of that file."
+      def execute(file_name_or_code)
+        cloud = options[:cloud]
+        multiple_clouds(cloud, "execute")
+
+        result = @app.run(file_name_or_code)
+        say result
+
+      rescue Client::APIException => e
+        if e[:message] == "App not running"
+          say_error "Cloud #{@app} is not running. Cannot run code."
+        else
+          raise
+        end
       end
 
       desc "redeploy", "Redeploy application"
