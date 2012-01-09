@@ -235,6 +235,8 @@ module Shelly
       end
 
       desc "execute [CODE]", "Run code on one of application servers"
+      method_option :cloud, :type => :string, :aliases => "-c",
+        :desc => "Specify which cloud to run code for"
       long_desc "Run code given in parameter on one of application servers. If a file name is given, run contents of that file."
       def execute(file_name_or_code)
         cloud = options[:cloud]
@@ -252,6 +254,8 @@ module Shelly
       end
 
       desc "redeploy", "Redeploy application"
+      method_option :cloud, :type => :string, :aliases => "-c",
+        :desc => "Specify which cloud to redeploy application for"
       def redeploy
         multiple_clouds(options[:cloud], "redeploy")
         @app.redeploy
