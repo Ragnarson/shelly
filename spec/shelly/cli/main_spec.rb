@@ -24,23 +24,23 @@ describe Shelly::CLI::Main do
     it "should display available commands" do
       expected = <<-OUT
 Tasks:
-  shelly add                # Adds new cloud to Shelly Cloud
-  shelly backup <command>   # Manages database backups from this cloud
-  shelly config <command>   # Manages cloud configuration files
-  shelly delete             # Delete cloud from Shelly Cloud
-  shelly deploys <command>  # View cloud deploy logs
+  shelly add                # Add a new cloud
+  shelly backup <command>   # Manage database backups
+  shelly config <command>   # Manage application configuration files
+  shelly delete             # Delete the cloud
+  shelly deploys <command>  # View deploy logs
   shelly help [TASK]        # Describe available tasks or one specific task
-  shelly ip                 # Lists clouds IP's
-  shelly list               # Lists all your clouds
-  shelly login [EMAIL]      # Logs user in to Shelly Cloud
+  shelly ip                 # List cloud's IP addresses
+  shelly list               # List available clouds
+  shelly login [EMAIL]      # Log into Shelly Cloud
   shelly logout             # Logout from Shelly Cloud
-  shelly logs               # Show latest application logs from each instance
+  shelly logs               # Show latest application logs
   shelly redeploy           # Redeploy application
-  shelly register [EMAIL]   # Registers new user account on Shelly Cloud
-  shelly start              # Starts the cloud
-  shelly stop               # Stops the cloud
-  shelly user <command>     # Manages users using this cloud
-  shelly version            # Displays shelly version
+  shelly register [EMAIL]   # Register new account
+  shelly start              # Start the cloud
+  shelly stop               # Stop the cloud
+  shelly user <command>     # Manage collaborators
+  shelly version            # Display shelly version
 
 Options:
   [--debug]  # Show debug information
@@ -55,10 +55,10 @@ Usage:
   shelly logs
 
 Options:
-  -c, [--cloud=CLOUD]  # Specify which cloud to show logs for
+  -c, [--cloud=CLOUD]  # Specify cloud
       [--debug]        # Show debug information
 
-Show latest application logs from each instance
+Show latest application logs
 OUT
       out = IO.popen("bin/shelly help logs").read.strip
       out.should == expected.strip
@@ -534,8 +534,8 @@ OUT
       end
 
       it "should show information to start specific cloud and exit" do
-        $stdout.should_receive(:puts).with("You have multiple clouds in Cloudfile. Select cloud to start using:")
-        $stdout.should_receive(:puts).with("  shelly start --cloud foo-production")
+        $stdout.should_receive(:puts).with(red "You have multiple clouds in Cloudfile.")
+        $stdout.should_receive(:puts).with("Select cloud using `shelly start --cloud foo-production`")
         $stdout.should_receive(:puts).with("Available clouds:")
         $stdout.should_receive(:puts).with(" * foo-production")
         $stdout.should_receive(:puts).with(" * foo-staging")
@@ -641,8 +641,8 @@ OUT
       end
 
       it "should show information to start specific cloud and exit" do
-        $stdout.should_receive(:puts).with("You have multiple clouds in Cloudfile. Select cloud to stop using:")
-        $stdout.should_receive(:puts).with("  shelly stop --cloud foo-production")
+        $stdout.should_receive(:puts).with(red "You have multiple clouds in Cloudfile.")
+        $stdout.should_receive(:puts).with("Select cloud using `shelly stop --cloud foo-production`")
         $stdout.should_receive(:puts).with("Available clouds:")
         $stdout.should_receive(:puts).with(" * foo-production")
         $stdout.should_receive(:puts).with(" * foo-staging")
@@ -884,9 +884,8 @@ OUT
       end
 
       it "should show information to print logs for specific cloud and exit" do
-        $stdout.should_receive(:puts).
-          with("You have multiple clouds in Cloudfile. Select which to show logs for using:")
-        $stdout.should_receive(:puts).with("  shelly logs --cloud foo-production")
+        $stdout.should_receive(:puts).with(red "You have multiple clouds in Cloudfile.")
+        $stdout.should_receive(:puts).with("Select cloud using `shelly logs --cloud foo-production`")
         $stdout.should_receive(:puts).with("Available clouds:")
         $stdout.should_receive(:puts).with(" * foo-production")
         $stdout.should_receive(:puts).with(" * foo-staging")
@@ -977,9 +976,8 @@ OUT
       end
 
       it "should show information to redeploy application for specific cloud and exit" do
-        $stdout.should_receive(:puts).
-          with("You have multiple clouds in Cloudfile. Select which cloud to redeploy application for:")
-        $stdout.should_receive(:puts).with("  shelly redeploy --cloud foo-production")
+        $stdout.should_receive(:puts).with(red "You have multiple clouds in Cloudfile.")
+        $stdout.should_receive(:puts).with("Select cloud using `shelly redeploy --cloud foo-production`")
         $stdout.should_receive(:puts).with("Available clouds:")
         $stdout.should_receive(:puts).with(" * foo-production")
         $stdout.should_receive(:puts).with(" * foo-staging")

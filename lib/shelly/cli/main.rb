@@ -9,10 +9,10 @@ module Shelly
     class Main < Command
       include Thor::Actions
 
-      register(User, "user", "user <command>", "Manages users using this cloud")
-      register(Backup, "backup", "backup <command>", "Manages database backups from this cloud")
-      register(Deploys, "deploys", "deploys <command>", "View cloud deploy logs")
-      register(Config, "config", "config <command>", "Manages cloud configuration files")
+      register(User, "user", "user <command>", "Manage collaborators")
+      register(Backup, "backup", "backup <command>", "Manage database backups")
+      register(Deploys, "deploys", "deploys <command>", "View deploy logs")
+      register(Config, "config", "config <command>", "Manage application configuration files")
       check_unknown_options!
 
       # FIXME: it should be possible to pass single symbol, instead of one element array
@@ -21,12 +21,12 @@ module Shelly
       before_hook :cloudfile_present?, :only => [:logs, :stop, :start, :ip]
 
       map %w(-v --version) => :version
-      desc "version", "Displays shelly version"
+      desc "version", "Display shelly version"
       def version
         say "shelly version #{Shelly::VERSION}"
       end
 
-      desc "register [EMAIL]", "Registers new user account on Shelly Cloud"
+      desc "register [EMAIL]", "Register new account"
       def register(email = nil)
         user = Shelly::User.new
         user.ssh_key_registered?
@@ -51,7 +51,7 @@ module Shelly
         say_error "Use ssh-keygen to generate ssh key pair"
       end
 
-      desc "login [EMAIL]", "Logs user in to Shelly Cloud"
+      desc "login [EMAIL]", "Log into Shelly Cloud"
       def login(email = nil)
         user = Shelly::User.new
         raise Errno::ENOENT, user.ssh_key_path unless user.ssh_key_exists?
@@ -77,11 +77,11 @@ module Shelly
         :desc => "Unique code-name of your cloud"
       method_option :databases, :type => :array, :aliases => "-d",
         :banner => Shelly::App::DATABASE_KINDS.join(', '),
-        :desc => "Array of databases of your choice"
+        :desc => "List of databases of your choice"
       method_option :domains, :type => :array,
         :banner => "CODE-NAME.shellyapp.com, YOUR-DOMAIN.com",
-        :desc => "Array of your domains"
-      desc "add", "Adds new cloud to Shelly Cloud"
+        :desc => "List of your domains"
+      desc "add", "Add a new cloud"
       def add
         check_options(options)
         @app = Shelly::App.new
@@ -109,7 +109,7 @@ module Shelly
         say_error "shelly add --code-name=#{@app.code_name} --databases=#{@app.databases.join} --domains=#{@app.code_name}.shellyapp.com"
       end
 
-      desc "list", "Lists all your clouds"
+      desc "list", "List available clouds"
       def list
         user = Shelly::User.new
         apps = user.apps
@@ -126,7 +126,7 @@ module Shelly
 
       map "status" => :list
 
-      desc "ip", "Lists clouds IP's"
+      desc "ip", "List cloud's IP addresses"
       def ip
         @cloudfile = Cloudfile.new
         @cloudfile.clouds.each do |cloud|
@@ -142,11 +142,10 @@ module Shelly
         end
       end
 
-      desc "start", "Starts the cloud"
-      method_option :cloud, :type => :string, :aliases => "-c",
-        :desc => "Specify which cloud to start"
+      desc "start", "Start the cloud"
+      method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
       def start
-        multiple_clouds(options[:cloud], "start", "Select cloud to start using:")
+        multiple_clouds(options[:cloud], "start")
         @app.start
         say "Starting cloud #{@app}. Check status with:", :green
         say "  shelly list"
@@ -174,11 +173,10 @@ module Shelly
         say_error "You have no access to '#{@app}' cloud defined in Cloudfile"
       end
 
-      desc "stop", "Stops the cloud"
-      method_option :cloud, :type => :string, :aliases => "-c",
-        :desc => "Specify which cloud to stop"
+      desc "stop", "Stop the cloud"
+      method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
       def stop
-        multiple_clouds(options[:cloud], "stop", "Select cloud to stop using:")
+        multiple_clouds(options[:cloud], "stop")
         @app.stop
         say "Cloud '#{@app.code_name}' stopped"
       rescue Client::NotFoundException => e
@@ -186,11 +184,10 @@ module Shelly
         say_error "You have no access to '#{@app.code_name}' cloud defined in Cloudfile"
       end
 
-      desc "delete", "Delete cloud from Shelly Cloud"
-      method_option :cloud, :type => :string, :aliases => "-c",
-        :desc => "Specify which cloud to delete"
+      desc "delete", "Delete the cloud"
+      method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
       def delete
-        multiple_clouds(options[:cloud], "delete", "Select cloud to delete using:")
+        multiple_clouds(options[:cloud], "delete")
         say "You are about to delete application: #{@app.code_name}."
         say "Press Control-C at any moment to cancel."
         say "Please confirm each question by typing yes and pressing Enter."
@@ -212,12 +209,11 @@ module Shelly
         say_error "You have no access to '#{@app.code_name}' cloud defined in Cloudfile"
       end
 
-      desc "logs", "Show latest application logs from each instance"
-      method_option :cloud, :type => :string, :aliases => "-c",
-        :desc => "Specify which cloud to show logs for"
+      desc "logs", "Show latest application logs"
+      method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
       def logs
         cloud = options[:cloud]
-        multiple_clouds(cloud, "logs", "Select which to show logs for using:")
+        multiple_clouds(cloud, "logs")
         begin
           logs = @app.application_logs
           say "Cloud #{@app.code_name}:", :green
@@ -242,7 +238,7 @@ module Shelly
       method_option :cloud, :type => :string, :aliases => "-c",
         :desc => "Specify which cloud to redeploy application for"
       def redeploy
-        multiple_clouds(options[:cloud], "redeploy", "Select which cloud to redeploy application for:")
+        multiple_clouds(options[:cloud], "redeploy")
         @app.redeploy
         say "Redeploying your application for cloud '#{@app}'", :green
       rescue Client::ConflictException => e
