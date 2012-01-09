@@ -109,7 +109,8 @@ describe Shelly::CLI::Config do
       end
 
       it "should show info to select cloud and exit" do
-        $stdout.should_receive(:puts).with("You have multiple clouds in Cloudfile. Specify cloud using:")
+        $stdout.should_receive(:puts).with(red "You have multiple clouds in Cloudfile.")
+        $stdout.should_receive(:puts).with("Select cloud using `shelly show path --cloud foo-production`")
         lambda { invoke(@config, :show, "path") }.should raise_error(SystemExit)
       end
 
@@ -144,7 +145,9 @@ describe Shelly::CLI::Config do
     it "should create file" do
       @config.should_receive(:system).with(/vim \/tmp\/shelly-edit/).and_return(true)
       @client.should_receive(:app_create_config).with("foo-staging", "path", "\n").and_return({})
-      $stdout.should_receive(:puts).with(green "File 'path' created, it will be used after next code deploy")
+      $stdout.should_receive(:puts).with(green "File 'path' created.")
+      $stdout.should_receive(:puts).with("To make changes to running application redeploy it using:")
+      $stdout.should_receive(:puts).with("`shelly redeploy --cloud foo-staging`")
       invoke(@config, :create, "path")
     end
 
@@ -167,7 +170,8 @@ describe Shelly::CLI::Config do
 
       it "should show info to select cloud and exit" do
         @config.stub(:system) {true}
-        $stdout.should_receive(:puts).with("You have multiple clouds in Cloudfile. Specify cloud using:")
+        $stdout.should_receive(:puts).with(red "You have multiple clouds in Cloudfile.")
+        $stdout.should_receive(:puts).with("Select cloud using `shelly create path --cloud foo-production`")
         lambda { @config.create("path") }.should raise_error(SystemExit)
       end
 
@@ -206,7 +210,9 @@ describe Shelly::CLI::Config do
       @client.should_receive(:app_config).with("foo-staging", "path").and_return({"path" => "test.rb", "content" => "example content"})
       @config.should_receive(:system).with(/vim \/tmp\/shelly-edit/).and_return(true)
       @client.should_receive(:app_update_config).with("foo-staging", "path", "example content\n").and_return({"path" => "test.rb", "content" => "example content"})
-      $stdout.should_receive(:puts).with(green "File 'test.rb' updated, it will be used after next code deploy")
+      $stdout.should_receive(:puts).with(green "File 'test.rb' updated.")
+      $stdout.should_receive(:puts).with("To make changes to running application redeploy it using:")
+      $stdout.should_receive(:puts).with("`shelly redeploy --cloud foo-staging`")
       invoke(@config, :edit, "path")
     end
 
@@ -253,7 +259,8 @@ describe Shelly::CLI::Config do
 
       it "should show info to select cloud and exit" do
         @config.stub(:system) {true}
-        $stdout.should_receive(:puts).with("You have multiple clouds in Cloudfile. Specify cloud using:")
+        $stdout.should_receive(:puts).with(red "You have multiple clouds in Cloudfile.")
+        $stdout.should_receive(:puts).with("Select cloud using `shelly edit path --cloud foo-production`")
         lambda { invoke(@config, :edit, "path") }.should raise_error(SystemExit)
       end
 
@@ -283,7 +290,9 @@ describe Shelly::CLI::Config do
 
     it "should delete configuration file" do
       @client.should_receive(:app_delete_config).with("foo-staging", "path").and_return({})
-      $stdout.should_receive(:puts).with(green "File deleted, redeploy your cloud to make changes")
+      $stdout.should_receive(:puts).with(green "File 'path' deleted.")
+      $stdout.should_receive(:puts).with("To make changes to running application redeploy it using:")
+      $stdout.should_receive(:puts).with("`shelly redeploy --cloud foo-staging`")
       fake_stdin(["y"]) do
         invoke(@config, :delete, "path")
       end
@@ -303,13 +312,16 @@ describe Shelly::CLI::Config do
       end
 
       it "should show info to select cloud and exit" do
-        $stdout.should_receive(:puts).with("You have multiple clouds in Cloudfile. Specify cloud using:")
+        $stdout.should_receive(:puts).with(red "You have multiple clouds in Cloudfile.")
+        $stdout.should_receive(:puts).with("Select cloud using `shelly delete path --cloud foo-production`")
         lambda { invoke(@config, :delete, "path") }.should raise_error(SystemExit)
       end
 
       it "should use cloud specified by parameter" do
         @client.should_receive(:app_delete_config).with("foo-production", "path").and_return({})
-        $stdout.should_receive(:puts).with(green "File deleted, redeploy your cloud to make changes")
+        $stdout.should_receive(:puts).with(green "File 'path' deleted.")
+        $stdout.should_receive(:puts).with("To make changes to running application redeploy it using:")
+        $stdout.should_receive(:puts).with("`shelly redeploy --cloud foo-production`")
         @config.options = {:cloud => "foo-production"}
         fake_stdin(["y"]) do
           invoke(@config, :delete, "path")

@@ -280,6 +280,13 @@ config
       end
     end
   end
+  
+  describe "#redeploy" do
+    it "should redeploy app via API" do
+      @client.should_receive(:redeploy).with("foo-staging")
+      @app.redeploy
+    end
+  end
 
   describe "#run" do
     before do
@@ -307,4 +314,3 @@ config
     end
   end
 end
-

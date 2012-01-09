@@ -11,10 +11,9 @@ module Shelly
       before_hook :cloudfile_present?, :only => [:list, :show]
 
       desc "list", "Lists deploy logs"
-      method_option :cloud, :type => :string, :aliases => "-c",
-        :desc => "Specify which cloud to show deploy logs for"
+      method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
       def list
-        multiple_clouds(options[:cloud], "deploys list", "Select cloud to view deploy logs using:")
+        multiple_clouds(options[:cloud], "deploys list")
         logs = @app.deploy_logs
         unless logs.empty?
           say "Available deploy logs", :green
@@ -30,11 +29,10 @@ module Shelly
       end
 
       desc "show LOG", "Show specific deploy log"
-      method_option :cloud, :type => :string, :aliases => "-c",
-        :desc => "Specify which cloud to show deploy logs for"
+      method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
       def show(log = nil)
         specify_log(log)
-        multiple_clouds(options[:cloud], "deploys show #{log}", "Select log and cloud to view deploy logs using:")
+        multiple_clouds(options[:cloud], "deploys show #{log}")
         content = @app.deploy_log(log)
         say "Log for deploy done on #{content["created_at"]}", :green
         if content["bundle_install"]
