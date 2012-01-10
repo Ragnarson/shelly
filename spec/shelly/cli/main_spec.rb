@@ -29,6 +29,7 @@ Tasks:
   shelly config <command>   # Manage application configuration files
   shelly delete             # Delete the cloud
   shelly deploys <command>  # View deploy logs
+  shelly execute [CODE]     # Run code on one of application servers
   shelly help [TASK]        # Describe available tasks or one specific task
   shelly ip                 # List cloud's IP addresses
   shelly list               # List available clouds
@@ -912,6 +913,81 @@ OUT
         $stdout.should_receive(:puts).with(green "Instance 2:")
         $stdout.should_receive(:puts).with("log2")
         invoke(@main, :logs)
+      end
+    end
+  end
+
+  describe "#execute" do
+    before do
+      FileUtils.mkdir_p("/projects/foo")
+      Dir.chdir("/projects/foo")
+      File.open("Cloudfile", 'w') {|f| f.write("foo-production:\n") }
+      @user = Shelly::User.new
+      @user.stub(:token)
+      Shelly::User.stub(:new).and_return(@user)
+      @client.stub(:apps).and_return([{"code_name" => "foo-production"},
+                                     {"code_name" => "foo-staging"}])
+      @app = Shelly::App.new
+      Shelly::App.stub(:new).and_return(@app)
+      File.open("to_execute.rb", 'w') {|f| f.write("User.count") }
+    end
+
+    it "should ensure user has logged in" do
+      hooks(@main, :execute).should include(:logged_in?)
+    end
+
+    context "single cloud in Cloudfile" do
+      it "should execute code for the cloud" do
+        @client.should_receive(:run).with("foo-production", "User.count").
+          and_return({"result" => "3"})
+        $stdout.should_receive(:puts).with("3")
+        invoke(@main, :execute, "to_execute.rb")
+      end
+    end
+
+    context "multiple clouds in Cloudfile" do
+      before do
+        File.open("Cloudfile", 'w') {|f|
+          f.write("foo-staging:\nfoo-production:\n") }
+      end
+
+      it "should show information to print logs for specific cloud and exit" do
+        $stdout.should_receive(:puts).
+          with(red "You have multiple clouds in Cloudfile.")
+        $stdout.should_receive(:puts).
+          with("Select cloud using `shelly execute --cloud foo-production`")
+        $stdout.should_receive(:puts).with("Available clouds:")
+        $stdout.should_receive(:puts).with(" * foo-production")
+        $stdout.should_receive(:puts).with(" * foo-staging")
+        lambda { invoke(@main, :execute, "to_execute.rb") }.should raise_error(SystemExit)
+      end
+
+      it "should fetch from command line which cloud to start" do
+        @client.should_receive(:run).with("foo-staging", "User.count").
+          and_return({"result" => "3"})
+        $stdout.should_receive(:puts).with("3")
+        @main.options = {:cloud => "foo-staging"}
+        invoke(@main, :execute, "to_execute.rb")
+      end
+
+      it "should run code when no file from parameter is found" do
+        @client.should_receive(:run).with("foo-staging", "2 + 2").
+          and_return({"result" => "4"})
+        $stdout.should_receive(:puts).with("4")
+        @main.options = {:cloud => "foo-staging"}
+        invoke(@main, :execute, "2 + 2")
+      end
+    end
+
+    context "cloud is not running" do
+      it "should print error" do
+        @client.should_receive(:run).with("foo-staging", "2 + 2").
+          and_raise(Shelly::Client::APIException.new(
+            {"message" => "App not running"}, 504))
+        $stdout.should_receive(:puts).
+          with(red "Cloud foo-staging is not running. Cannot run code.")
+        @main.options = {:cloud => "foo-staging"}
+        lambda { invoke(@main, :execute, "2 + 2") }.should raise_error(SystemExit)
       end
     end
   end
