@@ -16,7 +16,7 @@ module Shelly
       check_unknown_options!
 
       # FIXME: it should be possible to pass single symbol, instead of one element array
-      before_hook :logged_in?, :only => [:add, :list, :start, :stop, :logs, :delete, :ip, :logout, :execute]
+      before_hook :logged_in?, :only => [:add, :list, :start, :stop, :logs, :delete, :ip, :logout, :execute, :rake]
       before_hook :inside_git_repository?, :only => [:add]
       before_hook :cloudfile_present?, :only => [:logs, :stop, :start, :ip]
 
@@ -234,9 +234,8 @@ module Shelly
         say "You have been successfully logged out" if user.delete_credentials
       end
 
-      desc "execute [CODE]", "Run code on one of application servers"
-      method_option :cloud, :type => :string, :aliases => "-c",
-        :desc => "Specify which cloud to run code for"
+      desc "execute CODE", "Run code on one of application servers"
+      method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
       long_desc "Run code given in parameter on one of application servers. If a file name is given, run contents of that file."
       def execute(file_name_or_code)
         cloud = options[:cloud]
@@ -251,6 +250,14 @@ module Shelly
         else
           raise
         end
+      end
+
+      desc "rake TASK", "Run rake task"
+      method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
+      def rake(task)
+        multiple_clouds(options[:cloud], "rake #{task}")
+        result = @app.rake(task)
+        say result
       end
 
       desc "redeploy", "Redeploy application"
