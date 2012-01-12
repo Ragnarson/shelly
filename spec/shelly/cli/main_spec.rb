@@ -989,6 +989,13 @@ OUT
         @main.options = {:cloud => "foo-staging"}
         lambda { invoke(@main, :execute, "2 + 2") }.should raise_error(SystemExit)
       end
+
+      it "should re-raise other exceptions" do
+        @client.should_receive(:run).with("foo-staging", "2 + 2").
+          and_raise(Exception)
+        @main.options = {:cloud => "foo-staging"}
+        lambda { invoke(@main, :execute, "2 + 2") }.should raise_error(Exception)
+      end
     end
   end
 
