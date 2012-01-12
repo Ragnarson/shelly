@@ -147,7 +147,12 @@ module Shelly
                file_name_or_code
              end
 
-      response = shelly.run(code_name, code)
+      response = shelly.command(code_name, code, :runner)
+      response["result"]
+    end
+
+    def rake(task)
+      response = shelly.command(code_name, task, :rake)
       response["result"]
     end
 

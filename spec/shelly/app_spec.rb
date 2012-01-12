@@ -293,18 +293,25 @@ config
       @response = {
         "result" => "4"
       }
-      @client.stub(:run).and_return(@response)
+      @client.stub(:command).and_return(@response)
       File.open("to_run.rb", 'w') {|f| f.write("User.count\n") }
     end
 
     it "should return result of executed code" do
-      @client.should_receive(:run).with("foo-staging", "2 + 2")
+      @client.should_receive(:command).with("foo-staging", "2 + 2", :runner)
       @app.run("2 + 2").should == "4"
     end
 
     it "should send contents of file when file exists" do
-      @client.should_receive(:run).with("foo-staging", "User.count\n")
+      @client.should_receive(:command).with("foo-staging", "User.count\n", :runner)
       @app.run("to_run.rb")
+    end
+  end
+
+  describe "#rake" do
+    it "should return result of rake task" do
+      @client.should_receive(:command).with("foo-staging", "db:create", :rake).and_return({"result" => "OK"})
+      @app.rake("db:create").should == "OK"
     end
   end
 

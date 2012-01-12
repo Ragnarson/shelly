@@ -188,11 +188,11 @@ describe Shelly::Client do
     end
   end
 
-  describe "#run" do
-    it "should send post request with app code_name and code" do
-      FakeWeb.register_uri(:post, api_url("apps/staging-foo/run"),
-                           :body => {:result => "4"}.to_json)
-      response = @client.run("staging-foo", "2 + 2")
+  describe "#command" do
+    it "should send post request with app code_name, body and type" do
+      @client.should_receive(:post).with("/apps/staging-foo/command",
+        {:body => "2 + 2", :type => :runner}).and_return({"result" => "4"})
+      response = @client.command("staging-foo", "2 + 2", :runner)
       response.should == {"result" => "4"}
     end
   end
