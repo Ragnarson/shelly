@@ -18,7 +18,7 @@ module Shelly
       # FIXME: it should be possible to pass single symbol, instead of one element array
       before_hook :logged_in?, :only => [:add, :list, :start, :stop, :logs, :delete, :ip, :logout, :execute, :rake]
       before_hook :inside_git_repository?, :only => [:add]
-      before_hook :cloudfile_present?, :only => [:logs, :stop, :start, :ip]
+      before_hook :cloudfile_present?, :only => [:logs, :stop, :start, :ip, :execute, :rake]
 
       map %w(-v --version) => :version
       desc "version", "Display shelly version"

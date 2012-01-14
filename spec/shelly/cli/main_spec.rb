@@ -934,6 +934,10 @@ OUT
       hooks(@main, :execute).should include(:logged_in?)
     end
 
+    it "should ensure cloudfile present" do
+      hooks(@main, :execute).should include(:cloudfile_present?)
+    end
+
     context "single cloud in Cloudfile" do
       it "should execute code for the cloud" do
         @client.should_receive(:command).with("foo-production", "User.count", :ruby).
@@ -1011,6 +1015,10 @@ OUT
 
     it "should ensure user has logged in" do
       hooks(@main, :rake).should include(:logged_in?)
+    end
+
+    it "should ensure cloudfile present" do
+      hooks(@main, :execute).should include(:cloudfile_present?)
     end
 
     it "should invoke :command on app with rake task" do
