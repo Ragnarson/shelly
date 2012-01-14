@@ -298,12 +298,12 @@ config
     end
 
     it "should return result of executed code" do
-      @client.should_receive(:command).with("foo-staging", "2 + 2", :runner)
+      @client.should_receive(:command).with("foo-staging", "2 + 2", :ruby)
       @app.run("2 + 2").should == "4"
     end
 
     it "should send contents of file when file exists" do
-      @client.should_receive(:command).with("foo-staging", "User.count\n", :runner)
+      @client.should_receive(:command).with("foo-staging", "User.count\n", :ruby)
       @app.run("to_run.rb")
     end
   end

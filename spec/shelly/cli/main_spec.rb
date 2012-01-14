@@ -939,7 +939,7 @@ OUT
 
     context "single cloud in Cloudfile" do
       it "should execute code for the cloud" do
-        @client.should_receive(:command).with("foo-production", "User.count", :runner).
+        @client.should_receive(:command).with("foo-production", "User.count", :ruby).
           and_return({"result" => "3"})
         $stdout.should_receive(:puts).with("3")
         invoke(@main, :execute, "to_execute.rb")
@@ -964,7 +964,7 @@ OUT
       end
 
       it "should fetch from command line which cloud to start" do
-        @client.should_receive(:command).with("foo-staging", "User.count", :runner).
+        @client.should_receive(:command).with("foo-staging", "User.count", :ruby).
           and_return({"result" => "3"})
         $stdout.should_receive(:puts).with("3")
         @main.options = {:cloud => "foo-staging"}
@@ -972,7 +972,7 @@ OUT
       end
 
       it "should run code when no file from parameter is found" do
-        @client.should_receive(:command).with("foo-staging", "2 + 2", :runner).
+        @client.should_receive(:command).with("foo-staging", "2 + 2", :ruby).
           and_return({"result" => "4"})
         $stdout.should_receive(:puts).with("4")
         @main.options = {:cloud => "foo-staging"}
@@ -982,7 +982,7 @@ OUT
 
     context "cloud is not running" do
       it "should print error" do
-        @client.should_receive(:command).with("foo-staging", "2 + 2", :runner).
+        @client.should_receive(:command).with("foo-staging", "2 + 2", :ruby).
           and_raise(Shelly::Client::APIException.new(
             {"message" => "App not running"}, 504))
         $stdout.should_receive(:puts).
