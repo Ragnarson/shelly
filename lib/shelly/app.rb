@@ -147,7 +147,7 @@ module Shelly
                file_name_or_code
              end
 
-      response = shelly.command(code_name, code, :runner)
+      response = shelly.command(code_name, code, :ruby)
       response["result"]
     end
 

@@ -191,8 +191,8 @@ describe Shelly::Client do
   describe "#command" do
     it "should send post request with app code_name, body and type" do
       @client.should_receive(:post).with("/apps/staging-foo/command",
-        {:body => "2 + 2", :type => :runner}).and_return({"result" => "4"})
-      response = @client.command("staging-foo", "2 + 2", :runner)
+        {:body => "2 + 2", :type => :ruby}).and_return({"result" => "4"})
+      response = @client.command("staging-foo", "2 + 2", :ruby)
       response.should == {"result" => "4"}
     end
   end
