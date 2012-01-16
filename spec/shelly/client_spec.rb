@@ -244,13 +244,6 @@ describe Shelly::Client do
     end
   end
 
-  describe "#ssh_key_available?" do
-    it "should send get request with ssh key" do
-      @client.should_receive(:get).with("/users/new", {:ssh_key => "ssh-key Abb"})
-      @client.ssh_key_available?("ssh-key Abb")
-    end
-  end
-
   describe "#database_backup" do
     it "should fetch backup description from API" do
       expected = {

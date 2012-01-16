@@ -29,26 +29,21 @@ module Shelly
       desc "register [EMAIL]", "Register new account"
       def register(email = nil)
         user = Shelly::User.new
-        user.ssh_key_registered?
         say "Registering with email: #{email}" if email
         user.email = (email || ask_for_email)
         user.password = ask_for_password
         user.register
         if user.ssh_key_exists?
           say "Uploading your public SSH key from #{user.ssh_key_path}"
+        else
+          say_error "No such file or directory - #{user.ssh_key_path}", :with_exit => false
+          say_error "Use ssh-keygen to generate ssh key pair, after that use: `shelly login`", :with_exit => false
         end
         say "Successfully registered!"
         say "Check you mailbox for email address confirmation"
       rescue Client::ValidationException => e
         e.each_error { |error| say_error "#{error}", :with_exit => false }
         exit 1
-      rescue Client::ConflictException
-        say_error "User with your ssh key already exists.", :with_exit => false
-        say_error "You can login using: shelly login [EMAIL]", :with_exit => false
-        exit 1
-      rescue Errno::ENOENT => e
-        say_error e, :with_exit => false
-        say_error "Use ssh-keygen to generate ssh key pair"
       end
 
       desc "login [EMAIL]", "Log into Shelly Cloud"
