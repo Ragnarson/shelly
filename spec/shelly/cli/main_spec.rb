@@ -577,6 +577,12 @@ OUT
         end
       end
 
+      it "should show that winnie is out of resources" do
+        raise_conflict("state" => "not_enough_resources")
+        $stdout.should_receive(:puts).with(red "Sorry, There are no resources for your servers. We have been notified about it. We will be adding new resources shortly")
+        lambda { invoke(@main, :start) }.should raise_error(SystemExit)
+      end
+
       it "should open billing page" do
         raise_conflict("state" => "no_billing")
         $stdout.should_receive(:puts).with(red "Please fill in billing details to start foo-production. Opening browser.")
