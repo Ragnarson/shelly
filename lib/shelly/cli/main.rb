@@ -13,12 +13,12 @@ module Shelly
       register(Backup, "backup", "backup <command>", "Manage database backups")
       register(Deploys, "deploys", "deploys <command>", "View deploy logs")
       register(Config, "config", "config <command>", "Manage application configuration files")
-      check_unknown_options!
+      check_unknown_options!(:except => :rake)
 
       # FIXME: it should be possible to pass single symbol, instead of one element array
-      before_hook :logged_in?, :only => [:add, :list, :start, :stop, :logs, :delete, :ip, :logout]
+      before_hook :logged_in?, :only => [:add, :list, :start, :stop, :logs, :delete, :ip, :logout, :execute, :rake]
       before_hook :inside_git_repository?, :only => [:add]
-      before_hook :cloudfile_present?, :only => [:logs, :stop, :start, :ip]
+      before_hook :cloudfile_present?, :only => [:logs, :stop, :start, :ip, :execute, :rake]
 
       map %w(-v --version) => :version
       desc "version", "Display shelly version"
@@ -236,6 +236,36 @@ module Shelly
         say "You have been successfully logged out" if user.delete_credentials
       end
 
+      desc "execute CODE", "Run code on one of application servers"
+      method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
+      long_desc "Run code given in parameter on one of application servers. If a file name is given, run contents of that file."
+      def execute(file_name_or_code)
+        cloud = options[:cloud]
+        multiple_clouds(cloud, "execute")
+
+        result = @app.run(file_name_or_code)
+        say result
+
+      rescue Client::APIException => e
+        if e[:message] == "App not running"
+          say_error "Cloud #{@app} is not running. Cannot run code."
+        else
+          raise
+        end
+      end
+
+      desc "rake TASK", "Run rake task"
+      method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
+      def rake(task = nil)
+        task = rake_args.join(" ")
+        multiple_clouds(options[:cloud], "rake #{task}")
+        result = @app.rake(task)
+        say result
+      rescue Client::APIException => e
+        raise unless e[:message] == "App not running"
+        say_error "Cloud #{@app} is not running. Cannot run rake task."
+      end
+
       desc "redeploy", "Redeploy application"
       method_option :cloud, :type => :string, :aliases => "-c",
         :desc => "Specify which cloud to redeploy application for"
@@ -260,6 +290,23 @@ module Shelly
 
       # FIXME: move to helpers
       no_tasks do
+        # Returns valid arguments for rake, removes shelly gem arguments
+        def rake_args(args = ARGV)
+          skip_next = false
+          [].tap do |out|
+            args.each do |arg|
+              case arg
+              when "rake", "--debug"
+              when "--cloud", "-c"
+                skip_next = true
+              else
+                out << arg unless skip_next
+                skip_next = false
+              end
+            end
+          end
+        end
+
         def check_options(options)
           unless options.empty?
             unless ["code-name", "databases", "domains"].all? do |option|

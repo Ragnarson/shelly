@@ -29,12 +29,14 @@ Tasks:
   shelly config <command>   # Manage application configuration files
   shelly delete             # Delete the cloud
   shelly deploys <command>  # View deploy logs
+  shelly execute CODE       # Run code on one of application servers
   shelly help [TASK]        # Describe available tasks or one specific task
   shelly ip                 # List cloud's IP addresses
   shelly list               # List available clouds
   shelly login [EMAIL]      # Log into Shelly Cloud
   shelly logout             # Logout from Shelly Cloud
   shelly logs               # Show latest application logs
+  shelly rake TASK          # Run rake task
   shelly redeploy           # Redeploy application
   shelly register [EMAIL]   # Register new account
   shelly start              # Start the cloud
@@ -918,6 +920,172 @@ OUT
         $stdout.should_receive(:puts).with(green "Instance 2:")
         $stdout.should_receive(:puts).with("log2")
         invoke(@main, :logs)
+      end
+    end
+  end
+
+  describe "#execute" do
+    before do
+      FileUtils.mkdir_p("/projects/foo")
+      Dir.chdir("/projects/foo")
+      File.open("Cloudfile", 'w') {|f| f.write("foo-production:\n") }
+      @user = Shelly::User.new
+      @user.stub(:token)
+      Shelly::User.stub(:new).and_return(@user)
+      @client.stub(:apps).and_return([{"code_name" => "foo-production"},
+                                     {"code_name" => "foo-staging"}])
+      @app = Shelly::App.new
+      Shelly::App.stub(:new).and_return(@app)
+      File.open("to_execute.rb", 'w') {|f| f.write("User.count") }
+    end
+
+    it "should ensure user has logged in" do
+      hooks(@main, :execute).should include(:logged_in?)
+    end
+
+    it "should ensure cloudfile present" do
+      hooks(@main, :execute).should include(:cloudfile_present?)
+    end
+
+    context "single cloud in Cloudfile" do
+      it "should execute code for the cloud" do
+        @client.should_receive(:command).with("foo-production", "User.count", :ruby).
+          and_return({"result" => "3"})
+        $stdout.should_receive(:puts).with("3")
+        invoke(@main, :execute, "to_execute.rb")
+      end
+    end
+
+    context "multiple clouds in Cloudfile" do
+      before do
+        File.open("Cloudfile", 'w') {|f|
+          f.write("foo-staging:\nfoo-production:\n") }
+      end
+
+      it "should show information to print logs for specific cloud and exit" do
+        $stdout.should_receive(:puts).
+          with(red "You have multiple clouds in Cloudfile.")
+        $stdout.should_receive(:puts).
+          with("Select cloud using `shelly execute --cloud foo-production`")
+        $stdout.should_receive(:puts).with("Available clouds:")
+        $stdout.should_receive(:puts).with(" * foo-production")
+        $stdout.should_receive(:puts).with(" * foo-staging")
+        lambda { invoke(@main, :execute, "to_execute.rb") }.should raise_error(SystemExit)
+      end
+
+      it "should fetch from command line which cloud to start" do
+        @client.should_receive(:command).with("foo-staging", "User.count", :ruby).
+          and_return({"result" => "3"})
+        $stdout.should_receive(:puts).with("3")
+        @main.options = {:cloud => "foo-staging"}
+        invoke(@main, :execute, "to_execute.rb")
+      end
+
+      it "should run code when no file from parameter is found" do
+        @client.should_receive(:command).with("foo-staging", "2 + 2", :ruby).
+          and_return({"result" => "4"})
+        $stdout.should_receive(:puts).with("4")
+        @main.options = {:cloud => "foo-staging"}
+        invoke(@main, :execute, "2 + 2")
+      end
+    end
+
+    context "cloud is not in running state" do
+      it "should print error" do
+        @client.should_receive(:command).with("foo-staging", "2 + 2", :ruby).
+          and_raise(Shelly::Client::APIException.new(
+            {"message" => "App not running"}, 504))
+        $stdout.should_receive(:puts).
+          with(red "Cloud foo-staging is not running. Cannot run code.")
+        @main.options = {:cloud => "foo-staging"}
+        lambda { invoke(@main, :execute, "2 + 2") }.should raise_error(SystemExit)
+      end
+    end
+  end
+
+  describe "#rake" do
+    before do
+      FileUtils.mkdir_p("/projects/foo")
+      Dir.chdir("/projects/foo")
+      File.open("Cloudfile", 'w') {|f| f.write("foo-production:\n") }
+      @user = Shelly::User.new
+      @user.stub(:token)
+      Shelly::User.stub(:new).and_return(@user)
+      @app = Shelly::App.new
+      Shelly::App.stub(:new).and_return(@app)
+      @main.stub(:rake_args).and_return(%w(db:migrate))
+    end
+
+    it "should ensure user has logged in" do
+      hooks(@main, :rake).should include(:logged_in?)
+    end
+
+    it "should ensure cloudfile present" do
+      hooks(@main, :execute).should include(:cloudfile_present?)
+    end
+
+    it "should invoke :command on app with rake task" do
+      @client.should_receive(:command).with("foo-production", "db:migrate", :rake).and_return("result" => "OK")
+      $stdout.should_receive(:puts).with("OK")
+      invoke(@main, :rake, "db:migrate")
+    end
+
+    it "should pass rake arguments to the client" do
+      @main.stub(:rake_args).and_return(%w(-T db:schema))
+      @client.should_receive(:command).with("foo-production", "-T db:schema", :rake).and_return("result" => "OK")
+      $stdout.should_receive(:puts).with("OK")
+      invoke(@main, :rake, nil)
+    end
+
+    describe "#rake_args" do
+      before { @main.unstub!(:rake_args) }
+
+      it "should return Array of rake arguments (skipping shelly gem arguments)" do
+        argv = %w(rake -T db --cloud foo-production --debug)
+        @main.rake_args(argv).should == %w(-T db)
+      end
+
+      it "should take ARGV as default default argument" do
+        # Rather poor, I test if method without args returns the same as method with ARGV
+        @main.rake_args.should == @main.rake_args(ARGV)
+      end
+    end
+
+    context "cloud is not in running state" do
+      it "should print error" do
+        @client.should_receive(:command).with("foo-staging", "db:migrate", :rake).
+          and_raise(Shelly::Client::APIException.new(
+            {"message" => "App not running"}, 504))
+        $stdout.should_receive(:puts).
+          with(red "Cloud foo-staging is not running. Cannot run rake task.")
+        @main.options = {:cloud => "foo-staging"}
+        lambda { invoke(@main, :rake, "db:migrate") }.should raise_error(SystemExit)
+      end
+    end
+
+    context "multiple clouds in Cloudfile" do
+      before do
+        File.open("Cloudfile", 'w') {|f|
+          f.write("foo-staging:\nfoo-production:\n") }
+      end
+
+      it "should show information to run rake task for specific cloud and exit" do
+        $stdout.should_receive(:puts).
+          with(red "You have multiple clouds in Cloudfile.")
+        $stdout.should_receive(:puts).
+          with("Select cloud using `shelly rake db:migrate --cloud foo-production`")
+        $stdout.should_receive(:puts).with("Available clouds:")
+        $stdout.should_receive(:puts).with(" * foo-production")
+        $stdout.should_receive(:puts).with(" * foo-staging")
+        lambda { invoke(@main, :rake, "db:migrate") }.should raise_error(SystemExit)
+      end
+
+      it "should fetch from command line for which cloud run rake task" do
+        @client.should_receive(:command).with("foo-staging", "db:migrate", :rake).
+          and_return({"result" => "3"})
+        $stdout.should_receive(:puts).with("3")
+        @main.options = {:cloud => "foo-staging"}
+        invoke(@main, :rake, "db:migrate")
       end
     end
   end
