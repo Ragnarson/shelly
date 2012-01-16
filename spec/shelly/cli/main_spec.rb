@@ -981,7 +981,7 @@ OUT
       end
     end
 
-    context "cloud is not running" do
+    context "cloud is not in running state" do
       it "should print error" do
         @client.should_receive(:command).with("foo-staging", "2 + 2", :ruby).
           and_raise(Shelly::Client::APIException.new(
@@ -993,7 +993,7 @@ OUT
       end
 
       it "should re-raise other exceptions" do
-        @client.should_receive(:run).with("foo-staging", "2 + 2").
+        @client.should_receive(:command).with("foo-staging", "2 + 2", :ruby).
           and_raise(Exception)
         @main.options = {:cloud => "foo-staging"}
         lambda { invoke(@main, :execute, "2 + 2") }.should raise_error(Exception)
@@ -1011,6 +1011,7 @@ OUT
       Shelly::User.stub(:new).and_return(@user)
       @app = Shelly::App.new
       Shelly::App.stub(:new).and_return(@app)
+      @main.stub(:rake_args).and_return(%w(db:migrate))
     end
 
     it "should ensure user has logged in" do
@@ -1025,6 +1026,39 @@ OUT
       @client.should_receive(:command).with("foo-production", "db:migrate", :rake).and_return("result" => "OK")
       $stdout.should_receive(:puts).with("OK")
       invoke(@main, :rake, "db:migrate")
+    end
+
+    it "should pass rake arguments to the client" do
+      @main.stub(:rake_args).and_return(%w(-T db:schema))
+      @client.should_receive(:command).with("foo-production", "-T db:schema", :rake).and_return("result" => "OK")
+      $stdout.should_receive(:puts).with("OK")
+      invoke(@main, :rake, nil)
+    end
+
+    describe "#rake_args" do
+      before { @main.unstub!(:rake_args) }
+
+      it "should return Array of rake arguments (skipping shelly gem arguments)" do
+        argv = %w(rake -T db --cloud foo-production --debug)
+        @main.rake_args(argv).should == %w(-T db)
+      end
+
+      it "should take ARGV as default default argument" do
+        # Rather poor, I test if method without args returns the same as method with ARGV
+        @main.rake_args.should == @main.rake_args(ARGV)
+      end
+    end
+
+    context "cloud is not in running state" do
+      it "should print error" do
+        @client.should_receive(:command).with("foo-staging", "db:migrate", :rake).
+          and_raise(Shelly::Client::APIException.new(
+            {"message" => "App not running"}, 504))
+        $stdout.should_receive(:puts).
+          with(red "Cloud foo-staging is not running. Cannot run rake task.")
+        @main.options = {:cloud => "foo-staging"}
+        lambda { invoke(@main, :rake, "db:migrate") }.should raise_error(SystemExit)
+      end
     end
 
     context "multiple clouds in Cloudfile" do
