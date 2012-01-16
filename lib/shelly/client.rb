@@ -143,10 +143,6 @@ module Shelly
       post("/apps/#{code_name}/database_backups", :kind => kind)
     end
 
-    def ssh_key_available?(ssh_key)
-      get("/users/new", :ssh_key => ssh_key)
-    end
-
     def app_users(cloud)
       get("/apps/#{cloud}/users")
     end

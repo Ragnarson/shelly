@@ -60,11 +60,6 @@ module Shelly
       File.expand_path("~/.ssh/id_rsa.pub")
     end
 
-    def ssh_key_registered?
-      ssh_key = File.read(ssh_key_path).strip
-      shelly.ssh_key_available?(ssh_key)
-    end
-
     def self.guess_email
       @@guess_email ||= IO.popen("git config --get user.email").read.strip
     end

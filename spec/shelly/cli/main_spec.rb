@@ -76,23 +76,14 @@ OUT
       Shelly::User.stub(:new).and_return(@user)
     end
 
-    it "should return false if ssh key don't exist on local hard drive" do
+    it "should register user without local SSH Key and show message to create SSH Key" do
       FileUtils.rm_rf(@key_path)
       File.exists?(@key_path).should be_false
-      $stdout.should_receive(:puts).with("\e[31mNo such file or directory - " + @key_path + "\e[0m")
-      $stdout.should_receive(:puts).with("\e[31mUse ssh-keygen to generate ssh key pair\e[0m")
-      lambda {
+      $stdout.should_receive(:puts).with(red "No such file or directory - #{@key_path}")
+      $stdout.should_receive(:puts).with(red "Use ssh-keygen to generate ssh key pair, after that use: `shelly login`")
+      fake_stdin(["better@example.com", "secret", "secret"]) do
         invoke(@main, :register)
-      }.should raise_error(SystemExit)
-    end
-
-    it "should check ssh key in database" do
-      @user.stub(:ssh_key_registered?).and_raise(Shelly::Client::ConflictException.new)
-      $stdout.should_receive(:puts).with("\e[31mUser with your ssh key already exists.\e[0m")
-      $stdout.should_receive(:puts).with("\e[31mYou can login using: shelly login [EMAIL]\e[0m")
-      lambda {
-        invoke(@main, :register)
-      }.should raise_error(SystemExit)
+      end
     end
 
     it "should ask for email, password and password confirmation" do
