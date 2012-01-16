@@ -158,6 +158,8 @@ module Shelly
           say_error "Not starting: deployment failed", :with_exit => false
           say_error "Support has been notified", :with_exit => false
           say_error "Check `shelly deploys show last --cloud #{@app}` for reasons of failure"
+        when "not_enough_resources"
+          say_error "Sorry, There are no resources for your servers. We have been notified about it. We will be adding new resources shortly"
         when "no_billing"
           say_error "Please fill in billing details to start foo-production. Opening browser.", :with_exit => false
           @app.open_billing_page
