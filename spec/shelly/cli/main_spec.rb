@@ -400,6 +400,19 @@ OUT
       }.should raise_error(SystemExit)
     end
 
+    it "should display correct domains in error message" do
+      body = {"message" => "Validation Failed", "errors" => [["code_name", "has been already taken"]]}
+      exception = Shelly::Client::ValidationException.new(body)
+      @app.should_receive(:create).and_raise(exception)
+      @main.options = {"code-name" => "foo-staging", "databases" => ["postgresql"], "domains" => ["test.example.com"]}
+      $stdout.should_receive(:puts).with("\e[31mshelly add --code-name=foo-staging --databases=postgresql --domains=test.example.com\e[0m")
+      lambda {
+        fake_stdin(["", ""]) do
+          invoke(@main, :add)
+        end
+      }.should raise_error(SystemExit)
+    end
+
     it "should add git remote" do
       $stdout.should_receive(:puts).with("\e[32mAdding remote production git@git.shellycloud.com:foooo.git\e[0m")
       @app.should_receive(:add_git_remote)

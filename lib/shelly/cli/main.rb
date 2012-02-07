@@ -82,7 +82,7 @@ module Shelly
         @app = Shelly::App.new
         @app.code_name = options["code-name"] || ask_for_code_name
         @app.databases = options["databases"] || ask_for_databases
-        @app.domains = options["domains"]
+        @app.domains = options["domains"] || ["#{@app.code_name}.shellyapp.com"]
         @app.create
 
         say "Adding remote production #{@app.git_url}", :green
@@ -101,7 +101,7 @@ module Shelly
         e.each_error { |error| say_error error, :with_exit => false }
         say_new_line
         say_error "Fix erros in the below command and type it again to create your cloud" , :with_exit => false
-        say_error "shelly add --code-name=#{@app.code_name} --databases=#{@app.databases.join} --domains=#{@app.code_name}.shellyapp.com"
+        say_error "shelly add --code-name=#{@app.code_name} --databases=#{@app.databases.join} --domains=#{@app.domains.join}"
       end
 
       desc "list", "List available clouds"
