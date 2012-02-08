@@ -117,4 +117,64 @@ describe Shelly::CLI::User do
       end
     end
   end
+
+  describe "#delete" do
+    before do
+      @user = Shelly::User.new
+      @client.stub(:apps).and_return([{"code_name" => "abc"}, {"code_name" => "fooo"}])
+      Shelly::User.stub(:new).and_return(@user)
+    end
+
+    it "should ensure user has logged in" do
+      hooks(@cli_user, :delete).should include(:logged_in?)
+    end
+
+    it "should ensure that Cloudfile is present" do
+      hooks(@cli_user, :delete).should include(:cloudfile_present?)
+    end
+
+    context "on success" do
+      it "should ask about email" do
+        @client.should_receive(:delete_collaboration).with("foo-production", "megan@example.com")
+        @client.should_receive(:delete_collaboration).with("foo-staging", "megan@example.com")
+        fake_stdin(["megan@example.com"]) do
+          invoke(@cli_user, :delete)
+        end
+      end
+
+      it "should receive email from param" do
+        @client.should_receive(:delete_collaboration).with("foo-production", "megan@example.com")
+        @client.should_receive(:delete_collaboration).with("foo-staging", "megan@example.com")
+        invoke(@cli_user, :delete, "megan@example.com")
+      end
+
+      it "should show that user was removed" do
+        @client.stub(:delete_collaboration)
+        $stdout.should_receive(:puts).with("User megan@example.com deleted from cloud foo-production")
+        $stdout.should_receive(:puts).with("User megan@example.com deleted from cloud foo-staging")
+        invoke(@cli_user, :delete, "megan@example.com")
+      end
+    end
+
+    context "on failure" do
+      it "should show that user wasn't found" do
+        exception = Shelly::Client::NotFoundException.new("resource" => "user")
+        @client.stub(:delete_collaboration).and_raise(exception)
+        $stdout.should_receive(:puts).with(red "User 'megan@example.com' not found")
+        $stdout.should_receive(:puts).with(red "You can list users with `shelly user list`")
+        lambda {
+          invoke(@cli_user, :delete, "megan@example.com")
+        }.should raise_error(SystemExit)
+      end
+
+      it "should raise error if user doesnt have access to cloud" do
+        exception = Shelly::Client::NotFoundException.new("resource" => "cloud")
+        @client.stub(:delete_collaboration).and_raise(exception)
+        $stdout.should_receive(:puts).with(red "You have no access to 'foo-production' cloud defined in Cloudfile")
+        lambda {
+          invoke(@cli_user, :delete, "megan@example.com")
+        }.should raise_error(SystemExit)
+      end
+    end
+  end
 end

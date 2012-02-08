@@ -200,9 +200,15 @@ describe Shelly::Client do
   describe "#send_invitation" do
     it "should send post with developer's email" do
       FakeWeb.register_uri(:post, api_url("apps/staging-foo/collaborations"), :body => {}.to_json)
-      FakeWeb.register_uri(:post, api_url("apps/production-foo/collaborations"), :body => {}.to_json)
       response = @client.send_invitation("staging-foo", "megan@example.com")
       response.should == {}
+    end
+  end
+
+  describe "#delete_collaboration" do
+    it "should send delete with developer's email in url" do
+      FakeWeb.register_uri(:delete, api_url("apps/staging-foo/collaborations/megan@example.com"), :body => {}.to_json)
+      @client.delete_collaboration("staging-foo", "megan@example.com")
     end
   end
 

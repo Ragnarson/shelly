@@ -33,6 +33,10 @@ module Shelly
       shelly.send_invitation(cloud, email)
     end
 
+    def delete_collaboration(cloud, email)
+      shelly.delete_collaboration(cloud, email)
+    end
+
     def load_credentials
       return unless credentials_exists?
       @email, @password = File.read(credentials_path).split("\n")

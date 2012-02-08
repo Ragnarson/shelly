@@ -109,6 +109,13 @@ describe Shelly::User do
     end
   end
 
+  describe "#delete_collaboration" do
+    it "should delete collaboration" do
+      @client.should_receive(:delete_collaboration).with("foo-staging", "megan@example.com")
+      @user.delete_collaboration("foo-staging", "megan@example.com")
+    end
+  end
+
   describe "#ssh_key_path" do
     it "should return path to public ssh key file" do
       @user.ssh_key_path.should == File.expand_path("~/.ssh/id_rsa.pub")

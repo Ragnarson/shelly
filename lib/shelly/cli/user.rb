@@ -6,8 +6,8 @@ module Shelly
       namespace :user
       include Helpers
 
-      before_hook :logged_in?, :only => [:list, :add]
-      before_hook :cloudfile_present?, :only => [:list, :add]
+      before_hook :logged_in?, :only => [:list, :add, :delete]
+      before_hook :cloudfile_present?, :only => [:list, :add, :delete]
 
       desc "list", "List users with access to clouds defined in Cloudfile"
       def list
@@ -46,6 +46,29 @@ module Shelly
           end
         end
       end
+
+      desc "delete [EMAIL]", "Remove developer from clouds defined in Cloudfile"
+      def delete(email = nil)
+        @cloudfile = Cloudfile.new
+        @user = Shelly::User.new
+        user_email = email || ask_for_email({:guess_email => false})
+        @cloudfile.clouds.each do |cloud|
+          begin
+            @user.delete_collaboration(cloud, user_email)
+            say "User #{user_email} deleted from cloud #{cloud}"
+          rescue Client::NotFoundException => e
+            case e.resource
+            when :cloud
+              say_error "You have no access to '#{cloud}' cloud defined in Cloudfile"
+            when :user
+              say_error "User '#{user_email}' not found", :with_exit => false
+              say_error "You can list users with `shelly user list`"
+            else raise
+            end
+          end
+        end
+      end
+
     end
   end
 end

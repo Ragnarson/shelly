@@ -83,6 +83,10 @@ module Shelly
       post("/apps/#{cloud}/collaborations", :email => email)
     end
 
+    def delete_collaboration(cloud, email)
+      delete("/apps/#{cloud}/collaborations/#{email}")
+    end
+
     def create_app(attributes)
       post("/apps", :app => attributes)
     end
