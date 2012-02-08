@@ -311,7 +311,7 @@ OUT
 
         it "should exit if databases are not valid" do
           $stdout.should_receive(:puts).with("\e[31mTry 'shelly help add' for more information\e[0m")
-          @main.options = {"code-name" => "foo", :databases => ["not existing"], :domains => "foo.example.com"}
+          @main.options = {"code-name" => "foo", "databases" => ["not existing"], "domains" => ["foo.example.com"]}
           lambda {
             invoke(@main, :add)
           }.should raise_error(SystemExit)
