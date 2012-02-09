@@ -52,6 +52,16 @@ describe Shelly::CLI::Runner do
       }.should raise_error(SystemExit)
     end
 
+    it "should rescue gem version exception and display message" do
+      Shelly::CLI::Main.stub(:start).and_raise(Shelly::Client::GemVersionException.new(
+        {"error" => "Please, update shelly gem (required at least version - 0.0.48)"}))
+      runner = Shelly::CLI::Runner.new(%w(login))
+      $stdout.should_receive(:puts).with("Please, update shelly gem (required at least version - 0.0.48)")
+      lambda {
+        runner.start
+      }.should raise_error(SystemExit)
+    end
+
     context "with --debug option (debug mode)" do
       it "should re-raise caught exception to the console" do
         Shelly::CLI::Main.stub(:start).and_raise(RuntimeError.new)
@@ -71,7 +81,7 @@ describe Shelly::CLI::Runner do
         }.should raise_error(SystemExit)
       end
 
-      it "should caught exception thrown by API Client" do
+      it "should catch exception thrown by API Client" do
         Shelly::CLI::Main.stub(:start).and_raise(Shelly::Client::APIException.new)
         runner = Shelly::CLI::Runner.new(%w(version))
         $stdout.should_receive(:puts).with("Unknown error, to see debug information run command with --debug")

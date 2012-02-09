@@ -19,6 +19,7 @@ module Shelly
 
     class UnauthorizedException < APIException; end
     class ConflictException < APIException; end
+    class GemVersionException < APIException; end
     class ValidationException < APIException
       def errors
         self[:errors]
@@ -225,6 +226,7 @@ module Shelly
         when 401; UnauthorizedException
         when 404; NotFoundException
         when 409; ConflictException
+        when 412; GemVersionException
         when 422; ValidationException
         else; APIException
         end

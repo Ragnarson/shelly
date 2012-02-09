@@ -18,6 +18,8 @@ module Shelly
       def start
         Shelly::CLI::Main.start(args)
       rescue SystemExit; raise
+      rescue Client::GemVersionException => e
+        say_error e.body["error"]
       rescue Interrupt
         say_new_line
         say_error "[canceled]"
