@@ -54,9 +54,11 @@ describe Shelly::CLI::Runner do
 
     it "should rescue gem version exception and display message" do
       Shelly::CLI::Main.stub(:start).and_raise(Shelly::Client::GemVersionException.new(
-        {"error" => "Please, update shelly gem (required at least version - 0.0.48)"}))
+        {"required_version" => "0.0.48"}))
       runner = Shelly::CLI::Runner.new(%w(login))
-      $stdout.should_receive(:puts).with("Please, update shelly gem (required at least version - 0.0.48)")
+      $stdout.should_receive(:puts).with("Required shelly gem version: 0.0.48")
+      $stdout.should_receive(:puts).with("Your version: #{Shelly::VERSION}")
+      $stdout.should_receive(:puts).with("Update shelly gem with `gem install shelly`")
       lambda {
         runner.start
       }.should raise_error(SystemExit)

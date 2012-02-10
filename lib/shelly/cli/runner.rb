@@ -19,7 +19,9 @@ module Shelly
         Shelly::CLI::Main.start(args)
       rescue SystemExit; raise
       rescue Client::GemVersionException => e
-        say_error e.body["error"]
+        say "Required shelly gem version: #{e.body["required_version"]}"
+        say "Your version: #{VERSION}"
+        say_error "Update shelly gem with `gem install shelly`"
       rescue Interrupt
         say_new_line
         say_error "[canceled]"
