@@ -166,8 +166,9 @@ module Shelly
         when "not_enough_resources"
           say_error "Sorry, There are no resources for your servers. We have been notified about it. We will be adding new resources shortly"
         when "no_billing"
-          say_error "Please fill in billing details to start foo-production. Opening browser.", :with_exit => false
-          @app.open_billing_page
+          url = "#{@app.shelly.shellyapp_url}/apps/#{@app.code_name}/edit_billing"
+          say_error "Please fill in billing details to start foo-production.", :with_exit => false
+          say_error "Visit: #{url}", :with_exit => false
         end
         exit 1
       rescue Client::NotFoundException => e
