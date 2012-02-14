@@ -101,7 +101,7 @@ module Shelly
         e.each_error { |error| say_error error, :with_exit => false }
         say_new_line
         say_error "Fix erros in the below command and type it again to create your cloud" , :with_exit => false
-        say_error "shelly add --code-name=#{@app.code_name} --databases=#{@app.databases.join} --domains=#{@app.domains.join}"
+        say_error "shelly add --code-name=#{@app.code_name} --databases=#{@app.databases.join(',')} --domains=#{@app.domains.join(',')}"
       end
 
       desc "list", "List available clouds"

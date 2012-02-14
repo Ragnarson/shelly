@@ -404,8 +404,8 @@ OUT
       body = {"message" => "Validation Failed", "errors" => [["code_name", "has been already taken"]]}
       exception = Shelly::Client::ValidationException.new(body)
       @app.should_receive(:create).and_raise(exception)
-      @main.options = {"code-name" => "foo-staging", "databases" => ["postgresql"], "domains" => ["test.example.com"]}
-      $stdout.should_receive(:puts).with("\e[31mshelly add --code-name=foo-staging --databases=postgresql --domains=test.example.com\e[0m")
+      @main.options = {"code-name" => "foo-staging", "databases" => ["postgresql"], "domains" => ["test.example.com","test2.example.com"]}
+      $stdout.should_receive(:puts).with("\e[31mshelly add --code-name=foo-staging --databases=postgresql --domains=test.example.com,test2.example.com\e[0m")
       lambda {
         fake_stdin(["", ""]) do
           invoke(@main, :add)
