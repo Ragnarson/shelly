@@ -269,11 +269,11 @@ OUT
       @app.stub(:add_git_remote)
       @app.stub(:create)
       @app.stub(:generate_cloudfile).and_return("Example Cloudfile")
-      @app.stub(:open_billing_page)
       @app.stub(:git_url).and_return("git@git.shellycloud.com:foooo.git")
       Shelly::App.stub(:inside_git_repository?).and_return(true)
       Shelly::App.stub(:new).and_return(@app)
       @client.stub(:token).and_return("abc")
+      @app.stub(:attributes).and_return({"trial" => false})
     end
 
     # This spec tests inside_git_repository? hook
@@ -386,6 +386,28 @@ OUT
       end
     end
 
+    it "should create the app on shelly cloud and show trial information" do
+      @app.stub(:attributes).and_return({"trial" => true})
+      @client.stub(:shellyapp_url).and_return("http://example.com")
+      @app.should_receive(:create)
+      $stdout.should_receive(:puts).with(green "Billing information")
+      $stdout.should_receive(:puts).with("Cloud created with 20 Euro credit.")
+      $stdout.should_receive(:puts).with("Remember to provide billing details before trial ends.")
+
+      fake_stdin(["", ""]) do
+        invoke(@main, :add)
+      end
+    end
+
+    it "should create the app on shelly cloud and shouldn't show trial information" do
+      @app.should_receive(:create)
+      $stdout.should_not_receive(:puts).with(green "Billing information")
+
+      fake_stdin(["", ""]) do
+        invoke(@main, :add)
+      end
+    end
+
     it "should display validation errors if they are any" do
       body = {"message" => "Validation Failed", "errors" => [["code_name", "has been already taken"]]}
       exception = Shelly::Client::ValidationException.new(body)
@@ -427,14 +449,6 @@ OUT
         invoke(@main, :add)
       end
       File.read("/projects/foo/Cloudfile").should == "Example Cloudfile"
-    end
-
-    it "should browser window with link to edit billing information" do
-      $stdout.should_receive(:puts).with("\e[32mProvide billing details. Opening browser...\e[0m")
-      @app.should_receive(:open_billing_page)
-      fake_stdin(["foooo", ""]) do
-        invoke(@main, :add)
-      end
     end
 
     it "should display info about adding Cloudfile to repository" do

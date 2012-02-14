@@ -90,9 +90,14 @@ module Shelly
 
         say "Creating Cloudfile", :green
         @app.create_cloudfile
-
-        say "Provide billing details. Opening browser...", :green
-        @app.open_billing_page
+        if @app.attributes["trial"]
+          say_new_line
+          say "Billing information", :green
+          say "Cloud created with 20 Euro credit."
+          say "Remember to provide billing details before trial ends."
+          url = "#{@app.shelly.shellyapp_url}/apps/#{@app.code_name}/edit_billing"
+          say url
+        end
 
         info_adding_cloudfile_to_repository
         info_deploying_to_shellycloud
