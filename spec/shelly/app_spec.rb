@@ -165,16 +165,6 @@ config
     end
   end
 
-  describe "#open_billing_page" do
-    it "should open browser window" do
-      user = mock(:token => "abc", :email => nil, :password => nil, :config_dir => "~/.shelly")
-      @app.stub(:current_user).and_return(user)
-      url = "#{@app.shelly.shellyapp_url}/login?api_key=abc&return_to=/apps/foo-staging/edit_billing"
-      Launchy.should_receive(:open).with(url)
-      @app.open_billing_page
-    end
-  end
-
   describe "#start & #stop" do
     it "should start cloud" do
       @client.should_receive(:start_cloud).with("foo-staging")
@@ -280,7 +270,7 @@ config
       end
     end
   end
-  
+
   describe "#redeploy" do
     it "should redeploy app via API" do
       @client.should_receive(:redeploy).with("foo-staging")

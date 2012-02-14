@@ -1,5 +1,4 @@
 require 'erb'
-require 'launchy'
 require "shelly/backup"
 
 module Shelly
@@ -166,11 +165,6 @@ module Shelly
 
     def mail_server_ip
       attributes["mail_server_ip"]
-    end
-
-    def open_billing_page
-      url = "#{shelly.shellyapp_url}/login?api_key=#{current_user.token}&return_to=/apps/#{code_name}/edit_billing"
-      Launchy.open(url)
     end
 
     def self.inside_git_repository?
