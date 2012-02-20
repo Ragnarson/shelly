@@ -274,6 +274,7 @@ OUT
       Shelly::App.stub(:new).and_return(@app)
       @client.stub(:token).and_return("abc")
       @app.stub(:attributes).and_return({"trial" => false})
+      @app.stub(:git_remote_exist?).and_return(false)
     end
 
     # This spec tests inside_git_repository? hook
@@ -328,7 +329,7 @@ OUT
     end
 
     it "should use code name provided by user" do
-      $stdout.should_receive(:print).with("Cloud code name (foo-production - default): ")
+      $stdout.should_receive(:print).with("Cloud code name (foo-staging - default): ")
       @app.should_receive(:code_name=).with("mycodename")
       fake_stdin(["mycodename", ""]) do
         invoke(@main, :add)
@@ -337,8 +338,8 @@ OUT
 
     context "when user provided empty code name" do
       it "should use 'current_dirname-purpose' as default" do
-        $stdout.should_receive(:print).with("Cloud code name (foo-production - default): ")
-        @app.should_receive(:code_name=).with("foo-production")
+        $stdout.should_receive(:print).with("Cloud code name (foo-staging - default): ")
+        @app.should_receive(:code_name=).with("foo-staging")
         fake_stdin(["", ""]) do
           invoke(@main, :add)
         end
@@ -415,7 +416,7 @@ OUT
       @app.should_receive(:create).and_raise(exception)
       $stdout.should_receive(:puts).with("\e[31mCode name has been already taken\e[0m")
       $stdout.should_receive(:puts).with("\e[31mFix erros in the below command and type it again to create your cloud\e[0m")
-      $stdout.should_receive(:puts).with("\e[31mshelly add --code-name=foo-production --databases=postgresql --domains=foo-production.shellyapp.com\e[0m")
+      $stdout.should_receive(:puts).with("\e[31mshelly add --code-name=foo-staging --databases=postgresql --domains=foo-staging.shellyapp.com\e[0m")
       lambda {
         fake_stdin(["", ""]) do
           invoke(@main, :add)
@@ -436,11 +437,39 @@ OUT
       }.should raise_error(SystemExit)
     end
 
-    it "should add git remote" do
-      $stdout.should_receive(:puts).with("\e[32mAdding remote production git@git.shellycloud.com:foooo.git\e[0m")
-      @app.should_receive(:add_git_remote)
-      fake_stdin(["foooo", ""]) do
-        invoke(@main, :add)
+    context "git remote" do
+      it "should add one if it doesn't exist" do
+        $stdout.should_receive(:puts).with("\e[32mAdding remote foooo git@git.shellycloud.com:foooo.git\e[0m")
+        @app.should_receive(:add_git_remote)
+        fake_stdin(["foooo", ""]) do
+          invoke(@main, :add)
+        end
+      end
+
+      context "does exist" do
+        before do
+          @app.stub(:git_remote_exist?).and_return(true)
+        end
+
+        it "should ask if one exist and overwrite" do
+          $stdout.should_receive(:print).with("Git remote foooo exists, overwrite (yes/no):  ")
+          $stdout.should_receive(:puts).with(green "Adding remote foooo git@git.shellycloud.com:foooo.git")
+          @app.should_receive(:add_git_remote)
+          fake_stdin(["foooo", "", "yes"]) do
+            invoke(@main, :add)
+          end
+        end
+
+        it "should ask if one exist and not overwrite" do
+          $stdout.should_receive(:print).with("Git remote foooo exists, overwrite (yes/no):  ")
+          $stdout.should_receive(:puts).with("You have to manually add git remote:")
+          $stdout.should_receive(:puts).with("`git remote add NAME git@git.shellycloud.com:foooo.git`")
+          @app.should_not_receive(:add_git_remote)
+          fake_stdin(["foooo", "", "no"]) do
+            invoke(@main, :add)
+          end
+        end
+
       end
     end
 
