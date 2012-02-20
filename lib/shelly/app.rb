@@ -13,12 +13,16 @@ module Shelly
     end
 
     def add_git_remote
-      system("git remote rm production > /dev/null 2>&1")
-      system("git remote add production #{git_url}")
+      system("git remote rm #{code_name} > /dev/null 2>&1")
+      system("git remote add #{code_name} #{git_url}")
+    end
+
+    def git_remote_exist?
+      IO.popen("git remote").read.include?(code_name)
     end
 
     def remove_git_remote
-      system("git remote rm production > /dev/null 2>&1")
+      system("git remote rm #{code_name} > /dev/null 2>&1")
     end
 
     def generate_cloudfile
@@ -102,7 +106,19 @@ module Shelly
     end
 
     def self.guess_code_name
-      File.basename(Dir.pwd)
+      guessed = nil
+      if Cloudfile.present?
+        clouds = Cloudfile.new.clouds
+        if clouds.grep(/staging/)
+          guessed = "production"
+          production_clouds = clouds.grep(/production/)
+          production_clouds.sort.each do  |cloud|
+            cloud =~ /production(\d*)/
+            guessed = "production#{$1.to_i+1}"
+          end
+        end
+      end
+      "#{File.basename(Dir.pwd)}-#{guessed || 'staging'}"
     end
 
     def users
