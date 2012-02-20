@@ -95,7 +95,7 @@ module Shelly
           say "Billing information", :green
           say "Cloud created with 20 Euro credit."
           say "Remember to provide billing details before trial ends."
-          url = "#{@app.shelly.shellyapp_url}/apps/#{@app.code_name}/edit_billing"
+          url = "#{@app.shelly.shellyapp_url}/apps/#{@app.code_name}/billing/edit"
           say url
         end
 
