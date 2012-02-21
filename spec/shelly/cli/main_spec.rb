@@ -394,7 +394,7 @@ OUT
       $stdout.should_receive(:puts).with(green "Billing information")
       $stdout.should_receive(:puts).with("Cloud created with 20 Euro credit.")
       $stdout.should_receive(:puts).with("Remember to provide billing details before trial ends.")
-      $stdout.should_receive(:puts).with("http://example.com/apps/foo-production/billing/edit")
+      $stdout.should_receive(:puts).with("http://example.com/apps/foo-staging/billing/edit")
 
       fake_stdin(["", ""]) do
         invoke(@main, :add)
