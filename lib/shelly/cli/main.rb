@@ -106,7 +106,7 @@ module Shelly
         end
 
         info_adding_cloudfile_to_repository
-        info_deploying_to_shellycloud
+        info_deploying_to_shellycloud(@app)
 
       rescue Client::ValidationException => e
         e.each_error { |error| say_error error, :with_exit => false }
@@ -380,15 +380,15 @@ We have been notified about it. We will be adding new resources shortly}
           say "  git status"
         end
 
-        def info_deploying_to_shellycloud
+        def info_deploying_to_shellycloud(remote)
           say_new_line
           say "When you make sure all settings are correct please issue following commands:", :green
           say "  git add ."
           say '  git commit -m "Application added to Shelly Cloud"'
           say "  git push"
           say_new_line
-          say "Deploy to production using:", :green
-          say "  git push production master"
+          say "Deploy to your cloud using:", :green
+          say "  git push #{remote} master"
           say_new_line
         end
       end
