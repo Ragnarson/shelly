@@ -495,8 +495,8 @@ OUT
       $stdout.should_receive(:puts).with("  git add .")
       $stdout.should_receive(:puts).with('  git commit -m "Application added to Shelly Cloud"')
       $stdout.should_receive(:puts).with("  git push")
-      $stdout.should_receive(:puts).with("\e[32mDeploy to production using:\e[0m")
-      $stdout.should_receive(:puts).with("  git push production master")
+      $stdout.should_receive(:puts).with("\e[32mDeploy to your cloud using:\e[0m")
+      $stdout.should_receive(:puts).with("  git push foooo master")
       fake_stdin(["foooo", "none"]) do
         invoke(@main, :add)
       end
