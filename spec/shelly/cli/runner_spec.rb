@@ -64,12 +64,45 @@ describe Shelly::CLI::Runner do
       }.should raise_error(SystemExit)
     end
 
+    it "should rescue unauthorized exception and display message" do
+      @client = mock
+      runner = Shelly::CLI::Runner.new(%w(status))
+      Shelly::Client.stub(:new).and_return(@client)
+      @client.stub(:token).and_return("abc")
+      @client.stub(:apps).and_raise(Shelly::Client::UnauthorizedException.new)
+      $stdout.should_receive(:puts).with("You are not logged in. To log in use: `shelly login`")
+      lambda {
+        runner.start
+      }.should raise_error(SystemExit)
+    end
+
     context "with --debug option (debug mode)" do
       it "should re-raise caught exception to the console" do
         Shelly::CLI::Main.stub(:start).and_raise(RuntimeError.new)
         lambda {
           @runner.start
         }.should raise_error(RuntimeError)
+      end
+
+      it "should re-raise unauthorized exception" do
+        Shelly::CLI::Main.stub(:start).and_raise(Shelly::Client::UnauthorizedException.new)
+        lambda {
+          @runner.start
+        }.should raise_error(Shelly::Client::UnauthorizedException)
+      end
+
+      it "should re-raise gem version exception" do
+        Shelly::CLI::Main.stub(:start).and_raise(Shelly::Client::GemVersionException.new)
+        lambda {
+          @runner.start
+        }.should raise_error(Shelly::Client::GemVersionException)
+      end
+
+      it "should re-raise interupt exception" do
+        Shelly::CLI::Main.stub(:start).and_raise(Interrupt.new)
+        lambda {
+          @runner.start
+        }.should raise_error(Interrupt)
       end
     end
 

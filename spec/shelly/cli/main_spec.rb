@@ -500,10 +500,16 @@ OUT
       invoke(@main, :list)
     end
 
-    it "should have a 'status' alias" do
-      @client.stub(:apps).and_return([])
-      $stdout.should_receive(:puts).with("\e[32mYou have no clouds yet\e[0m")
-      invoke(@main, :status)
+    context "#status" do
+      it "should ensure user has logged in" do
+        hooks(@main, :status).should include(:logged_in?)
+      end
+
+      it "should have a 'status' alias" do
+        @client.stub(:apps).and_return([])
+        $stdout.should_receive(:puts).with("\e[32mYou have no clouds yet\e[0m")
+        invoke(@main, :status)
+      end
     end
   end
 

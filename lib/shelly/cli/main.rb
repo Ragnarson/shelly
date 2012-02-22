@@ -16,7 +16,7 @@ module Shelly
       check_unknown_options!(:except => :rake)
 
       # FIXME: it should be possible to pass single symbol, instead of one element array
-      before_hook :logged_in?, :only => [:add, :list, :start, :stop, :logs, :delete, :ip, :logout, :execute, :rake]
+      before_hook :logged_in?, :only => [:add, :status, :list, :start, :stop, :logs, :delete, :ip, :logout, :execute, :rake]
       before_hook :inside_git_repository?, :only => [:add]
       before_hook :cloudfile_present?, :only => [:logs, :stop, :start, :ip, :execute, :rake]
 

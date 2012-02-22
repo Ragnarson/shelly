@@ -18,11 +18,16 @@ module Shelly
       def start
         Shelly::CLI::Main.start(args)
       rescue SystemExit; raise
+      rescue Client::UnauthorizedException
+        raise if debug?
+        say_error "You are not logged in. To log in use: `shelly login`"
       rescue Client::GemVersionException => e
+        raise if debug?
         say "Required shelly gem version: #{e.body["required_version"]}"
         say "Your version: #{VERSION}"
         say_error "Update shelly gem with `gem install shelly`"
       rescue Interrupt
+        raise if debug?
         say_new_line
         say_error "[canceled]"
       rescue Exception
