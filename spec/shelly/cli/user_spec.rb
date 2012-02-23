@@ -176,6 +176,16 @@ describe Shelly::CLI::User do
           invoke(@cli_user, :delete, "megan@example.com")
         }.should raise_error(SystemExit)
       end
+
+      it "should show that user can't delete own collaboration" do
+        exception = Shelly::Client::ConflictException.new("message" =>
+          "Can't remove own collaboration")
+        @client.stub(:delete_collaboration).and_raise(exception)
+        $stdout.should_receive(:puts).with(red "Can't remove own collaboration")
+        lambda {
+          invoke(@cli_user, :delete, "megan@example.com")
+        }.should raise_error(SystemExit)
+      end
     end
   end
 end

@@ -62,6 +62,8 @@ module Shelly
           begin
             @user.delete_collaboration(cloud, user_email)
             say "User #{user_email} deleted from cloud #{cloud}"
+          rescue Client::ConflictException => e
+            say_error e[:message]
           rescue Client::NotFoundException => e
             case e.resource
             when :cloud
