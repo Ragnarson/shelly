@@ -15,8 +15,14 @@ module Shelly
         @cloudfile.clouds.each do |cloud|
           begin
             @app = App.new(cloud)
+            collaborations = @app.collaborations.sort_by { |c| c["email"] }.
+              partition { |c| c["active"] }.flatten
             say "Cloud #{cloud}:"
-            @app.users.each { |user| say "  #{user["email"]}" }
+            collaborations.each do |c|
+              output = "  #{c["email"]}"
+              output += " (invited)" unless c["active"]
+              say output
+            end
           rescue Client::NotFoundException => e
             raise unless e.resource == :cloud
             say_error "You have no access to '#{cloud}' cloud defined in Cloudfile"

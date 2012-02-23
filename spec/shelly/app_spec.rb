@@ -17,10 +17,10 @@ describe Shelly::App do
     end
   end
 
-  describe "#users" do
+  describe "#collaborations" do
     it "should fetch app's users" do
-      @client.should_receive(:app_users).with("foo-staging")
-      @app.users
+      @client.should_receive(:collaborations).with("foo-staging")
+      @app.collaborations
     end
   end
 

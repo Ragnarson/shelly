@@ -152,8 +152,8 @@ module Shelly
       post("/apps/#{code_name}/database_backups", :kind => kind)
     end
 
-    def app_users(cloud)
-      get("/apps/#{cloud}/users")
+    def collaborations(cloud)
+      get("/apps/#{cloud}/collaborations")
     end
 
     def redeploy(cloud)

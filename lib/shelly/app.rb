@@ -105,8 +105,8 @@ module Shelly
       File.basename(Dir.pwd)
     end
 
-    def users
-      shelly.app_users(code_name)
+    def collaborations
+      shelly.collaborations(code_name)
     end
 
     def configs
