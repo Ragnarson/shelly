@@ -229,7 +229,6 @@ config
         @app.code_name = "fooo"
         attributes = {
           :code_name => "fooo",
-          :name => "fooo",
           :domains => nil
         }
         @client.should_receive(:create_app).with(attributes).and_return("git_url" => "git@git.shellycloud.com:fooo.git",
@@ -254,7 +253,6 @@ config
         @app.domains = ["boo.shellyapp.com", "boo.example.com"]
         attributes = {
           :code_name => "boo",
-          :name => "boo",
           :domains => %w(boo.shellyapp.com boo.example.com)
         }
         @client.should_receive(:create_app).with(attributes).and_return("git_url" => "git@git.shellycloud.com:fooo.git",
