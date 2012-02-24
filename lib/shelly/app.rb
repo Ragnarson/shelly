@@ -107,7 +107,7 @@ module Shelly
 
     def collaborations
       @collaborations ||= Array(shelly.collaborations(code_name)).
-        sort_by { |c| c["emaill"] }
+        sort_by { |c| c["email"] }
     end
 
     def active_collaborations
