@@ -16,7 +16,9 @@ module Shelly
           begin
             @app = App.new(cloud)
             say "Cloud #{cloud}:"
-            @app.users.each { |user| say "  #{user["email"]}" }
+            @app.active_collaborations.each { |c| say "  #{c["email"]}" }
+            @app.inactive_collaborations.each { |c|
+              say "  #{c["email"]} (invited)" }
           rescue Client::NotFoundException => e
             raise unless e.resource == :cloud
             say_error "You have no access to '#{cloud}' cloud defined in Cloudfile"
@@ -56,6 +58,8 @@ module Shelly
           begin
             @user.delete_collaboration(cloud, user_email)
             say "User #{user_email} deleted from cloud #{cloud}"
+          rescue Client::ConflictException => e
+            say_error e[:message]
           rescue Client::NotFoundException => e
             case e.resource
             when :cloud

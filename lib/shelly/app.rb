@@ -105,8 +105,17 @@ module Shelly
       File.basename(Dir.pwd)
     end
 
-    def users
-      shelly.app_users(code_name)
+    def collaborations
+      @collaborations ||= Array(shelly.collaborations(code_name)).
+        sort_by { |c| c["email"] }
+    end
+
+    def active_collaborations
+      collaborations.select { |c| c["active"] }
+    end
+
+    def inactive_collaborations
+      collaborations.select { |c| !c["active"] }
     end
 
     def configs
