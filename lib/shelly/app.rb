@@ -106,7 +106,16 @@ module Shelly
     end
 
     def collaborations
-      shelly.collaborations(code_name)
+      @collaborations ||= Array(shelly.collaborations(code_name)).
+        sort_by { |c| c["emaill"] }
+    end
+
+    def active_collaborations
+      collaborations.select { |c| c["active"] }
+    end
+
+    def inactive_collaborations
+      collaborations.select { |c| !c["active"] }
     end
 
     def configs
