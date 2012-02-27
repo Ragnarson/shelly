@@ -12,7 +12,7 @@ Gem::Specification.new do |s|
   s.description = %q{Tool for managing applications and clouds at shellycloud.com}
 
   s.rubyforge_project = "shelly"
-  s.add_development_dependency "rspec"
+  s.add_development_dependency "rspec", "~> 2.8.0"
   s.add_development_dependency "rake"
   s.add_development_dependency "guard"
   s.add_development_dependency "guard-rspec"
