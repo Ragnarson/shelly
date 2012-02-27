@@ -170,12 +170,14 @@ describe Shelly::Client do
     end
   end
 
-  describe "#app_users" do
+  describe "#collaborations" do
     it "should send get request with app code_names" do
-      FakeWeb.register_uri(:get, api_url("apps/staging-foo/users"), :body => [{:email => "test@example.com"},
-        {:email => "test2@example.com"}].to_json)
-      response = @client.app_users("staging-foo")
-      response.should == [{"email" => "test@example.com"}, {"email" => "test2@example.com"}]
+      FakeWeb.register_uri(:get, api_url("apps/staging-foo/collaborations"),
+        :body => [{:email => "test@example.com", :active => true},
+                  {:email => "test2@example.com", :active => false}].to_json)
+      response = @client.collaborations("staging-foo")
+      response.should == [{"email" => "test@example.com", 'active' => true},
+                          {"email" => "test2@example.com", 'active' => false}]
     end
   end
 
