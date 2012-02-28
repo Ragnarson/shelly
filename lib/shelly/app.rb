@@ -109,7 +109,7 @@ module Shelly
       guessed = nil
       if Cloudfile.present?
         clouds = Cloudfile.new.clouds
-        unless clouds.grep(/staging/).empty?
+        if clouds.grep(/staging/).present?
           guessed = "production"
           production_clouds = clouds.grep(/production/)
           production_clouds.sort.each do  |cloud|
