@@ -24,6 +24,11 @@ describe Shelly::App do
         Shelly::App.guess_code_name.should == "foo-production"
       end
 
+      it "should return production" do
+        File.open("Cloudfile", 'w') {|f| f.write("winnie-test:\n") }
+        Shelly::App.guess_code_name.should == "foo-staging"
+      end
+
       it "should return productionNUMBER" do
         File.open("Cloudfile", 'w') {|f| f.write("foo-staging:\nfoo-production:\n") }
         Shelly::App.guess_code_name.should == "foo-production1"
