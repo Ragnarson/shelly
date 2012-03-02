@@ -62,7 +62,7 @@ module Shelly
       rescue Client::UnauthorizedException => e
         say_error "Wrong email or password", :with_exit => false
         say_error "You can reset password by using link:", :with_exit => false
-        say_error "#{e[:url]}"
+        say_error e[:url]
       rescue Errno::ENOENT => e
         say_error e, :with_exit => false
         say_error "Use ssh-keygen to generate ssh key pair"
@@ -164,7 +164,8 @@ module Shelly
           say_error "Support has been notified", :with_exit => false
           say_error "Check `shelly deploys show last --cloud #{@app}` for reasons of failure"
         when "not_enough_resources"
-          say_error "Sorry, There are no resources for your servers. We have been notified about it. We will be adding new resources shortly"
+          say_error %{Sorry, There are no resources for your servers.
+We have been notified about it. We will be adding new resources shortly}
         when "no_billing"
           url = "#{@app.shelly.shellyapp_url}/apps/#{@app.code_name}/edit_billing"
           say_error "Please fill in billing details to start foo-production.", :with_exit => false
@@ -239,7 +240,10 @@ module Shelly
 
       desc "execute CODE", "Run code on one of application servers"
       method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
-      long_desc "Run code given in parameter on one of application servers. If a file name is given, run contents of that file."
+      long_desc %{
+        Run code given in parameter on one of application servers.
+        If a file name is given, run contents of that file."
+      }
       def execute(file_name_or_code)
         cloud = options[:cloud]
         multiple_clouds(cloud, "execute")
