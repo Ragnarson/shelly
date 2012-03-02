@@ -549,8 +549,8 @@ OUT
     context "single cloud in Cloudfile" do
       it "should start the cloud" do
         @client.stub(:start_cloud)
-        $stdout.should_receive(:puts).with(green "Starting cloud foo-production. Check status with:")
-        $stdout.should_receive(:puts).with("  shelly list")
+        $stdout.should_receive(:puts).with(green "Starting cloud foo-production.")
+        $stdout.should_receive(:puts).with("Check status with: `shelly list`")
         invoke(@main, :start)
       end
     end
@@ -571,8 +571,8 @@ OUT
 
       it "should fetch from command line which cloud to start" do
         @client.should_receive(:start_cloud).with("foo-staging")
-        $stdout.should_receive(:puts).with(green "Starting cloud foo-staging. Check status with:")
-        $stdout.should_receive(:puts).with("  shelly list")
+        $stdout.should_receive(:puts).with(green "Starting cloud foo-staging.")
+        $stdout.should_receive(:puts).with("Check status with: `shelly list`")
         @main.options = {:cloud => "foo-staging"}
         invoke(@main, :start)
       end
