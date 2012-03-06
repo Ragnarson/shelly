@@ -626,6 +626,12 @@ We have been notified about it. We will be adding new resources shortly")
         lambda { invoke(@main, :start) }.should raise_error(SystemExit)
       end
 
+      it "should show messge about payment declined" do
+        raise_conflict("state" => "payment_declined")
+        $stdout.should_receive(:puts).with(red "Not starting. Invoice for cloud 'foo-production' was declined.")
+        lambda { invoke(@main, :start) }.should raise_error(SystemExit)
+      end
+
       def raise_conflict(options = {})
         body = {"state" => "no_code"}.merge(options)
         exception = Shelly::Client::ConflictException.new(body)

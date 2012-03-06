@@ -170,6 +170,8 @@ We have been notified about it. We will be adding new resources shortly}
           url = "#{@app.shelly.shellyapp_url}/apps/#{@app.code_name}/edit_billing"
           say_error "Please fill in billing details to start foo-production.", :with_exit => false
           say_error "Visit: #{url}", :with_exit => false
+        when "payment_declined"
+          say_error "Not starting. Invoice for cloud '#{@app}' was declined."
         end
         exit 1
       rescue Client::NotFoundException => e
