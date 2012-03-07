@@ -621,7 +621,9 @@ We have been notified about it. We will be adding new resources shortly")
 
       it "should show messages about billing" do
         raise_conflict("state" => "no_billing")
+        @app.stub(:edit_billing_url).and_return("http://example.com/billing/edit")
         $stdout.should_receive(:puts).with(red "Please fill in billing details to start foo-production.")
+        $stdout.should_receive(:puts).with(red "Visit: http://example.com/billing/edit")
         @client.stub(:shellyapp_url).and_return("http://example.com")
         lambda { invoke(@main, :start) }.should raise_error(SystemExit)
       end

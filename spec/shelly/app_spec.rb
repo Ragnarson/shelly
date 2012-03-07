@@ -308,4 +308,10 @@ config
       @app.to_s.should == "foo-staging"
     end
   end
+
+  describe "#edit_billing_url" do
+    it "should return link to edit billing page for app" do
+      @app.edit_billing_url.should == "http://shellyapp.example.com/apps/foo-staging/billing/edit"
+    end
+  end
 end

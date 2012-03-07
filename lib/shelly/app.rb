@@ -183,5 +183,9 @@ module Shelly
     def to_s
       code_name
     end
+
+    def edit_billing_url
+      "#{shelly.shellyapp_url}/apps/#{code_name}/billing/edit"
+    end
   end
 end
