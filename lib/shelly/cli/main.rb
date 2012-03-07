@@ -85,8 +85,14 @@ module Shelly
         @app.domains = options["domains"] || ["#{@app.code_name}.shellyapp.com"]
         @app.create
 
-        say "Adding remote production #{@app.git_url}", :green
-        @app.add_git_remote
+        git_remote = @app.git_remote_exist?
+        if !git_remote or (git_remote and yes?("Git remote #{@app} exists, overwrite (yes/no): "))
+          say "Adding remote #{@app} #{@app.git_url}", :green
+          @app.add_git_remote
+        else
+          say "You have to manually add git remote:"
+          say "`git remote add NAME #{@app.git_url}`"
+        end
 
         say "Creating Cloudfile", :green
         @app.create_cloudfile
@@ -100,7 +106,7 @@ module Shelly
         end
 
         info_adding_cloudfile_to_repository
-        info_deploying_to_shellycloud
+        info_deploying_to_shellycloud(@app)
 
       rescue Client::ValidationException => e
         e.each_error { |error| say_error error, :with_exit => false }
@@ -349,8 +355,8 @@ We have been notified about it. We will be adding new resources shortly}
         end
 
         def ask_for_code_name
-          default_code_name = "#{Shelly::App.guess_code_name}-production"
-          code_name = ask("Cloud code name (#{default_code_name} - default):")
+          default_code_name = Shelly::App.guess_code_name
+          code_name = ask("Cloud code name (#{Shelly::App.guess_code_name} - default):")
           code_name.blank? ? default_code_name : code_name
         end
 
@@ -374,15 +380,15 @@ We have been notified about it. We will be adding new resources shortly}
           say "  git status"
         end
 
-        def info_deploying_to_shellycloud
+        def info_deploying_to_shellycloud(remote)
           say_new_line
           say "When you make sure all settings are correct please issue following commands:", :green
           say "  git add ."
           say '  git commit -m "Application added to Shelly Cloud"'
           say "  git push"
           say_new_line
-          say "Deploy to production using:", :green
-          say "  git push production master"
+          say "Deploy to your cloud using:", :green
+          say "  git push #{remote} master"
           say_new_line
         end
       end
