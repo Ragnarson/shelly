@@ -416,7 +416,7 @@ OUT
       @app.should_receive(:create).and_raise(exception)
       $stdout.should_receive(:puts).with("\e[31mCode name has been already taken\e[0m")
       $stdout.should_receive(:puts).with("\e[31mFix erros in the below command and type it again to create your cloud\e[0m")
-      $stdout.should_receive(:puts).with("\e[31mshelly add --code-name=foo-production --databases=postgresql\e[0m")
+      $stdout.should_receive(:puts).with("\e[31mshelly add --code-name=foo-staging --databases=postgresql\e[0m")
       lambda {
         fake_stdin(["", ""]) do
           invoke(@main, :add)
