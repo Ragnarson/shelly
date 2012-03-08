@@ -312,7 +312,7 @@ OUT
 
         it "should exit if databases are not valid" do
           $stdout.should_receive(:puts).with("\e[31mTry 'shelly help add' for more information\e[0m")
-          @main.options = {"code-name" => "foo", "databases" => ["not existing"], "domains" => ["foo.example.com"]}
+          @main.options = {"code-name" => "foo", "databases" => ["not existing"]}
           lambda {
             invoke(@main, :add)
           }.should raise_error(SystemExit)
@@ -322,7 +322,7 @@ OUT
       context "valid params" do
         it "should create app on shelly cloud" do
           @app.should_receive(:create)
-          @main.options = {"code-name" => "foo", "databases" => ["postgresql"], "domains" => ["foo.example.com"]}
+          @main.options = {"code-name" => "foo", "databases" => ["postgresql"]}
           invoke(@main, :add)
         end
       end
@@ -416,20 +416,7 @@ OUT
       @app.should_receive(:create).and_raise(exception)
       $stdout.should_receive(:puts).with("\e[31mCode name has been already taken\e[0m")
       $stdout.should_receive(:puts).with("\e[31mFix erros in the below command and type it again to create your cloud\e[0m")
-      $stdout.should_receive(:puts).with("\e[31mshelly add --code-name=foo-staging --databases=postgresql --domains=foo-staging.shellyapp.com\e[0m")
-      lambda {
-        fake_stdin(["", ""]) do
-          invoke(@main, :add)
-        end
-      }.should raise_error(SystemExit)
-    end
-
-    it "should display correct domains in error message" do
-      body = {"message" => "Validation Failed", "errors" => [["code_name", "has been already taken"]]}
-      exception = Shelly::Client::ValidationException.new(body)
-      @app.should_receive(:create).and_raise(exception)
-      @main.options = {"code-name" => "foo-staging", "databases" => ["postgresql"], "domains" => ["test.example.com","test2.example.com"]}
-      $stdout.should_receive(:puts).with("\e[31mshelly add --code-name=foo-staging --databases=postgresql --domains=test.example.com,test2.example.com\e[0m")
+      $stdout.should_receive(:puts).with("\e[31mshelly add --code-name=foo-staging --databases=postgresql\e[0m")
       lambda {
         fake_stdin(["", ""]) do
           invoke(@main, :add)

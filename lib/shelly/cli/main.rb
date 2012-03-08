@@ -73,16 +73,12 @@ module Shelly
       method_option :databases, :type => :array, :aliases => "-d",
         :banner => Shelly::App::DATABASE_KINDS.join(', '),
         :desc => "List of databases of your choice"
-      method_option :domains, :type => :array,
-        :banner => "CODE-NAME.shellyapp.com, YOUR-DOMAIN.com",
-        :desc => "List of your domains"
       desc "add", "Add a new cloud"
       def add
         check_options(options)
         @app = Shelly::App.new
         @app.code_name = options["code-name"] || ask_for_code_name
         @app.databases = options["databases"] || ask_for_databases
-        @app.domains = options["domains"] || ["#{@app.code_name}.shellyapp.com"]
         @app.create
 
         git_remote = @app.git_remote_exist?
@@ -112,7 +108,7 @@ module Shelly
         e.each_error { |error| say_error error, :with_exit => false }
         say_new_line
         say_error "Fix erros in the below command and type it again to create your cloud" , :with_exit => false
-        say_error "shelly add --code-name=#{@app.code_name} --databases=#{@app.databases.join(',')} --domains=#{@app.domains.join(',')}"
+        say_error "shelly add --code-name=#{@app.code_name} --databases=#{@app.databases.join(',')}"
       end
 
       desc "list", "List available clouds"
@@ -321,7 +317,7 @@ We have been notified about it. We will be adding new resources shortly}
 
         def check_options(options)
           unless options.empty?
-            unless ["code-name", "databases", "domains"].all? do |option|
+            unless ["code-name", "databases"].all? do |option|
               options.include?(option.to_s) && options[option.to_s] != option.to_s
             end && valid_databases?(options["databases"])
             # FIXME: ' to `
