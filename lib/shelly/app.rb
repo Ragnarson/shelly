@@ -37,7 +37,7 @@ module Shelly
     end
 
     def create
-      attributes = {:code_name => code_name, :domains => domains}
+      attributes = {:code_name => code_name}
       response = shelly.create_app(attributes)
       self.git_url = response["git_url"]
       self.domains = response["domains"]
