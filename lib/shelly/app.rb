@@ -12,6 +12,10 @@ module Shelly
       self.code_name = code_name
     end
 
+    def databases=(dbs)
+      @databases = dbs - ['none']
+    end
+
     def add_git_remote
       system("git remote rm #{code_name} > /dev/null 2>&1")
       system("git remote add #{code_name} #{git_url}")

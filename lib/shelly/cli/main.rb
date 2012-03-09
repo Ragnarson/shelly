@@ -320,8 +320,7 @@ We have been notified about it. We will be adding new resources shortly}
             unless ["code-name", "databases"].all? do |option|
               options.include?(option.to_s) && options[option.to_s] != option.to_s
             end && valid_databases?(options["databases"])
-            # FIXME: ' to `
-              say_error "Try 'shelly help add' for more information"
+              say_error "Try `shelly help add` for more information"
             end
           end
         end
@@ -366,7 +365,7 @@ We have been notified about it. We will be adding new resources shortly}
             databases = ask("Unknown database kind. Supported are: #{kinds.join(", ")}:")
           end while not valid
 
-          databases.empty? ? ["postgresql"] : databases - ["none"]
+          databases.empty? ? ["postgresql"] : databases
         end
 
         def info_adding_cloudfile_to_repository

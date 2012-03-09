@@ -36,6 +36,13 @@ describe Shelly::App do
     end
   end
 
+  describe "#databases=" do
+    it "should remove 'none' as possible database" do
+      @app.databases = %w{none postgresql}
+      @app.databases.should == ['postgresql']
+    end
+  end
+
   describe "#collaborations" do
     it "should fetch app's users" do
       @client.should_receive(:collaborations).with("foo-staging")

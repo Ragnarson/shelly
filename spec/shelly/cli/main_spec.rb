@@ -303,7 +303,7 @@ OUT
     context "command line options" do
       context "invalid params" do
         it "should show help and exit if not all options are passed" do
-          $stdout.should_receive(:puts).with("\e[31mTry 'shelly help add' for more information\e[0m")
+          $stdout.should_receive(:puts).with("\e[31mTry `shelly help add` for more information\e[0m")
           @main.options = {"code-name" => "foo"}
           lambda {
             invoke(@main, :add)
@@ -311,7 +311,7 @@ OUT
         end
 
         it "should exit if databases are not valid" do
-          $stdout.should_receive(:puts).with("\e[31mTry 'shelly help add' for more information\e[0m")
+          $stdout.should_receive(:puts).with("\e[31mTry `shelly help add` for more information\e[0m")
           @main.options = {"code-name" => "foo", "databases" => ["not existing"]}
           lambda {
             invoke(@main, :add)
@@ -373,10 +373,10 @@ OUT
 
     context "when user provided 'none' database" do
       it "shouldn't take it into account" do
-        @app.should_receive(:databases=).with(["postgresql"])
         fake_stdin(["", "postgresql, none"]) do
           invoke(@main, :add)
         end
+        @app.databases.should == ['postgresql']
       end
     end
 
