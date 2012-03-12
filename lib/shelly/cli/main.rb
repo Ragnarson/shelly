@@ -154,25 +154,26 @@ module Shelly
       rescue Client::ConflictException => e
         case e[:state]
         when "running"
-          say_error "Not starting: cloud '#{@app}' is already running"
+          say_error "Not starting: cloud '#{@app}' is already running", :with_exit => false
         when "deploying", "configuring"
-          say_error "Not starting: cloud '#{@app}' is currently deploying"
+          say_error "Not starting: cloud '#{@app}' is currently deploying", :with_exit => false
         when "no_code"
           say_error "Not starting: no source code provided", :with_exit => false
           say_error "Push source code using:", :with_exit => false
-          say       "  git push production master"
+          say_error "  git push production master", :with_exit => false
         when "deploy_failed", "configuration_failed"
           say_error "Not starting: deployment failed", :with_exit => false
           say_error "Support has been notified", :with_exit => false
-          say_error "Check `shelly deploys show last --cloud #{@app}` for reasons of failure"
+          say_error "Check `shelly deploys show last --cloud #{@app}` for reasons of failure", :with_exit => false
         when "not_enough_resources"
           say_error %{Sorry, There are no resources for your servers.
-We have been notified about it. We will be adding new resources shortly}
-        when "no_billing"
-          say_error "Please fill in billing details to start #{@app}.", :with_exit => false
-          say_error "Visit: #{@app.edit_billing_url}", :with_exit => false
-        when "payment_declined"
-          say_error "Not starting. Invoice for cloud '#{@app}' was declined."
+We have been notified about it. We will be adding new resources shortly}, :with_exit => false
+        end
+        if !e[:can_be_started] and e[:state] == "turned_off"
+          url = "#{@app.shelly.shellyapp_url}/apps/#{@app.code_name}/billing"
+          say_error "Not starting.", :with_exit => false
+          say_error "For more details please visit:", :with_exit => false
+          say_error url
         end
         exit 1
       rescue Client::NotFoundException => e
@@ -285,7 +286,7 @@ We have been notified about it. We will be adding new resources shortly}
         case e[:state]
         when "deploying", "configuring"
           say_error "Your application is being redeployed at the moment"
-        when "no_code", "no_billing", "turned_off"
+        when "no_code", "turned_off"
           say_error "Cloud #{@app} is not running", :with_exit => false
           say "Start your cloud with `shelly start --cloud #{@app}`"
           exit 1
