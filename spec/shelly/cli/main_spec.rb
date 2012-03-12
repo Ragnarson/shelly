@@ -630,7 +630,7 @@ OUT
         raise_conflict("state" => "no_code")
         $stdout.should_receive(:puts).with(red "Not starting: no source code provided")
         $stdout.should_receive(:puts).with(red "Push source code using:")
-        $stdout.should_receive(:puts).with("  git push production master")
+        $stdout.should_receive(:puts).with(red "  git push production master")
         lambda { invoke(@main, :start) }.should raise_error(SystemExit)
       end
 
@@ -652,23 +652,17 @@ We have been notified about it. We will be adding new resources shortly")
         lambda { invoke(@main, :start) }.should raise_error(SystemExit)
       end
 
-      it "should show messages about billing" do
-        raise_conflict("state" => "no_billing")
-        @app.stub(:edit_billing_url).and_return("http://example.com/billing/edit")
-        $stdout.should_receive(:puts).with(red "Please fill in billing details to start foo-production.")
-        $stdout.should_receive(:puts).with(red "Visit: http://example.com/billing/edit")
+      it "should show link to billing" do
         @client.stub(:shellyapp_url).and_return("http://example.com")
-        lambda { invoke(@main, :start) }.should raise_error(SystemExit)
-      end
-
-      it "should show messge about payment declined" do
-        raise_conflict("state" => "payment_declined")
-        $stdout.should_receive(:puts).with(red "Not starting. Invoice for cloud 'foo-production' was declined.")
+        raise_conflict("state" => "turned_off", "can_be_started" => false)
+        $stdout.should_receive(:puts).with(red "Not starting.")
+        $stdout.should_receive(:puts).with(red "For more details please visit:")
+        $stdout.should_receive(:puts).with(red "http://example.com/apps/foo-production/billing")
         lambda { invoke(@main, :start) }.should raise_error(SystemExit)
       end
 
       def raise_conflict(options = {})
-        body = {"state" => "no_code"}.merge(options)
+        body = {"state" => "no_code", "can_be_started" => true}.merge(options)
         exception = Shelly::Client::ConflictException.new(body)
         @client.stub(:start_cloud).and_raise(exception)
       end
@@ -1274,7 +1268,7 @@ We have been notified about it. We will be adding new resources shortly")
         end
       end
 
-      %w(no_code no_billing turned_off).each do |state|
+      %w(no_code turned_off).each do |state|
         context "when application is in #{state} state" do
           it "should display error that cloud is not running" do
             exception = Shelly::Client::ConflictException.new("state" => state)
