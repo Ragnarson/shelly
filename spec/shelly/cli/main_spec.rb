@@ -83,7 +83,7 @@ OUT
       File.exists?(@key_path).should be_false
       $stdout.should_receive(:puts).with(red "No such file or directory - #{@key_path}")
       $stdout.should_receive(:puts).with(red "Use ssh-keygen to generate ssh key pair, after that use: `shelly login`")
-      fake_stdin(["better@example.com", "secret", "secret"]) do
+      fake_stdin(["better@example.com", "secret", "secret", "yes"]) do
         invoke(@main, :register)
       end
     end
@@ -92,7 +92,7 @@ OUT
       $stdout.should_receive(:print).with("Email: ")
       $stdout.should_receive(:print).with("Password: ")
       $stdout.should_receive(:print).with("Password confirmation: ")
-      fake_stdin(["better@example.com", "secret", "secret"]) do
+      fake_stdin(["better@example.com", "secret", "secret", "yes"]) do
         invoke(@main, :register)
       end
     end
@@ -101,21 +101,21 @@ OUT
       Shelly::User.stub(:guess_email).and_return("kate@example.com")
       $stdout.should_receive(:print).with("Email (kate@example.com - default): ")
       @client.should_receive(:register_user).with("kate@example.com", "secret", "ssh-key AAbbcc")
-      fake_stdin(["", "secret", "secret"]) do
+      fake_stdin(["", "secret", "secret", "yes"]) do
         invoke(@main, :register)
       end
     end
 
     it "should use email provided by user" do
       @client.should_receive(:register_user).with("better@example.com", "secret", "ssh-key AAbbcc")
-      fake_stdin(["better@example.com", "secret", "secret"]) do
+      fake_stdin(["better@example.com", "secret", "secret", "yes"]) do
         invoke(@main, :register)
       end
     end
 
     it "should not ask about email if it's provided as argument" do
       $stdout.should_receive(:puts).with("Registering with email: kate@example.com")
-      fake_stdin(["secret", "secret"]) do
+      fake_stdin(["secret", "secret", "yes"]) do
         invoke(@main, :register, "kate@example.com")
       end
     end
@@ -125,7 +125,7 @@ OUT
         Shelly::User.stub(:guess_email).and_return("")
         $stdout.should_receive(:puts).with("\e[31mEmail can't be blank, please try again\e[0m")
         lambda {
-          fake_stdin(["", "bob@example.com", "only-pass", "only-pass"]) do
+          fake_stdin(["", "bob@example.com", "only-pass", "only-pass", "yes"]) do
             invoke(@main, :register)
           end
         }.should raise_error(SystemExit)
@@ -137,7 +137,7 @@ OUT
         FileUtils.mkdir_p("~/.ssh")
         File.open(@key_path, "w") { |f| f << "key" }
         $stdout.should_receive(:puts).with("Uploading your public SSH key from #{@key_path}")
-        fake_stdin(["kate@example.com", "secret", "secret"]) do
+        fake_stdin(["kate@example.com", "secret", "secret", "yes"]) do
           invoke(@main, :register)
         end
       end
@@ -148,7 +148,7 @@ OUT
         @user.stub(:ssh_key_registered?)
         FileUtils.rm_rf(@key_path)
         $stdout.should_not_receive(:puts).with("Uploading your public SSH key from #{@key_path}")
-        fake_stdin(["kate@example.com", "secret", "secret"]) do
+        fake_stdin(["kate@example.com", "secret", "secret", "yes"]) do
           invoke(@main, :register)
         end
       end
@@ -159,7 +159,7 @@ OUT
         @client.stub(:register_user).and_return(true)
         $stdout.should_receive(:puts).with("Successfully registered!")
         $stdout.should_receive(:puts).with("Check you mailbox for email address confirmation")
-        fake_stdin(["kate@example.com", "pass", "pass"]) do
+        fake_stdin(["kate@example.com", "pass", "pass", "yes"]) do
           invoke(@main, :register)
         end
       end
@@ -172,7 +172,18 @@ OUT
         @client.stub(:register_user).and_raise(exception)
         $stdout.should_receive(:puts).with("\e[31mEmail has been already taken\e[0m")
         lambda {
-          fake_stdin(["kate@example.com", "pass", "pass"]) do
+          fake_stdin(["kate@example.com", "pass", "pass", "yes"]) do
+            invoke(@main, :register)
+          end
+        }.should raise_error(SystemExit)
+      end
+    end
+
+    context "on rejected Terms of Service" do
+      it "should display error and exit with 1" do
+        $stdout.should_receive(:puts).with("\e[31mYou must accept the Terms of Service to use Shelly Cloud\e[0m")
+        lambda {
+          fake_stdin(["kate@example.com", "pass", "pass", "no"]) do
             invoke(@main, :register)
           end
         }.should raise_error(SystemExit)

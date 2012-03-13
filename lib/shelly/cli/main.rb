@@ -32,6 +32,7 @@ module Shelly
         say "Registering with email: #{email}" if email
         user.email = (email || ask_for_email)
         user.password = ask_for_password
+        ask_for_acceptance_of_terms
         user.register
         if user.ssh_key_exists?
           say "Uploading your public SSH key from #{user.ssh_key_path}"

@@ -45,6 +45,15 @@ module Shelly
       exit 1 unless delete_application == "yes"
     end
 
+    def ask_for_acceptance_of_terms
+      acceptance_question = "Do you accept the Terms of Service of Shelly Cloud (https://shellycloud.com/terms_of_service) (yes/no)"
+      acceptance = ask(acceptance_question)
+      unless acceptance == "yes"
+        say_error "You must accept the Terms of Service to use Shelly Cloud"
+        exit 1
+      end
+    end
+
     def inside_git_repository?
       say_error "Must be run inside your project git repository" unless App.inside_git_repository?
     end
