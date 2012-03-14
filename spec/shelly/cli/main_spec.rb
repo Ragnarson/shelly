@@ -505,8 +505,11 @@ OUT
     before do
       @user = Shelly::User.new
       @client.stub(:token).and_return("abc")
-      @client.stub(:apps).and_return([{"code_name" => "abc", "state" => "running"},
-         {"code_name" => "fooo", "state" => "deploy_failed"}])
+      @client.stub(:apps).and_return([
+        {"code_name" => "abc", "state" => "running"},
+        {"code_name" => "fooo", "state" => "deploy_failed"},
+        {"code_name" => "bar", "state" => "configuration_failed"}
+      ])
       Shelly::User.stub(:new).and_return(@user)
     end
 
@@ -517,7 +520,8 @@ OUT
     it "should display user's clouds" do
       $stdout.should_receive(:puts).with("\e[32mYou have following clouds available:\e[0m")
       $stdout.should_receive(:puts).with(/abc\s+\|  running/)
-      $stdout.should_receive(:puts).with(/fooo\s+\|  deploy failed \(Support has been notified\)/)
+      $stdout.should_receive(:puts).with(/fooo\s+\|  deploy failed \(deployment log: `shelly deploys show last -c fooo`\)/)
+      $stdout.should_receive(:puts).with(/bar\s+\|  configuration failed \(deployment log: `shelly deploys show last -c bar`\)/)
       invoke(@main, :list)
     end
 
