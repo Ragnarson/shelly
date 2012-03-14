@@ -577,6 +577,7 @@ OUT
       it "should start the cloud" do
         @client.stub(:start_cloud)
         $stdout.should_receive(:puts).with(green "Starting cloud foo-production.")
+        $stdout.should_receive(:puts).with("This can take up to 10 minutes.")
         $stdout.should_receive(:puts).with("Check status with: `shelly list`")
         invoke(@main, :start)
       end

@@ -151,6 +151,7 @@ module Shelly
         multiple_clouds(options[:cloud], "start")
         @app.start
         say "Starting cloud #{@app}.", :green
+        say "This can take up to 10 minutes."
         say "Check status with: `shelly list`"
       rescue Client::ConflictException => e
         case e[:state]
