@@ -50,7 +50,6 @@ module Shelly
       acceptance = ask(acceptance_question)
       unless acceptance == "yes"
         say_error "You must accept the Terms of Service to use Shelly Cloud"
-        exit 1
       end
     end
 
