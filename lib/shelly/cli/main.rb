@@ -16,9 +16,9 @@ module Shelly
       check_unknown_options!(:except => :rake)
 
       # FIXME: it should be possible to pass single symbol, instead of one element array
-      before_hook :logged_in?, :only => [:add, :status, :list, :start, :stop, :logs, :delete, :ip, :logout, :execute, :rake]
-      before_hook :inside_git_repository?, :only => [:add]
-      before_hook :cloudfile_present?, :only => [:logs, :stop, :start, :ip, :execute, :rake]
+      before_hook :logged_in?, :only => [:add, :status, :list, :start, :stop, :logs, :delete, :ip, :logout, :execute, :rake, :setup]
+      before_hook :inside_git_repository?, :only => [:add, :setup]
+      before_hook :cloudfile_present?, :only => [:logs, :stop, :start, :ip, :execute, :rake, :setup]
 
       map %w(-v --version) => :version
       desc "version", "Display shelly version"
@@ -81,8 +81,7 @@ module Shelly
         @app.databases = options["databases"] || ask_for_databases
         @app.create
 
-        git_remote = @app.git_remote_exist?
-        if !git_remote or (git_remote and yes?("Git remote #{@app} exists, overwrite (yes/no): "))
+        if overwrite_remote?(@app)
           say "Adding remote #{@app} #{@app.git_url}", :green
           @app.add_git_remote
         else
@@ -178,6 +177,39 @@ We have been notified about it. We will be adding new resources shortly}
       rescue Client::NotFoundException => e
         raise unless e.resource == :cloud
         say_error "You have no access to '#{@app}' cloud defined in Cloudfile"
+      end
+
+      desc "setup", "Set up clouds"
+      def setup
+        say "Investigating Cloudfile"
+        cloudfile = Cloudfile.new
+        cloudfile.clouds.each do |cloud|
+          begin
+            app = App.new(cloud)
+            say "Adding #{app} cloud", :green
+            app.git_url = app.attributes["git_info"]["repository_url"]
+            if overwrite_remote?(app)
+              say "git remote add #{app} #{app.git_url}"
+              app.add_git_remote
+              say "git fetch production"
+              app.git_fetch_remote
+              say "git checkout -b #{app} --track #{app}/master"
+              app.git_add_tracking_branch
+            else
+              say "You have to manually add remote:"
+              say "`git remote add #{app} #{app.git_url}`"
+              say "`git fetch production`"
+              say "`git checkout -b #{app} --track #{app}/master`"
+            end
+
+            say_new_line
+          rescue Client::NotFoundException => e
+            raise unless e.resource == :cloud
+            say_error "You have no access to '#{app}' cloud defined in Cloudfile"
+          end
+        end
+
+        say "Your application is set up.", :green
       end
 
       desc "stop", "Stop the cloud"
@@ -328,6 +360,11 @@ We have been notified about it. We will be adding new resources shortly}
         def valid_databases?(databases)
           kinds = Shelly::App::DATABASE_KINDS
           databases.all? { |kind| kinds.include?(kind) }
+        end
+
+        def overwrite_remote?(app)
+          git_remote = app.git_remote_exist?
+          !git_remote or (git_remote and yes?("Git remote #{app} exists, overwrite (yes/no): "))
         end
 
         def ask_for_password(options = {})

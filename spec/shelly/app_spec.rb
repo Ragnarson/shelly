@@ -67,6 +67,21 @@ describe Shelly::App do
     end
   end
 
+  describe "git_fetch_remote" do
+    it "should try to remove existing git remote" do
+      @app.should_receive(:system).with("git fetch foo-staging > /dev/null 2>&1")
+      @app.git_fetch_remote
+    end
+  end
+
+  describe "git_add_tracking_branch" do
+    it "should try to remove existing git remote" do
+      @app.should_receive(:system).with("git checkout -b foo-staging --track foo-staging/master > /dev/null 2>&1")
+      @app.git_add_tracking_branch
+    end
+  end
+
+
   describe "git_remote_exist" do
     it "should return true if git remote exist" do
       io = mock(:read => "origin\nfoo-staging")
