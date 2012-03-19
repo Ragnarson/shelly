@@ -707,7 +707,7 @@ We have been notified about it. We will be adding new resources shortly")
     end
 
     context "single cloud in Cloudfile" do
-      it "should start the cloud" do
+      it "should stop the cloud" do
         @client.stub(:stop_cloud)
         $stdout.should_receive(:print).with("Are you sure you want to shut down your application (yes/no): ")
         $stdout.should_receive(:puts).with("\n")
@@ -723,7 +723,7 @@ We have been notified about it. We will be adding new resources shortly")
         File.open("Cloudfile", 'w') {|f| f.write("foo-staging:\nfoo-production:\n") }
       end
 
-      it "should show information to start specific cloud and exit" do
+      it "should show information to stop specific cloud and exit" do
         $stdout.should_receive(:puts).with(red "You have multiple clouds in Cloudfile.")
         $stdout.should_receive(:puts).with("Select cloud using `shelly stop --cloud foo-production`")
         $stdout.should_receive(:puts).with("Available clouds:")
@@ -732,7 +732,7 @@ We have been notified about it. We will be adding new resources shortly")
         lambda { invoke(@main, :stop) }.should raise_error(SystemExit)
       end
 
-      it "should fetch from command line which cloud to start" do
+      it "should fetch from command line which cloud to stop" do
         @client.should_receive(:stop_cloud).with("foo-staging")
         $stdout.should_receive(:print).with("Are you sure you want to shut down your application (yes/no): ")
         $stdout.should_receive(:puts).with("\n")
