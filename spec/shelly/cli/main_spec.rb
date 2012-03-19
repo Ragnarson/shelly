@@ -39,6 +39,7 @@ Tasks:
   shelly rake TASK          # Run rake task
   shelly redeploy           # Redeploy application
   shelly register [EMAIL]   # Register new account
+  shelly setup              # Set up clouds
   shelly start              # Start the cloud
   shelly stop               # Stop the cloud
   shelly user <command>     # Manage collaborators
@@ -767,6 +768,85 @@ We have been notified about it. We will be adding new resources shortly")
         $stdout.should_receive(:puts).with(red "You have no access to 'foo-staging' cloud defined in Cloudfile")
         invoke(@main, :ip)
       end
+    end
+  end
+
+  describe "#setup" do
+    before do
+      Shelly::App.stub(:inside_git_repository?).and_return(true)
+      @client.stub(:token).and_return("abc")
+      @client.stub(:app).and_return("git_info" => {"repository_url" => "git_url"})
+      @app = Shelly::App.new("foo-staging")
+      @app.stub(:git_remote_exist?).and_return(false)
+      @app.stub(:system)
+      Shelly::App.stub(:new).and_return(@app)
+      File.open("Cloudfile", 'w') {|f| f.write("foo-staging:\n") }
+    end
+
+    it "should ensure user has logged in" do
+      hooks(@main, :setup).should include(:logged_in?)
+    end
+
+    it "should ensure that user is inside git repo" do
+      hooks(@main, :setup).should include(:inside_git_repository?)
+    end
+
+    it "should ensure that cloudfile is present" do
+      hooks(@main, :setup).should include(:cloudfile_present?)
+    end
+
+    it "should show info about adding remote and branch" do
+      $stdout.should_receive(:puts).with("Investigating Cloudfile")
+      $stdout.should_receive(:puts).with(green "Adding foo-staging cloud")
+      $stdout.should_receive(:puts).with("git remote add foo-staging git_url")
+      $stdout.should_receive(:puts).with("git fetch production")
+      $stdout.should_receive(:puts).with("git checkout -b foo-staging --track foo-staging/master")
+      $stdout.should_receive(:puts).with(green "Your application is set up.")
+      invoke(@main, :setup)
+    end
+
+    it "should add git remote" do
+      @app.should_receive(:add_git_remote)
+      invoke(@main, :setup)
+    end
+
+    it "should fetch remote" do
+      @app.should_receive(:git_fetch_remote)
+      invoke(@main, :setup)
+    end
+
+    it "should add tracking branch" do
+      @app.should_receive(:git_add_tracking_branch)
+      invoke(@main, :setup)
+    end
+
+    context "when remote exists" do
+      before do
+        @app.stub(:git_remote_exist?).and_return(true)
+      end
+
+      context "and user answers yes" do
+        it "should overwrite remote" do
+          @app.should_receive(:add_git_remote)
+          @app.should_receive(:git_fetch_remote)
+          @app.should_receive(:git_add_tracking_branch)
+          fake_stdin(["yes"]) do
+            invoke(@main, :setup)
+          end
+        end
+      end
+
+      context "and user answers no" do
+        it "should display commands to perform manually " do
+          @app.should_not_receive(:add_git_remote)
+          @app.should_not_receive(:git_fetch_remote)
+          @app.should_not_receive(:git_add_tracking_branch)
+          fake_stdin(["no"]) do
+            invoke(@main, :setup)
+          end
+        end
+      end
+
     end
   end
 

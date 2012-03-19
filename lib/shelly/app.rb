@@ -25,6 +25,14 @@ module Shelly
       IO.popen("git remote").read.include?(code_name)
     end
 
+    def git_fetch_remote
+      system("git fetch #{code_name} > /dev/null 2>&1")
+    end
+
+    def git_add_tracking_branch
+      system("git checkout -b #{code_name} --track #{code_name}/master > /dev/null 2>&1")
+    end
+
     def remove_git_remote
       system("git remote rm #{code_name} > /dev/null 2>&1")
     end
