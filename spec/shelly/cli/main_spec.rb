@@ -41,7 +41,7 @@ Tasks:
   shelly register [EMAIL]   # Register new account
   shelly setup              # Set up clouds
   shelly start              # Start the cloud
-  shelly stop               # Stop the cloud
+  shelly stop               # Shutdown the cloud
   shelly user <command>     # Manage collaborators
   shelly version            # Display shelly version
 
@@ -699,14 +699,22 @@ We have been notified about it. We will be adding new resources shortly")
     it "should exit if user doesn't have access to clouds in Cloudfile" do
       @client.stub(:stop_cloud).and_raise(Shelly::Client::NotFoundException.new("resource" => "cloud"))
       $stdout.should_receive(:puts).with(red "You have no access to 'foo-production' cloud defined in Cloudfile")
-      lambda { invoke(@main, :stop) }.should raise_error(SystemExit)
+      lambda {
+        fake_stdin(["yes"]) do
+          invoke(@main, :stop)
+        end
+      }.should raise_error(SystemExit)
     end
 
     context "single cloud in Cloudfile" do
       it "should start the cloud" do
         @client.stub(:stop_cloud)
+        $stdout.should_receive(:print).with("Are you sure you want to shut down your application (yes/no): ")
+        $stdout.should_receive(:puts).with("\n")
         $stdout.should_receive(:puts).with("Cloud 'foo-production' stopped")
-        invoke(@main, :stop)
+        fake_stdin(["yes"]) do
+          invoke(@main, :stop)
+        end
       end
     end
 
@@ -726,9 +734,13 @@ We have been notified about it. We will be adding new resources shortly")
 
       it "should fetch from command line which cloud to start" do
         @client.should_receive(:stop_cloud).with("foo-staging")
+        $stdout.should_receive(:print).with("Are you sure you want to shut down your application (yes/no): ")
+        $stdout.should_receive(:puts).with("\n")
         $stdout.should_receive(:puts).with("Cloud 'foo-staging' stopped")
         @main.options = {:cloud => "foo-staging"}
-        invoke(@main, :stop)
+        fake_stdin(["yes"]) do
+          invoke(@main, :stop)
+        end
       end
     end
   end
