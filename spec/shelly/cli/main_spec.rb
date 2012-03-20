@@ -652,13 +652,44 @@ We have been notified about it. We will be adding new resources shortly")
         lambda { invoke(@main, :start) }.should raise_error(SystemExit)
       end
 
-      it "should show link to billing" do
-        @client.stub(:shellyapp_url).and_return("http://example.com")
-        raise_conflict("state" => "turned_off", "can_be_started" => false)
-        $stdout.should_receive(:puts).with(red "Not starting.")
-        $stdout.should_receive(:puts).with(red "For more details please visit:")
-        $stdout.should_receive(:puts).with(red "http://example.com/apps/foo-production/billing")
-        lambda { invoke(@main, :start) }.should raise_error(SystemExit)
+      context "when billing or payment errors exists" do
+        before do
+          @client.stub(:shellyapp_url).and_return("http://example.com")
+        end
+
+        it "should show message about no billing or no credit card details" do
+          raise_conflict("state" => "turned_off", "can_be_started" => false, "billing_state" => "none")
+          $stdout.should_receive(:puts).with(red "Not starting. To start Cloud provide billing data and credit card details.")
+          $stdout.should_receive(:puts).with(red "For more details please visit:")
+          $stdout.should_receive(:puts).with(red "http://example.com/apps/foo-production/billing")
+          lambda { invoke(@main, :start) }.should raise_error(SystemExit)
+        end
+
+        it "should show message about waiting for acceptace credit card" do
+          raise_conflict("state" => "turned_off", "can_be_started" => false, "billing_state" => "new")
+          $stdout.should_receive(:puts).with(red "Not starting. Waiting for acceptance of your credit card.")
+          $stdout.should_receive(:puts).with(red "For more details please visit:")
+          $stdout.should_receive(:puts).with(red "http://example.com/apps/foo-production/billing")
+          lambda { invoke(@main, :start) }.should raise_error(SystemExit)
+        end
+
+        it "should show message about rejected credit card " do
+          raise_conflict("state" => "turned_off", "can_be_started" => false, "billing_state" => "rejected")
+          $stdout.should_receive(:puts).with(red "Your credit card was rejected. Contact with our payment gateway Espago.")
+          $stdout.should_receive(:puts).with(red "For more details please visit:")
+          $stdout.should_receive(:puts).with(red "http://example.com/apps/foo-production/billing")
+          lambda { invoke(@main, :start) }.should raise_error(SystemExit)
+        end
+
+        it "should show message about payment declined" do
+          raise_conflict("state" => "turned_off", "can_be_started" => false, "billing_state" => "payment_declined")
+          $stdout.should_receive(:puts).with(red "Your credit card was rejected. Cotact with our payment gateway Espago.")
+          $stdout.should_receive(:puts).with(red "You should have received e-mail with details from Espago, our payment gateway.")
+          $stdout.should_receive(:puts).with(red "Please, contact them as soon as possible to clarify the situation.")
+          $stdout.should_receive(:puts).with(red "For more details please visit:")
+          $stdout.should_receive(:puts).with(red "http://example.com/apps/foo-production/billing")
+          lambda { invoke(@main, :start) }.should raise_error(SystemExit)
+        end
       end
 
       def raise_conflict(options = {})

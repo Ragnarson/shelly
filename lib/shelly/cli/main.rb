@@ -175,8 +175,17 @@ module Shelly
 We have been notified about it. We will be adding new resources shortly}, :with_exit => false
         end
         if !e[:can_be_started] and e[:state] == "turned_off"
+          case e[:billing_state]
+            when 'none' then say_error "Not starting. To start Cloud provide billing data and credit card details.", :with_exit => false
+            when 'new' then say_error "Not starting. Waiting for acceptance of your credit card.", :with_exit => false
+            when 'rejected' then say_error "Your credit card was rejected. Contact with our payment gateway Espago.", :with_exit => false
+            when 'payment_declined'
+              say_error "Not starting.", :with_exit => false
+              say_error "Your credit card was rejected. Cotact with our payment gateway Espago.", :with_exit => false
+              say_error "You should have received e-mail with details from Espago, our payment gateway.", :with_exit => false
+              say_error "Please, contact them as soon as possible to clarify the situation.", :with_exit => false
+          end
           url = "#{@app.shelly.shellyapp_url}/apps/#{@app.code_name}/billing"
-          say_error "Not starting.", :with_exit => false
           say_error "For more details please visit:", :with_exit => false
           say_error url
         end
