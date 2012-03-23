@@ -53,14 +53,14 @@ describe Shelly::Client do
 
   def api_url(resource = "")
     auth = "#{CGI.escape(@client.email)}:#{@client.password}@"
-    "https://#{auth}admin.winniecloud.com/apiv2/#{resource}"
+    "https://#{auth}api.shellycloud.com/apiv2/#{resource}"
   end
 
   describe "#api_url" do
     context "env SHELLY_URL is not set" do
       it "should return default API URL" do
         ENV['SHELLY_URL'].should be_nil
-        @client.api_url.should == "https://admin.winniecloud.com/apiv2"
+        @client.api_url.should == "https://api.shellycloud.com/apiv2"
       end
     end
 

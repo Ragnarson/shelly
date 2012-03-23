@@ -45,7 +45,7 @@ module Shelly
     end
 
     def api_url
-      ENV["SHELLY_URL"] || "https://admin.winniecloud.com/apiv2"
+      ENV["SHELLY_URL"] || "https://api.shellycloud.com/apiv2"
     end
 
     def shellyapp_url
