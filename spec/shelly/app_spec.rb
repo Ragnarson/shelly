@@ -157,11 +157,12 @@ describe Shelly::App do
   end
 
   describe "#generate_cloudfile" do
-    it "should return generated cloudfile" do
+    it "should return generated cloudfile for large instance" do
       user = mock(:email => "bob@example.com")
       @app.stub(:current_user).and_return(user)
       @app.databases = %w(postgresql mongodb)
       @app.domains = %w(foo-staging.winniecloud.com foo.example.com)
+      @app.size = "large"
       FakeFS.deactivate!
       expected = <<-config
 foo-staging:
@@ -175,6 +176,39 @@ foo-staging:
     app1:
       size: large
       thin: 4
+      # whenever: on
+      # delayed_job: 1
+    postgresql:
+      size: large
+      databases:
+        - postgresql
+    mongodb:
+      size: large
+      databases:
+        - mongodb
+config
+      @app.generate_cloudfile.strip.should == expected.strip
+    end
+
+    it "should return generated cloudfile for small instance" do
+      user = mock(:email => "bob@example.com")
+      @app.stub(:current_user).and_return(user)
+      @app.databases = %w(postgresql mongodb)
+      @app.domains = %w(foo-staging.winniecloud.com foo.example.com)
+      @app.size = "small"
+      FakeFS.deactivate!
+      expected = <<-config
+foo-staging:
+  ruby_version: 1.9.3 # 1.9.3, 1.9.2 or ree-1.8.7
+  environment: production # RAILS_ENV
+  monitoring_email: bob@example.com
+  domains:
+    - foo-staging.winniecloud.com
+    - foo.example.com
+  servers:
+    app1:
+      size: small
+      thin: 2
       # whenever: on
       # delayed_job: 1
     postgresql:
