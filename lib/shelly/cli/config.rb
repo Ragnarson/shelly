@@ -6,26 +6,26 @@ module Shelly
       include Thor::Actions
       include Helpers
 
-      before_hook :logged_in?, :only => [:list, :show, :create, :edit, :delete]
-      before_hook :cloudfile_present?, :only => [:list, :show, :create, :edit, :delete]
+      before_hook :logged_in?, :only => [:list, :show, :create, :new, :edit, :update, :delete]
+      before_hook :cloudfile_present?, :only => [:list]
 
       desc "list", "List configuration files"
       def list
         cloudfile = Cloudfile.new
         cloudfile.clouds.each do |cloud|
-          @app = App.new(cloud)
+          app = App.new(cloud)
           begin
-            configs = @app.configs
+            configs = app.configs
             unless configs.empty?
               say "Configuration files for #{cloud}", :green
-              user_configs = @app.user_configs
+              user_configs = app.user_configs
               unless user_configs.empty?
                 say "Custom configuration files:"
                 print_configs(user_configs)
               else
                 say "You have no custom configuration files."
               end
-              shelly_configs = @app.shelly_generated_configs
+              shelly_configs = app.shelly_generated_configs
               unless shelly_configs.empty?
                 say "Following files are created by Shelly Cloud:"
                 print_configs(shelly_configs)
@@ -35,27 +35,25 @@ module Shelly
             end
           rescue Client::NotFoundException => e
             raise unless e.resource == :cloud
-            say_error "You have no access to '#{@app}' cloud defined in Cloudfile"
+            say_error "You have no access to '#{app}' cloud defined in Cloudfile"
           end
         end
       end
 
-      # FIXME: Check if path argument is present via Thor (mandatory arguments)
       method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
       desc "show PATH", "View configuration file"
-      def show(path = nil)
-        say_error "No configuration file specified" unless path
-        multiple_clouds(options[:cloud], "show #{path}")
-        config = @app.config(path)
+      def show(path)
+        app = multiple_clouds(options[:cloud], "show #{path}")
+        config = app.config(path)
         say "Content of #{config["path"]}:", :green
         say config["content"]
       rescue Client::NotFoundException => e
         case e.resource
         when :cloud
-          say_error "You have no access to '#{@app.code_name}' cloud defined in Cloudfile"
+          say_error "You have no access to '#{app}' cloud defined in Cloudfile"
         when :config
           say_error "Config '#{path}' not found", :with_exit => false
-          say_error "You can list available config files with `shelly config list --cloud #{@app}`"
+          say_error "You can list available config files with `shelly config list --cloud #{app}`"
         else raise
         end
       end
@@ -63,17 +61,16 @@ module Shelly
       map "new" => :create
       method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
       desc "create PATH", "Create configuration file"
-      def create(path = nil)
-        say_error "No path specified" unless path
+      def create(path)
         output = open_editor(path)
-        multiple_clouds(options[:cloud], "create #{path}")
-        @app.create_config(path, output)
+        app = multiple_clouds(options[:cloud], "create #{path}")
+        app.create_config(path, output)
         say "File '#{path}' created.", :green
         say "To make changes to running application redeploy it using:"
-        say "`shelly redeploy --cloud #{@app}`"
+        say "`shelly redeploy --cloud #{app}`"
       rescue Client::NotFoundException => e
         raise unless e.resource == :cloud
-        say_error "You have no access to '#{@app.code_name}' cloud defined in Cloudfile"
+        say_error "You have no access to '#{app}' cloud defined in Cloudfile"
       rescue Client::ValidationException => e
         e.each_error { |error| say_error error, :with_exit => false }
         exit 1
@@ -84,20 +81,20 @@ module Shelly
       desc "edit PATH", "Edit configuration file"
       def edit(path = nil)
         say_error "No configuration file specified" unless path
-        multiple_clouds(options[:cloud], "edit #{path}")
-        config = @app.config(path)
+        app = multiple_clouds(options[:cloud], "edit #{path}")
+        config = app.config(path)
         content = open_editor(config["path"], config["content"])
-        @app.update_config(path, content)
+        app.update_config(path, content)
         say "File '#{config["path"]}' updated.", :green
         say "To make changes to running application redeploy it using:"
-        say "`shelly redeploy --cloud #{@app}`"
+        say "`shelly redeploy --cloud #{app}`"
       rescue Client::NotFoundException => e
         case e.resource
         when :cloud
-          say_error "You have no access to '#{@app.code_name}' cloud defined in Cloudfile"
+          say_error "You have no access to '#{app}' cloud defined in Cloudfile"
         when :config
           say_error "Config '#{path}' not found", :with_exit => false
-          say_error "You can list available config files with `shelly config list --cloud #{@app}`"
+          say_error "You can list available config files with `shelly config list --cloud #{app}`"
         else raise
         end
       rescue Client::ValidationException => e
@@ -109,23 +106,23 @@ module Shelly
       desc "delete PATH", "Delete configuration file"
       def delete(path = nil)
         say_error "No configuration file specified" unless path
-        multiple_clouds(options[:cloud], "delete #{path}")
+        app = multiple_clouds(options[:cloud], "delete #{path}")
         answer = yes?("Are you sure you want to delete 'path' (yes/no): ")
         if answer
-          @app.delete_config(path)
+          app.delete_config(path)
           say "File '#{path}' deleted.", :green
           say "To make changes to running application redeploy it using:"
-          say "`shelly redeploy --cloud #{@app}`"
+          say "`shelly redeploy --cloud #{app}`"
         else
           say "File not deleted"
         end
       rescue Client::NotFoundException => e
         case e.resource
         when :cloud
-          say_error "You have no access to '#{@app.code_name}' cloud defined in Cloudfile"
+          say_error "You have no access to '#{app}' cloud defined in Cloudfile"
         when :config
           say_error "Config '#{path}' not found", :with_exit => false
-          say_error "You can list available config files with `shelly config list --cloud #{@app}`"
+          say_error "You can list available config files with `shelly config list --cloud #{app}`"
         else raise
         end
       end

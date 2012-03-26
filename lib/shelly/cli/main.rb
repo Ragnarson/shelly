@@ -18,7 +18,7 @@ module Shelly
       # FIXME: it should be possible to pass single symbol, instead of one element array
       before_hook :logged_in?, :only => [:add, :status, :list, :start, :stop, :logs, :delete, :ip, :logout, :execute, :rake, :setup]
       before_hook :inside_git_repository?, :only => [:add, :setup]
-      before_hook :cloudfile_present?, :only => [:logs, :stop, :start, :ip, :execute, :rake, :setup]
+      before_hook :cloudfile_present?, :only => [:ip, :setup]
 
       map %w(-v --version) => :version
       desc "version", "Display shelly version"
@@ -79,39 +79,38 @@ module Shelly
       desc "add", "Add a new cloud"
       def add
         check_options(options)
-        @app = Shelly::App.new
-        @app.code_name = options["code-name"] || ask_for_code_name
-        @app.databases = options["databases"] || ask_for_databases
-        @app.size = options["size"] || "large"
-        @app.create
+        app = Shelly::App.new
+        app.code_name = options["code-name"] || ask_for_code_name
+        app.databases = options["databases"] || ask_for_databases
+        app.size = options["size"] || "large"
+        app.create
 
-        if overwrite_remote?(@app)
-          say "Adding remote #{@app} #{@app.git_url}", :green
-          @app.add_git_remote
+        if overwrite_remote?(app)
+          say "Adding remote #{app} #{app.git_url}", :green
+          app.add_git_remote
         else
           say "You have to manually add git remote:"
-          say "`git remote add NAME #{@app.git_url}`"
+          say "`git remote add NAME #{app.git_url}`"
         end
 
         say "Creating Cloudfile", :green
-        @app.create_cloudfile
-        if @app.attributes["trial"]
+        app.create_cloudfile
+        if app.attributes["trial"]
           say_new_line
           say "Billing information", :green
           say "Cloud created with 20 Euro credit."
           say "Remember to provide billing details before trial ends."
-          url = "#{@app.shelly.shellyapp_url}/apps/#{@app}/billing/edit"
-          say url
+          say app.edit_billing_url
         end
 
         info_adding_cloudfile_to_repository
-        info_deploying_to_shellycloud(@app)
+        info_deploying_to_shellycloud(app)
 
       rescue Client::ValidationException => e
         e.each_error { |error| say_error error, :with_exit => false }
         say_new_line
         say_error "Fix erros in the below command and type it again to create your cloud" , :with_exit => false
-        say_error "shelly add --code-name=#{@app.code_name} --databases=#{@app.databases.join(',')} --size=#{@app.size}"
+        say_error "shelly add --code-name=#{app.code_name} --databases=#{app.databases.join(',')} --size=#{app.size}"
       end
 
       desc "list", "List available clouds"
@@ -137,13 +136,13 @@ module Shelly
 
       desc "ip", "List cloud's IP addresses"
       def ip
-        @cloudfile = Cloudfile.new
-        @cloudfile.clouds.each do |cloud|
+        cloudfile = Cloudfile.new
+        cloudfile.clouds.each do |cloud|
           begin
-            @app = App.new(cloud)
+            app = App.new(cloud)
             say "Cloud #{cloud}:", :green
-            print_wrapped "Web server IP: #{@app.web_server_ip}", :ident => 2
-            print_wrapped "Mail server IP: #{@app.mail_server_ip}", :ident => 2
+            print_wrapped "Web server IP: #{app.web_server_ip}", :ident => 2
+            print_wrapped "Mail server IP: #{app.mail_server_ip}", :ident => 2
           rescue Client::NotFoundException => e
             raise unless e.resource == :cloud
             say_error "You have no access to '#{cloud}' cloud defined in Cloudfile", :with_exit => false
@@ -154,38 +153,38 @@ module Shelly
       desc "start", "Start the cloud"
       method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
       def start
-        multiple_clouds(options[:cloud], "start")
-        @app.start
-        say "Starting cloud #{@app}.", :green
+        app = multiple_clouds(options[:cloud], "start")
+        app.start
+        say "Starting cloud #{app}.", :green
         say "This can take up to 10 minutes."
         say "Check status with: `shelly list`"
       rescue Client::ConflictException => e
         case e[:state]
         when "running"
-          say_error "Not starting: cloud '#{@app}' is already running"
+          say_error "Not starting: cloud '#{app}' is already running"
         when "deploying", "configuring"
-          say_error "Not starting: cloud '#{@app}' is currently deploying"
+          say_error "Not starting: cloud '#{app}' is currently deploying"
         when "no_code"
           say_error "Not starting: no source code provided", :with_exit => false
           say_error "Push source code using:", :with_exit => false
-          say       "  git push #{@app} master"
+          say       "  git push #{app} master"
         when "deploy_failed", "configuration_failed"
           say_error "Not starting: deployment failed", :with_exit => false
           say_error "Support has been notified", :with_exit => false
-          say_error "Check `shelly deploys show last --cloud #{@app}` for reasons of failure"
+          say_error "Check `shelly deploys show last --cloud #{app}` for reasons of failure"
         when "not_enough_resources"
           say_error %{Sorry, There are no resources for your servers.
 We have been notified about it. We will be adding new resources shortly}
         when "no_billing"
-          say_error "Please fill in billing details to start #{@app}.", :with_exit => false
-          say_error "Visit: #{@app.edit_billing_url}", :with_exit => false
+          say_error "Please fill in billing details to start #{app}.", :with_exit => false
+          say_error "Visit: #{app.edit_billing_url}", :with_exit => false
         when "payment_declined"
-          say_error "Not starting. Invoice for cloud '#{@app}' was declined."
+          say_error "Not starting. Invoice for cloud '#{app}' was declined."
         end
         exit 1
       rescue Client::NotFoundException => e
         raise unless e.resource == :cloud
-        say_error "You have no access to '#{@app}' cloud defined in Cloudfile"
+        say_error "You have no access to '#{app}' cloud defined in Cloudfile"
       end
 
       desc "setup", "Set up clouds"
@@ -224,56 +223,56 @@ We have been notified about it. We will be adding new resources shortly}
       desc "stop", "Shutdown the cloud"
       method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
       def stop
-        multiple_clouds(options[:cloud], "stop")
+        app = multiple_clouds(options[:cloud], "stop")
         ask_to_stop_application
-        @app.stop
+        app.stop
         say_new_line
-        say "Cloud '#{@app}' stopped"
+        say "Cloud '#{app}' stopped"
       rescue Client::NotFoundException => e
         raise unless e.resource == :cloud
-        say_error "You have no access to '#{@app}' cloud defined in Cloudfile"
+        say_error "You have no access to '#{app}' cloud defined in Cloudfile"
       end
 
       desc "delete", "Delete the cloud"
       method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
       def delete
-        multiple_clouds(options[:cloud], "delete")
-        say "You are about to delete application: #{@app}."
+        app = multiple_clouds(options[:cloud], "delete")
+        say "You are about to delete application: #{app}."
         say "Press Control-C at any moment to cancel."
         say "Please confirm each question by typing yes and pressing Enter."
         say_new_line
         ask_to_delete_files
         ask_to_delete_database
         ask_to_delete_application
-        @app.delete
+        app.delete
         say_new_line
         say "Scheduling application delete - done"
         if App.inside_git_repository?
-          @app.remove_git_remote
+          app.remove_git_remote
           say "Removing git remote - done"
         else
           say "Missing git remote"
         end
       rescue Client::NotFoundException => e
         raise unless e.resource == :cloud
-        say_error "You have no access to '#{@app}' cloud defined in Cloudfile"
+        say_error "You have no access to '#{app}' cloud defined in Cloudfile"
       end
 
       desc "logs", "Show latest application logs"
       method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
       def logs
         cloud = options[:cloud]
-        multiple_clouds(cloud, "logs")
+        app = multiple_clouds(cloud, "logs")
         begin
-          logs = @app.application_logs
-          say "Cloud #{@app}:", :green
+          logs = app.application_logs
+          say "Cloud #{app}:", :green
           logs.each_with_index do |log, i|
             say "Instance #{i+1}:", :green
             say log
           end
         rescue Client::NotFoundException => e
           raise unless e.resource == :cloud
-          say_error "You have no access to '#{cloud || @app}' cloud defined in Cloudfile"
+          say_error "You have no access to '#{cloud || app}' cloud defined in Cloudfile"
         end
       end
 
@@ -291,15 +290,14 @@ We have been notified about it. We will be adding new resources shortly}
         If a file name is given, run contents of that file."
       }
       def execute(file_name_or_code)
-        cloud = options[:cloud]
-        multiple_clouds(cloud, "execute")
+        app = multiple_clouds(options[:cloud], "execute #{file_name_or_code}")
 
-        result = @app.run(file_name_or_code)
+        result = app.run(file_name_or_code)
         say result
 
       rescue Client::APIException => e
         if e[:message] == "App not running"
-          say_error "Cloud #{@app} is not running. Cannot run code."
+          say_error "Cloud #{app} is not running. Cannot run code."
         else
           raise
         end
@@ -309,34 +307,34 @@ We have been notified about it. We will be adding new resources shortly}
       method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
       def rake(task = nil)
         task = rake_args.join(" ")
-        multiple_clouds(options[:cloud], "rake #{task}")
-        result = @app.rake(task)
+        app = multiple_clouds(options[:cloud], "rake #{task}")
+        result = app.rake(task)
         say result
       rescue Client::APIException => e
         raise unless e[:message] == "App not running"
-        say_error "Cloud #{@app} is not running. Cannot run rake task."
+        say_error "Cloud #{app} is not running. Cannot run rake task."
       end
 
       desc "redeploy", "Redeploy application"
       method_option :cloud, :type => :string, :aliases => "-c",
         :desc => "Specify which cloud to redeploy application for"
       def redeploy
-        multiple_clouds(options[:cloud], "redeploy")
-        @app.redeploy
-        say "Redeploying your application for cloud '#{@app}'", :green
+        app = multiple_clouds(options[:cloud], "redeploy")
+        app.redeploy
+        say "Redeploying your application for cloud '#{app}'", :green
       rescue Client::ConflictException => e
         case e[:state]
         when "deploying", "configuring"
           say_error "Your application is being redeployed at the moment"
         when "no_code", "no_billing", "turned_off"
-          say_error "Cloud #{@app} is not running", :with_exit => false
-          say "Start your cloud with `shelly start --cloud #{@app}`"
+          say_error "Cloud #{app} is not running", :with_exit => false
+          say "Start your cloud with `shelly start --cloud #{app}`"
           exit 1
         else raise
         end
       rescue Client::NotFoundException => e
         raise unless e.resource == :cloud
-        say_error "You have no access to '#{@app}' cloud defined in Cloudfile"
+        say_error "You have no access to '#{app}' cloud defined in Cloudfile"
       end
 
       # FIXME: move to helpers
