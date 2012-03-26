@@ -97,7 +97,7 @@ module Shelly
           say "Billing information", :green
           say "Cloud created with 20 Euro credit."
           say "Remember to provide billing details before trial ends."
-          url = "#{@app.shelly.shellyapp_url}/apps/#{@app.code_name}/billing/edit"
+          url = "#{@app.shelly.shellyapp_url}/apps/#{@app}/billing/edit"
           say url
         end
 
@@ -108,7 +108,7 @@ module Shelly
         e.each_error { |error| say_error error, :with_exit => false }
         say_new_line
         say_error "Fix erros in the below command and type it again to create your cloud" , :with_exit => false
-        say_error "shelly add --code-name=#{@app.code_name} --databases=#{@app.databases.join(',')}"
+        say_error "shelly add --code-name=#{@app} --databases=#{@app.databases.join(',')}"
       end
 
       desc "list", "List available clouds"
@@ -165,7 +165,7 @@ module Shelly
         when "no_code"
           say_error "Not starting: no source code provided", :with_exit => false
           say_error "Push source code using:", :with_exit => false
-          say       "  git push production master"
+          say       "  git push #{@app} master"
         when "deploy_failed", "configuration_failed"
           say_error "Not starting: deployment failed", :with_exit => false
           say_error "Support has been notified", :with_exit => false
@@ -223,17 +223,17 @@ We have been notified about it. We will be adding new resources shortly}
       def stop
         multiple_clouds(options[:cloud], "stop")
         @app.stop
-        say "Cloud '#{@app.code_name}' stopped"
+        say "Cloud '#{@app}' stopped"
       rescue Client::NotFoundException => e
         raise unless e.resource == :cloud
-        say_error "You have no access to '#{@app.code_name}' cloud defined in Cloudfile"
+        say_error "You have no access to '#{@app}' cloud defined in Cloudfile"
       end
 
       desc "delete", "Delete the cloud"
       method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
       def delete
         multiple_clouds(options[:cloud], "delete")
-        say "You are about to delete application: #{@app.code_name}."
+        say "You are about to delete application: #{@app}."
         say "Press Control-C at any moment to cancel."
         say "Please confirm each question by typing yes and pressing Enter."
         say_new_line
@@ -251,7 +251,7 @@ We have been notified about it. We will be adding new resources shortly}
         end
       rescue Client::NotFoundException => e
         raise unless e.resource == :cloud
-        say_error "You have no access to '#{@app.code_name}' cloud defined in Cloudfile"
+        say_error "You have no access to '#{@app}' cloud defined in Cloudfile"
       end
 
       desc "logs", "Show latest application logs"
@@ -261,14 +261,14 @@ We have been notified about it. We will be adding new resources shortly}
         multiple_clouds(cloud, "logs")
         begin
           logs = @app.application_logs
-          say "Cloud #{@app.code_name}:", :green
+          say "Cloud #{@app}:", :green
           logs.each_with_index do |log, i|
             say "Instance #{i+1}:", :green
             say log
           end
         rescue Client::NotFoundException => e
           raise unless e.resource == :cloud
-          say_error "You have no access to '#{cloud || @app.code_name}' cloud defined in Cloudfile"
+          say_error "You have no access to '#{cloud || @app}' cloud defined in Cloudfile"
         end
       end
 
