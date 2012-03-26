@@ -218,11 +218,13 @@ We have been notified about it. We will be adding new resources shortly}
         say "Your application is set up.", :green
       end
 
-      desc "stop", "Stop the cloud"
+      desc "stop", "Shutdown the cloud"
       method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
       def stop
         multiple_clouds(options[:cloud], "stop")
+        ask_to_stop_application
         @app.stop
+        say_new_line
         say "Cloud '#{@app}' stopped"
       rescue Client::NotFoundException => e
         raise unless e.resource == :cloud
