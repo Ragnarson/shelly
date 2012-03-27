@@ -314,17 +314,17 @@ OUT
 
     context "command line options" do
       context "invalid params" do
-        it "should show help and exit if not all options are passed" do
+        it "should exit if databases are not valid" do
           $stdout.should_receive(:puts).with("\e[31mTry `shelly help add` for more information\e[0m")
-          @main.options = {"code-name" => "foo"}
+          @main.options = {"code-name" => "foo", "databases" => ["not existing"]}
           lambda {
             invoke(@main, :add)
           }.should raise_error(SystemExit)
         end
 
-        it "should exit if databases are not valid" do
+        it "should exit if size is not valid" do
           $stdout.should_receive(:puts).with("\e[31mTry `shelly help add` for more information\e[0m")
-          @main.options = {"code-name" => "foo", "databases" => ["not existing"]}
+          @main.options = {"size" => "wrong_size"}
           lambda {
             invoke(@main, :add)
           }.should raise_error(SystemExit)
@@ -334,7 +334,7 @@ OUT
       context "valid params" do
         it "should create app on shelly cloud" do
           @app.should_receive(:create)
-          @main.options = {"code-name" => "foo", "databases" => ["postgresql"]}
+          @main.options = {"code-name" => "foo", "databases" => ["postgresql"], "size" => "large"}
           invoke(@main, :add)
         end
       end
@@ -428,7 +428,7 @@ OUT
       @app.should_receive(:create).and_raise(exception)
       $stdout.should_receive(:puts).with("\e[31mCode name has been already taken\e[0m")
       $stdout.should_receive(:puts).with("\e[31mFix erros in the below command and type it again to create your cloud\e[0m")
-      $stdout.should_receive(:puts).with("\e[31mshelly add --code-name=foo-staging --databases=postgresql\e[0m")
+      $stdout.should_receive(:puts).with("\e[31mshelly add --code-name=foo-staging --databases=postgresql --size=large\e[0m")
       lambda {
         fake_stdin(["", ""]) do
           invoke(@main, :add)

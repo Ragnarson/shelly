@@ -74,12 +74,15 @@ module Shelly
       method_option :databases, :type => :array, :aliases => "-d",
         :banner => Shelly::App::DATABASE_KINDS.join(', '),
         :desc => "List of databases of your choice"
+      method_option :size, :type => :string, :aliases => "-s",
+        :desc => "Server size [large, small]"
       desc "add", "Add a new cloud"
       def add
         check_options(options)
         @app = Shelly::App.new
         @app.code_name = options["code-name"] || ask_for_code_name
         @app.databases = options["databases"] || ask_for_databases
+        @app.size = options["size"] || "large"
         @app.create
 
         if overwrite_remote?(@app)
@@ -108,7 +111,7 @@ module Shelly
         e.each_error { |error| say_error error, :with_exit => false }
         say_new_line
         say_error "Fix erros in the below command and type it again to create your cloud" , :with_exit => false
-        say_error "shelly add --code-name=#{@app} --databases=#{@app.databases.join(',')}"
+        say_error "shelly add --code-name=#{@app.code_name} --databases=#{@app.databases.join(',')} --size=#{@app.size}"
       end
 
       desc "list", "List available clouds"
@@ -357,15 +360,20 @@ We have been notified about it. We will be adding new resources shortly}
 
         def check_options(options)
           unless options.empty?
-            unless ["code-name", "databases"].all? do |option|
-              options.include?(option.to_s) && options[option.to_s] != option.to_s
-            end && valid_databases?(options["databases"])
+            if !valid_size?(options["size"]) or !valid_databases?(options["databases"])
               say_error "Try `shelly help add` for more information"
             end
           end
         end
 
+        def valid_size?(size)
+          return true unless size.present?
+          sizes = Shelly::App::SERVER_SIZES
+          sizes.include?(size)
+        end
+
         def valid_databases?(databases)
+          return true unless databases.present?
           kinds = Shelly::App::DATABASE_KINDS
           databases.all? { |kind| kinds.include?(kind) }
         end

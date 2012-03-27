@@ -8,8 +8,8 @@
     <%- end -%>
   servers:
     app1:
-      size: large
-      thin: 4
+      size: <%= size %>
+      thin: <%= thin %>
       # whenever: on
       # delayed_job: 1
     <%- @databases.each do |kind| -%>

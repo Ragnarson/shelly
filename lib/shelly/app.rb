@@ -4,9 +4,10 @@ require "shelly/backup"
 module Shelly
   class App < Model
     DATABASE_KINDS = %w(postgresql mongodb redis none)
+    SERVER_SIZES = %w(small large)
 
     attr_accessor :code_name, :databases, :ruby_version, :environment,
-      :git_url, :domains, :web_server_ip, :mail_server_ip
+      :git_url, :domains, :web_server_ip, :mail_server_ip, :size, :thin
 
     def initialize(code_name = nil)
       self.code_name = code_name
@@ -39,6 +40,7 @@ module Shelly
 
     def generate_cloudfile
       @email = current_user.email
+      thin = (size == "small" ? 2 : 4)
       template = File.read(cloudfile_template_path)
       cloudfile = ERB.new(template, 0, "%<>-")
       cloudfile.result(binding)
