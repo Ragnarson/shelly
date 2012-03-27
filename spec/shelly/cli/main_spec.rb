@@ -590,7 +590,7 @@ OUT
         invoke(@main, :start)
       end
 
-      it "should ask user to specify cloud and list all clouds" do
+      it "should ask user to specify cloud, list all clouds and exit" do
         Dir.chdir("/projects")
         @client.stub(:start_cloud)
         $stdout.should_receive(:puts).with(red "You have to specify cloud.")
@@ -801,13 +801,14 @@ We have been notified about it. We will be adding new resources shortly")
       hooks(@main, :setup).should include(:inside_git_repository?)
     end
 
-    it "should ensure that cloudfile is present" do
-      hooks(@main, :setup).should include(:cloudfile_present?)
+    # multiple_clouds is tested in main_spec.rb in describe "#start" block
+    it "should ensure multiple_clouds check" do
+      @main.should_receive(:multiple_clouds).and_return(@app)
+      invoke(@main, :setup)
     end
 
     it "should show info about adding remote and branch" do
-      $stdout.should_receive(:puts).with("Investigating Cloudfile")
-      $stdout.should_receive(:puts).with(green "Adding foo-staging cloud")
+      $stdout.should_receive(:puts).with(green "Setting up foo-staging cloud")
       $stdout.should_receive(:puts).with("git remote add foo-staging git_url")
       $stdout.should_receive(:puts).with("git fetch production")
       $stdout.should_receive(:puts).with("git checkout -b foo-staging --track foo-staging/master")
@@ -847,7 +848,7 @@ We have been notified about it. We will be adding new resources shortly")
       end
 
       context "and user answers no" do
-        it "should display commands to perform manually " do
+        it "should display commands to perform manually" do
           @app.should_not_receive(:add_git_remote)
           @app.should_not_receive(:git_fetch_remote)
           @app.should_not_receive(:git_add_tracking_branch)

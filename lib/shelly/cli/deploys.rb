@@ -8,9 +8,9 @@ module Shelly
       include Helpers
 
       before_hook :logged_in?, :only => [:list, :show]
+      class_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
 
       desc "list", "Lists deploy logs"
-      method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
       def list
         app = multiple_clouds(options[:cloud], "deploys list")
         logs = app.deploy_logs
@@ -28,7 +28,6 @@ module Shelly
       end
 
       desc "show LOG", "Show specific deploy log"
-      method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
       def show(log = nil)
         specify_log(log)
         app = multiple_clouds(options[:cloud], "deploys show #{log}")

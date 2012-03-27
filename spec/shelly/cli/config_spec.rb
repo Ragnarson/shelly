@@ -22,16 +22,15 @@ describe Shelly::CLI::Config do
   end
 
   describe "#list" do
-    before do
-      File.open("Cloudfile", 'w') {|f| f.write("foo-staging:\nfoo-production:\n") }
-    end
-
     it "should ensure user has logged in" do
       hooks(@config, :list).should include(:logged_in?)
     end
 
-    it "should ensure that cloudfile is preset" do
-      hooks(@config, :list).should include(:cloudfile_present?)
+    # multiple_clouds is tested in main_spec.rb in describe "#start" block
+    it "should ensure multiple_clouds check" do
+      @client.should_receive(:app_configs).with("foo-production").and_return([{"created_by_user" => false, "path" => "config/app.yml"}])
+      @config.should_receive(:multiple_clouds).and_return(@app)
+      invoke(@config, :list)
     end
 
     it "should exit if user doesn't have access to cloud in Cloudfile" do
@@ -42,19 +41,14 @@ describe Shelly::CLI::Config do
     end
 
     it "should list available configuration files for clouds" do
-      @client.should_receive(:app_configs).with("foo-staging").and_return([{"created_by_user" => true, "path" => "config/settings.yml"}])
       @client.should_receive(:app_configs).with("foo-production").and_return([{"created_by_user" => false, "path" => "config/app.yml"}])
       $stdout.should_receive(:puts).with(green "Configuration files for foo-production")
       $stdout.should_receive(:puts).with("You have no custom configuration files.")
       $stdout.should_receive(:puts).with("Following files are created by Shelly Cloud:")
       $stdout.should_receive(:puts).with(/ * \s+config\/app.yml/)
-      $stdout.should_receive(:puts).with(green "Configuration files for foo-staging")
-      $stdout.should_receive(:puts).with("Custom configuration files:")
-      $stdout.should_receive(:puts).with(/ * \s+config\/settings.yml/)
 
       invoke(@config, :list)
     end
-
   end
 
   describe "#show" do

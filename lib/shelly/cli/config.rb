@@ -7,40 +7,34 @@ module Shelly
       include Helpers
 
       before_hook :logged_in?, :only => [:list, :show, :create, :new, :edit, :update, :delete]
-      before_hook :cloudfile_present?, :only => [:list]
+      class_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
 
       desc "list", "List configuration files"
       def list
-        cloudfile = Cloudfile.new
-        cloudfile.clouds.each do |cloud|
-          app = App.new(cloud)
-          begin
-            configs = app.configs
-            unless configs.empty?
-              say "Configuration files for #{cloud}", :green
-              user_configs = app.user_configs
-              unless user_configs.empty?
-                say "Custom configuration files:"
-                print_configs(user_configs)
-              else
-                say "You have no custom configuration files."
-              end
-              shelly_configs = app.shelly_generated_configs
-              unless shelly_configs.empty?
-                say "Following files are created by Shelly Cloud:"
-                print_configs(shelly_configs)
-              end
-            else
-              say "Cloud #{cloud} has no configuration files"
-            end
-          rescue Client::NotFoundException => e
-            raise unless e.resource == :cloud
-            say_error "You have no access to '#{app}' cloud defined in Cloudfile"
+        app = multiple_clouds(options[:cloud], "list")
+        configs = app.configs
+        unless configs.empty?
+          say "Configuration files for #{app}", :green
+          user_configs = app.user_configs
+          unless user_configs.empty?
+            say "Custom configuration files:"
+            print_configs(user_configs)
+          else
+            say "You have no custom configuration files."
           end
+          shelly_configs = app.shelly_generated_configs
+          unless shelly_configs.empty?
+            say "Following files are created by Shelly Cloud:"
+            print_configs(shelly_configs)
+          end
+        else
+          say "Cloud #{cloud} has no configuration files"
         end
+      rescue Client::NotFoundException => e
+        raise unless e.resource == :cloud
+        say_error "You have no access to '#{app}' cloud defined in Cloudfile"
       end
 
-      method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
       desc "show PATH", "View configuration file"
       def show(path)
         app = multiple_clouds(options[:cloud], "show #{path}")
@@ -59,7 +53,6 @@ module Shelly
       end
 
       map "new" => :create
-      method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
       desc "create PATH", "Create configuration file"
       def create(path)
         output = open_editor(path)
@@ -77,7 +70,6 @@ module Shelly
       end
 
       map "update" => :edit
-      method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
       desc "edit PATH", "Edit configuration file"
       def edit(path = nil)
         say_error "No configuration file specified" unless path
@@ -102,7 +94,6 @@ module Shelly
         exit 1
       end
 
-      method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
       desc "delete PATH", "Delete configuration file"
       def delete(path = nil)
         say_error "No configuration file specified" unless path
