@@ -92,7 +92,7 @@ module Shelly
         end
         exit 1
       end
-      if clouds.nil? && cloud.nil?
+      unless Cloudfile.present? || cloud
         say_error "You have to specify cloud.", :with_exit => false
         say "Select cloud using `shelly #{action} --cloud CLOUD_NAME`"
         invoke :list
