@@ -9,14 +9,13 @@ module Shelly
       include Helpers
 
       before_hook :logged_in?, :only => [:list, :get, :create, :restore]
-      before_hook :cloudfile_present?, :only => [:list]
 
       class_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
 
       desc "list", "List available database backups"
       def list
-        multiple_clouds(options[:cloud], "backup list")
-        backups = @app.database_backups
+        app = multiple_clouds(options[:cloud], "backup list")
+        backups = app.database_backups
         if backups.present?
           to_display = [["Filename", "|  Size"]]
           backups.each do |backup|
@@ -31,7 +30,7 @@ module Shelly
         end
       rescue Client::NotFoundException => e
         raise unless e.resource == :cloud
-        say_error "You have no access to '#{@app}' cloud defined in Cloudfile"
+        say_error "You have no access to '#{app}' cloud defined in Cloudfile"
       end
 
       desc "get [FILENAME]", "Download database backup"
@@ -40,9 +39,9 @@ module Shelly
         If filename is not specyfied, latest database backup will be downloaded.
       }
       def get(handler = "last")
-        multiple_clouds(options[:cloud], "backup get #{handler}")
+        app = multiple_clouds(options[:cloud], "backup get #{handler}")
 
-        backup = @app.database_backup(handler)
+        backup = app.database_backup(handler)
         bar = Shelly::DownloadProgressBar.new(backup.size)
         backup.download(bar.progress_callback)
 
@@ -51,7 +50,7 @@ module Shelly
       rescue Client::NotFoundException => e
         case e.resource
         when :cloud
-          say_error "You have no access to '#{@app}' cloud defined in Cloudfile"
+          say_error "You have no access to '#{app}' cloud defined in Cloudfile"
         when :database_backup
           say_error "Backup not found", :with_exit => false
           say "You can list available backups with `shelly backup list` command"
@@ -65,31 +64,31 @@ module Shelly
         If database kind is not specified, backup of all configured databases will be performed.
       }
       def create(kind = nil)
-        multiple_clouds(options[:cloud], "backup create [DB_KIND]")
-        @app.request_backup(kind)
+        app = multiple_clouds(options[:cloud], "backup create [DB_KIND]")
+        app.request_backup(kind)
         say "Backup requested. It can take up to several minutes for " +
           "the backup process to finish and the backup to show up in backups list.", :green
       rescue Client::ValidationException => e
         say_error e[:message]
       rescue Client::NotFoundException => e
         raise unless e.resource == :cloud
-        say_error "You have no access to '#{@app}' cloud defined in Cloudfile"
+        say_error "You have no access to '#{app}' cloud defined in Cloudfile"
       end
 
       desc "restore FILENAME", "Restore database to state from given backup"
       def restore(filename)
-        multiple_clouds(options[:cloud], "backup restore FILENAME")
-        backup = @app.database_backup(filename)
+        app = multiple_clouds(options[:cloud], "backup restore FILENAME")
+        backup = app.database_backup(filename)
         say "You are about restore database #{backup.kind} for cloud #{backup.code_name} to state from #{backup.filename}"
         say_new_line
         ask_to_restore_database
-        @app.restore_backup(filename)
+        app.restore_backup(filename)
         say_new_line
         say "Restore has been scheduled. Wait a few minutes till database is restored."
       rescue Client::NotFoundException => e
         case e.resource
         when :cloud
-          say_error "You have no access to '#{@app}' cloud defined in Cloudfile"
+          say_error "You have no access to '#{app}' cloud defined in Cloudfile"
         when :database_backup
           say_error "Backup not found", :with_exit => false
           say "You can list available backups with `shelly backup list` command"

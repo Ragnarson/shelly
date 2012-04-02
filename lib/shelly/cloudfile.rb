@@ -27,9 +27,8 @@ module Shelly
       end
     end
 
-    # FIXME: this should return instances of App
     def clouds
-      @content.keys.sort
+      @content.keys.sort if @content
     end
 
     def yaml(hash)

@@ -83,7 +83,7 @@ module Shelly
 
     def multiple_clouds(cloud, action)
       clouds = Cloudfile.new.clouds
-      if clouds.count > 1 && cloud.nil?
+      if clouds && clouds.count > 1 && cloud.nil?
         say_error "You have multiple clouds in Cloudfile.", :with_exit => false
         say "Select cloud using `shelly #{action} --cloud #{clouds.first}`"
         say "Available clouds:"
@@ -92,8 +92,16 @@ module Shelly
         end
         exit 1
       end
-      @app = Shelly::App.new
-      @app.code_name = cloud || clouds.first
+      unless Cloudfile.present? || cloud
+        say_error "You have to specify cloud.", :with_exit => false
+        say "Select cloud using `shelly #{action} --cloud CLOUD_NAME`"
+        invoke :list
+        exit 1
+      end
+
+      app = Shelly::App.new
+      app.code_name = cloud || clouds.first
+      app
     end
   end
 end
