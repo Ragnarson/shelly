@@ -553,18 +553,10 @@ OUT
       Dir.chdir("/projects/foo")
       File.open("Cloudfile", 'w') {|f| f.write("foo-production:\n") }
       Shelly::User.stub(:new).and_return(@user)
-      @client.stub(:apps).and_return([{"code_name" => "foo-production"}, {"code_name" => "foo-staging"}])
+      @client.stub(:apps).and_return([{"code_name" => "foo-production", "state" => "running"},
+         {"code_name" => "foo-staging", "state" => "no_code"}])
       @app = Shelly::App.new
       Shelly::App.stub(:new).and_return(@app)
-    end
-
-    # This spec tests cloudfile_present? hook
-    it "should exit if there is no Cloudfile" do
-      File.delete("Cloudfile")
-      $stdout.should_receive(:puts).with("\e[31mNo Cloudfile found\e[0m")
-      lambda {
-        invoke(@main, :start)
-      }.should raise_error(SystemExit)
     end
 
     it "should ensure user has logged in" do
@@ -588,6 +580,29 @@ OUT
       end
     end
 
+    # this tests multiple_clouds method used in majority of tasks
+    context "without Cloudfile" do
+      it "should use cloud from params" do
+        Dir.chdir("/projects")
+        @client.stub(:start_cloud)
+        $stdout.should_receive(:puts).with(green "Starting cloud foo-production.")
+        @main.options = {:cloud => "foo-production"}
+        invoke(@main, :start)
+      end
+
+      it "should ask user to specify cloud, list all clouds and exit" do
+        Dir.chdir("/projects")
+        @client.stub(:start_cloud)
+        $stdout.should_receive(:puts).with(red "You have to specify cloud.")
+        $stdout.should_receive(:puts).with("Select cloud using `shelly start --cloud CLOUD_NAME`")
+        $stdout.should_receive(:puts).with(green "You have following clouds available:")
+        $stdout.should_receive(:puts).with("  foo-production  |  running")
+        $stdout.should_receive(:puts).with("  foo-staging     |  no code")
+        lambda { invoke(@main, :start) }.should raise_error(SystemExit)
+      end
+    end
+
+    # this tests multiple_clouds method used in majority of tasks
     context "multiple clouds in Cloudfile" do
       before do
         File.open("Cloudfile", 'w') {|f| f.write("foo-staging:\nfoo-production:\n") }
@@ -692,8 +707,13 @@ We have been notified about it. We will be adding new resources shortly")
       hooks(@main, :stop).should include(:logged_in?)
     end
 
-    it "should ensure that Cloudfile is present" do
-      hooks(@main, :stop).should include(:cloudfile_present?)
+    # multiple_clouds is tested in main_spec.rb in describe "#start" block
+    it "should ensure multiple_clouds check" do
+      @client.stub(:stop_cloud)
+      @main.should_receive(:multiple_clouds).and_return(@app)
+      fake_stdin(["yes"]) do
+        invoke(@main, :stop)
+      end
     end
 
     it "should exit if user doesn't have access to clouds in Cloudfile" do
@@ -706,43 +726,16 @@ We have been notified about it. We will be adding new resources shortly")
       }.should raise_error(SystemExit)
     end
 
-    context "single cloud in Cloudfile" do
-      it "should stop the cloud" do
-        @client.stub(:stop_cloud)
-        $stdout.should_receive(:print).with("Are you sure you want to shut down your application (yes/no): ")
-        $stdout.should_receive(:puts).with("\n")
-        $stdout.should_receive(:puts).with("Cloud 'foo-production' stopped")
-        fake_stdin(["yes"]) do
-          invoke(@main, :stop)
-        end
+    it "should stop the cloud" do
+      @client.stub(:stop_cloud)
+      $stdout.should_receive(:print).with("Are you sure you want to shut down your application (yes/no): ")
+      $stdout.should_receive(:puts).with("\n")
+      $stdout.should_receive(:puts).with("Cloud 'foo-production' stopped")
+      fake_stdin(["yes"]) do
+        invoke(@main, :stop)
       end
     end
 
-    context "multiple clouds in Cloudfile" do
-      before do
-        File.open("Cloudfile", 'w') {|f| f.write("foo-staging:\nfoo-production:\n") }
-      end
-
-      it "should show information to stop specific cloud and exit" do
-        $stdout.should_receive(:puts).with(red "You have multiple clouds in Cloudfile.")
-        $stdout.should_receive(:puts).with("Select cloud using `shelly stop --cloud foo-production`")
-        $stdout.should_receive(:puts).with("Available clouds:")
-        $stdout.should_receive(:puts).with(" * foo-production")
-        $stdout.should_receive(:puts).with(" * foo-staging")
-        lambda { invoke(@main, :stop) }.should raise_error(SystemExit)
-      end
-
-      it "should fetch from command line which cloud to stop" do
-        @client.should_receive(:stop_cloud).with("foo-staging")
-        $stdout.should_receive(:print).with("Are you sure you want to shut down your application (yes/no): ")
-        $stdout.should_receive(:puts).with("\n")
-        $stdout.should_receive(:puts).with("Cloud 'foo-staging' stopped")
-        @main.options = {:cloud => "foo-staging"}
-        fake_stdin(["yes"]) do
-          invoke(@main, :stop)
-        end
-      end
-    end
   end
 
   describe "#ip" do
@@ -755,8 +748,13 @@ We have been notified about it. We will be adding new resources shortly")
       hooks(@main, :ip).should include(:logged_in?)
     end
 
-    it "should ensure that Cloudfile is present" do
-      hooks(@main, :ip).should include(:cloudfile_present?)
+    # This spec tests cloudfile_present? hook
+    it "should exit if there is no Cloudfile" do
+      File.delete("Cloudfile")
+      $stdout.should_receive(:puts).with("\e[31mNo Cloudfile found\e[0m")
+      lambda {
+        invoke(@main, :ip)
+      }.should raise_error(SystemExit)
     end
 
     context "on success" do
@@ -803,13 +801,14 @@ We have been notified about it. We will be adding new resources shortly")
       hooks(@main, :setup).should include(:inside_git_repository?)
     end
 
-    it "should ensure that cloudfile is present" do
-      hooks(@main, :setup).should include(:cloudfile_present?)
+    # multiple_clouds is tested in main_spec.rb in describe "#start" block
+    it "should ensure multiple_clouds check" do
+      @main.should_receive(:multiple_clouds).and_return(@app)
+      invoke(@main, :setup)
     end
 
     it "should show info about adding remote and branch" do
-      $stdout.should_receive(:puts).with("Investigating Cloudfile")
-      $stdout.should_receive(:puts).with(green "Adding foo-staging cloud")
+      $stdout.should_receive(:puts).with(green "Setting up foo-staging cloud")
       $stdout.should_receive(:puts).with("git remote add foo-staging git_url")
       $stdout.should_receive(:puts).with("git fetch production")
       $stdout.should_receive(:puts).with("git checkout -b foo-staging --track foo-staging/master")
@@ -849,7 +848,7 @@ We have been notified about it. We will be adding new resources shortly")
       end
 
       context "and user answers no" do
-        it "should display commands to perform manually " do
+        it "should display commands to perform manually" do
           @app.should_not_receive(:add_git_remote)
           @app.should_not_receive(:git_fetch_remote)
           @app.should_not_receive(:git_add_tracking_branch)
@@ -875,6 +874,15 @@ We have been notified about it. We will be adding new resources shortly")
 
     it "should ensure user has logged in" do
       hooks(@main, :delete).should include(:logged_in?)
+    end
+
+    # multiple_clouds is tested in main_spec.rb in describe "#start" block
+    it "should ensure multiple_clouds check" do
+      @client.stub(:delete)
+      @main.should_receive(:multiple_clouds).and_return(@app)
+      fake_stdin(["yes", "yes", "yes"]) do
+        invoke(@main, :delete)
+      end
     end
 
     context "when cloud is given" do
@@ -1021,8 +1029,11 @@ We have been notified about it. We will be adding new resources shortly")
       hooks(@main, :logs).should include(:logged_in?)
     end
 
-    it "should ensure that Cloudfile is present" do
-      hooks(@main, :logs).should include(:cloudfile_present?)
+    # multiple_clouds is tested in main_spec.rb in describe "#start" block
+    it "should ensure multiple_clouds check" do
+      @client.stub(:application_logs).and_return(["log1"])
+      @main.should_receive(:multiple_clouds).and_return(@app)
+      invoke(@main, :logs)
     end
 
     it "should exit if user doesn't have access to clouds in Cloudfile" do
@@ -1033,40 +1044,12 @@ We have been notified about it. We will be adding new resources shortly")
       lambda { invoke(@main, :logs) }.should raise_error(SystemExit)
     end
 
-    context "single cloud in Cloudfile" do
-      it "should show logs for the cloud" do
-        @client.stub(:application_logs).and_return(["log1"])
-        $stdout.should_receive(:puts).with(green "Cloud foo-production:")
-        $stdout.should_receive(:puts).with(green "Instance 1:")
-        $stdout.should_receive(:puts).with("log1")
-        invoke(@main, :logs)
-      end
-    end
-
-    context "multiple clouds in Cloudfile" do
-      before do
-        File.open("Cloudfile", 'w') {|f|
-          f.write("foo-staging:\nfoo-production:\n") }
-      end
-
-      it "should show information to print logs for specific cloud and exit" do
-        $stdout.should_receive(:puts).with(red "You have multiple clouds in Cloudfile.")
-        $stdout.should_receive(:puts).with("Select cloud using `shelly logs --cloud foo-production`")
-        $stdout.should_receive(:puts).with("Available clouds:")
-        $stdout.should_receive(:puts).with(" * foo-production")
-        $stdout.should_receive(:puts).with(" * foo-staging")
-        lambda { invoke(@main, :logs) }.should raise_error(SystemExit)
-      end
-
-      it "should fetch from command line which cloud to start" do
-        @client.should_receive(:application_logs).with("foo-staging").
-          and_return(["log1"])
-        $stdout.should_receive(:puts).with(green "Cloud foo-staging:")
-        $stdout.should_receive(:puts).with(green "Instance 1:")
-        $stdout.should_receive(:puts).with("log1")
-        @main.options = {:cloud => "foo-staging"}
-        invoke(@main, :logs)
-      end
+    it "should show logs for the cloud" do
+      @client.stub(:application_logs).and_return(["log1"])
+      $stdout.should_receive(:puts).with(green "Cloud foo-production:")
+      $stdout.should_receive(:puts).with(green "Instance 1:")
+      $stdout.should_receive(:puts).with("log1")
+      invoke(@main, :logs)
     end
 
     context "multiple instances" do
@@ -1092,7 +1075,7 @@ We have been notified about it. We will be adding new resources shortly")
       Shelly::User.stub(:new).and_return(@user)
       @client.stub(:apps).and_return([{"code_name" => "foo-production"},
                                      {"code_name" => "foo-staging"}])
-      @app = Shelly::App.new
+      @app = Shelly::App.new("foo-production")
       Shelly::App.stub(:new).and_return(@app)
       File.open("to_execute.rb", 'w') {|f| f.write("User.count") }
     end
@@ -1101,51 +1084,26 @@ We have been notified about it. We will be adding new resources shortly")
       hooks(@main, :execute).should include(:logged_in?)
     end
 
-    it "should ensure cloudfile present" do
-      hooks(@main, :execute).should include(:cloudfile_present?)
+    # multiple_clouds is tested in main_spec.rb in describe "#start" block
+    it "should ensure multiple_clouds check" do
+      @client.should_receive(:command).with("foo-production", "User.count", :ruby).
+        and_return({"result" => "3"})
+      @main.should_receive(:multiple_clouds).and_return(@app)
+      invoke(@main, :execute, "to_execute.rb")
     end
 
-    context "single cloud in Cloudfile" do
-      it "should execute code for the cloud" do
-        @client.should_receive(:command).with("foo-production", "User.count", :ruby).
-          and_return({"result" => "3"})
-        $stdout.should_receive(:puts).with("3")
-        invoke(@main, :execute, "to_execute.rb")
-      end
+    it "should execute code for the cloud" do
+      @client.should_receive(:command).with("foo-production", "User.count", :ruby).
+        and_return({"result" => "3"})
+      $stdout.should_receive(:puts).with("3")
+      invoke(@main, :execute, "to_execute.rb")
     end
 
-    context "multiple clouds in Cloudfile" do
-      before do
-        File.open("Cloudfile", 'w') {|f|
-          f.write("foo-staging:\nfoo-production:\n") }
-      end
-
-      it "should show information to print logs for specific cloud and exit" do
-        $stdout.should_receive(:puts).
-          with(red "You have multiple clouds in Cloudfile.")
-        $stdout.should_receive(:puts).
-          with("Select cloud using `shelly execute --cloud foo-production`")
-        $stdout.should_receive(:puts).with("Available clouds:")
-        $stdout.should_receive(:puts).with(" * foo-production")
-        $stdout.should_receive(:puts).with(" * foo-staging")
-        lambda { invoke(@main, :execute, "to_execute.rb") }.should raise_error(SystemExit)
-      end
-
-      it "should fetch from command line which cloud to start" do
-        @client.should_receive(:command).with("foo-staging", "User.count", :ruby).
-          and_return({"result" => "3"})
-        $stdout.should_receive(:puts).with("3")
-        @main.options = {:cloud => "foo-staging"}
-        invoke(@main, :execute, "to_execute.rb")
-      end
-
-      it "should run code when no file from parameter is found" do
-        @client.should_receive(:command).with("foo-staging", "2 + 2", :ruby).
-          and_return({"result" => "4"})
-        $stdout.should_receive(:puts).with("4")
-        @main.options = {:cloud => "foo-staging"}
-        invoke(@main, :execute, "2 + 2")
-      end
+    it "should run code when no file from parameter is found" do
+      @client.should_receive(:command).with("foo-production", "2 + 2", :ruby).
+        and_return({"result" => "4"})
+      $stdout.should_receive(:puts).with("4")
+      invoke(@main, :execute, "2 + 2")
     end
 
     context "cloud is not in running state" do
@@ -1176,7 +1134,7 @@ We have been notified about it. We will be adding new resources shortly")
       @user = Shelly::User.new
       @user.stub(:token)
       Shelly::User.stub(:new).and_return(@user)
-      @app = Shelly::App.new
+      @app = Shelly::App.new("foo-production")
       Shelly::App.stub(:new).and_return(@app)
       @main.stub(:rake_args).and_return(%w(db:migrate))
     end
@@ -1185,8 +1143,12 @@ We have been notified about it. We will be adding new resources shortly")
       hooks(@main, :rake).should include(:logged_in?)
     end
 
-    it "should ensure cloudfile present" do
-      hooks(@main, :execute).should include(:cloudfile_present?)
+    # multiple_clouds is tested in main_spec.rb in describe "#start" block
+    it "should ensure multiple_clouds check" do
+      @client.should_receive(:command).with("foo-production", "db:migrate", :rake).
+        and_return({"result" => "OK"})
+      @main.should_receive(:multiple_clouds).and_return(@app)
+      invoke(@main, :rake, "db:migrate")
     end
 
     it "should invoke :command on app with rake task" do
@@ -1227,43 +1189,24 @@ We have been notified about it. We will be adding new resources shortly")
         lambda { invoke(@main, :rake, "db:migrate") }.should raise_error(SystemExit)
       end
     end
-
-    context "multiple clouds in Cloudfile" do
-      before do
-        File.open("Cloudfile", 'w') {|f|
-          f.write("foo-staging:\nfoo-production:\n") }
-      end
-
-      it "should show information to run rake task for specific cloud and exit" do
-        $stdout.should_receive(:puts).
-          with(red "You have multiple clouds in Cloudfile.")
-        $stdout.should_receive(:puts).
-          with("Select cloud using `shelly rake db:migrate --cloud foo-production`")
-        $stdout.should_receive(:puts).with("Available clouds:")
-        $stdout.should_receive(:puts).with(" * foo-production")
-        $stdout.should_receive(:puts).with(" * foo-staging")
-        lambda { invoke(@main, :rake, "db:migrate") }.should raise_error(SystemExit)
-      end
-
-      it "should fetch from command line for which cloud run rake task" do
-        @client.should_receive(:command).with("foo-staging", "db:migrate", :rake).
-          and_return({"result" => "3"})
-        $stdout.should_receive(:puts).with("3")
-        @main.options = {:cloud => "foo-staging"}
-        invoke(@main, :rake, "db:migrate")
-      end
-    end
   end
 
   describe "#redeploy" do
     before do
       @user = Shelly::User.new
       @client.stub(:token).and_return("abc")
-      @app = Shelly::App.new
+      @app = Shelly::App.new("foo-production")
       Shelly::App.stub(:new).and_return(@app)
       FileUtils.mkdir_p("/projects/foo")
       Dir.chdir("/projects/foo")
       File.open("Cloudfile", 'w') { |f| f.write("foo-production:\n") }
+    end
+
+    # multiple_clouds is tested in main_spec.rb in describe "#start" block
+    it "should ensure multiple_clouds check" do
+      @client.stub(:redeploy)
+      @main.should_receive(:multiple_clouds).and_return(@app)
+      invoke(@main, :redeploy)
     end
 
     it "should redeploy the application" do
@@ -1306,28 +1249,6 @@ We have been notified about it. We will be adding new resources shortly")
         lambda {
           invoke(@main, :redeploy)
         }.should raise_error(Shelly::Client::ConflictException)
-      end
-    end
-
-    context "on multiple clouds in Cloudfile" do
-      before do
-        File.open("Cloudfile", 'w') { |f| f.write("foo-staging:\nfoo-production:\n") }
-      end
-
-      it "should show information to redeploy application for specific cloud and exit" do
-        $stdout.should_receive(:puts).with(red "You have multiple clouds in Cloudfile.")
-        $stdout.should_receive(:puts).with("Select cloud using `shelly redeploy --cloud foo-production`")
-        $stdout.should_receive(:puts).with("Available clouds:")
-        $stdout.should_receive(:puts).with(" * foo-production")
-        $stdout.should_receive(:puts).with(" * foo-staging")
-        lambda { invoke(@main, :redeploy) }.should raise_error(SystemExit)
-      end
-
-      it "should fetch from command line which cloud to redeploy application for" do
-        @client.should_receive(:redeploy).with("foo-staging")
-        $stdout.should_receive(:puts).with(green "Redeploying your application for cloud 'foo-staging'")
-        @main.options = {:cloud => "foo-staging"}
-        invoke(@main, :redeploy)
       end
     end
   end

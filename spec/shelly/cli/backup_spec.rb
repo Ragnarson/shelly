@@ -12,6 +12,8 @@ describe Shelly::CLI::Backup do
     FileUtils.mkdir_p("/projects/foo")
     Dir.chdir("/projects/foo")
     File.open("Cloudfile", 'w') {|f| f.write("foo-staging:\n") }
+    @app = Shelly::App.new("foo-staging")
+    Shelly::App.stub(:new).and_return(@app)
   end
 
   describe "#list" do
@@ -25,8 +27,11 @@ describe Shelly::CLI::Backup do
       hooks(@backup, :list).should include(:logged_in?)
     end
 
-    it "should ensure that Cloudfile is present" do
-      hooks(@backup, :list).should include(:cloudfile_present?)
+    # multiple_clouds is tested in main_spec.rb in describe "#start" block
+    it "should ensure multiple_clouds check" do
+      @client.should_receive(:database_backups).with("foo-staging").and_return([{"filename" => "backup.postgre.tar.gz", "human_size" => "10kb", "size" => 12345}])
+      @backup.should_receive(:multiple_clouds).and_return(@app)
+      invoke(@backup, :list)
     end
 
     it "should exit if user doesn't have access to cloud in Cloudfile" do
@@ -36,30 +41,15 @@ describe Shelly::CLI::Backup do
       lambda { invoke(@backup, :list) }.should raise_error(SystemExit)
     end
 
-    context "multiple clouds" do
-      before do
-        File.open("Cloudfile", 'w') {|f| f.write("foo-staging:\nfoo-production:\n") }
-      end
-
-      it "should show information to select specific cloud and exit" do
-        $stdout.should_receive(:puts).with(red "You have multiple clouds in Cloudfile.")
-        $stdout.should_receive(:puts).with("Select cloud using `shelly backup list --cloud foo-production`")
-        $stdout.should_receive(:puts).with("Available clouds:")
-        $stdout.should_receive(:puts).with(" * foo-production")
-        $stdout.should_receive(:puts).with(" * foo-staging")
-        lambda { invoke(@backup, :list) }.should raise_error(SystemExit)
-      end
-
-      it "should take cloud from command line for which to show backups" do
-        @client.should_receive(:database_backups).with("foo-staging").and_return([{"filename" => "backup.postgre.tar.gz", "human_size" => "10kb", "size" => 12345},{"filename" => "backup.mongo.tar.gz", "human_size" => "22kb", "size" => 333}])
-        $stdout.should_receive(:puts).with(green "Available backups:")
-        $stdout.should_receive(:puts).with("\n")
-        $stdout.should_receive(:puts).with("  Filename               |  Size")
-        $stdout.should_receive(:puts).with("  backup.postgre.tar.gz  |  10kb")
-        $stdout.should_receive(:puts).with("  backup.mongo.tar.gz    |  22kb")
-        @backup.options = {:cloud => "foo-staging"}
-        invoke(@backup, :list)
-      end
+    it "should take cloud from command line for which to show backups" do
+      @client.should_receive(:database_backups).with("foo-staging").and_return([{"filename" => "backup.postgre.tar.gz", "human_size" => "10kb", "size" => 12345},{"filename" => "backup.mongo.tar.gz", "human_size" => "22kb", "size" => 333}])
+      $stdout.should_receive(:puts).with(green "Available backups:")
+      $stdout.should_receive(:puts).with("\n")
+      $stdout.should_receive(:puts).with("  Filename               |  Size")
+      $stdout.should_receive(:puts).with("  backup.postgre.tar.gz  |  10kb")
+      $stdout.should_receive(:puts).with("  backup.mongo.tar.gz    |  22kb")
+      @backup.options = {:cloud => "foo-staging"}
+      invoke(@backup, :list)
     end
 
     describe "#get" do
@@ -75,14 +65,10 @@ describe Shelly::CLI::Backup do
         hooks(@backup, :get).should include(:logged_in?)
       end
 
-      it "should make sure that cloud is choosen" do
+      # multiple_clouds is tested in main_spec.rb in describe "#start" block
+      it "should ensure multiple_clouds check" do
         @client.should_receive(:database_backup).with("foo-staging", "last")
-        invoke(@backup, :get)
-      end
-
-      it "should make sure that cloud is choosen" do
-        @client.should_receive(:database_backup).with("other", "last")
-        @backup.options = {:cloud => "other"}
+        @backup.should_receive(:multiple_clouds).and_return(@app)
         invoke(@backup, :get)
       end
 
@@ -140,6 +126,13 @@ describe Shelly::CLI::Backup do
       hooks(@backup, :create).should include(:logged_in?)
     end
 
+    # multiple_clouds is tested in main_spec.rb in describe "#start" block
+    it "should ensure multiple_clouds check" do
+      @client.stub(:request_backup)
+      @backup.should_receive(:multiple_clouds).and_return(@app)
+      invoke(@backup, :create)
+    end
+
     it "should exit if user doesn't have access to cloud in Cloudfile" do
       exception = Shelly::Client::NotFoundException.new({"resource" => "cloud"})
       @client.stub(:request_backup).and_raise(exception)
@@ -172,6 +165,15 @@ describe Shelly::CLI::Backup do
 
     it "should ensure user has logged in" do
       hooks(@backup, :restore).should include(:logged_in?)
+    end
+
+    # multiple_clouds is tested in main_spec.rb in describe "#start" block
+    it "should ensure multiple_clouds check" do
+      @client.stub(:restore_backup)
+      @backup.should_receive(:multiple_clouds).and_return(@app)
+      fake_stdin(["yes"]) do
+        invoke(@backup, :restore, "better.tar.gz")
+      end
     end
 
     it "should restore database" do

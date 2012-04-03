@@ -10,6 +10,7 @@ describe Shelly::CLI::Deploys do
     Shelly::Client.stub(:new).and_return(@client)
     $stdout.stub(:puts)
     $stdout.stub(:print)
+    @app = Shelly::App.new("foo-staging")
   end
 
   describe "#list" do
@@ -24,8 +25,12 @@ describe Shelly::CLI::Deploys do
       hooks(@deploys, :list).should include(:logged_in?)
     end
 
-    it "should ensure that Cloudfile is present" do
-      hooks(@deploys, :list).should include(:cloudfile_present?)
+    # multiple_clouds is tested in main_spec.rb in describe "#start" block
+    it "should ensure multiple_clouds check" do
+      @client.should_receive(:deploy_logs).with("foo-staging").and_return([
+        {"failed" => false, "created_at" => "2011-12-12-14-14-59"}])
+      @deploys.should_receive(:multiple_clouds).and_return(@app)
+      invoke(@deploys, :list)
     end
 
     it "should exit if user doesn't have access to cloud in Cloudfile" do
@@ -34,39 +39,14 @@ describe Shelly::CLI::Deploys do
       lambda { invoke(@deploys, :list) }.should raise_error(SystemExit)
     end
 
-    context "multiple clouds" do
-      before do
-        File.open("Cloudfile", 'w') {|f| f.write("foo-staging:\nfoo-production:\n") }
-      end
-
-      it "should show information to select specific cloud and exit" do
-        $stdout.should_receive(:puts).with(red "You have multiple clouds in Cloudfile.")
-        $stdout.should_receive(:puts).with("Select cloud using `shelly deploys list --cloud foo-production`")
-        $stdout.should_receive(:puts).with("Available clouds:")
-        $stdout.should_receive(:puts).with(" * foo-production")
-        $stdout.should_receive(:puts).with(" * foo-staging")
-        lambda { invoke(@deploys, :list) }.should raise_error(SystemExit)
-      end
-
-      it "should take cloud from command line for which to show logs" do
-        @client.should_receive(:deploy_logs).with("foo-staging").and_return([{"failed" => false, "created_at" => "2011-12-12-14-14-59"}])
-        $stdout.should_receive(:puts).with(green "Available deploy logs")
-        $stdout.should_receive(:puts).with(" * 2011-12-12-14-14-59")
-        @deploys.options = {:cloud => "foo-staging"}
-        invoke(@deploys, :list)
-      end
-    end
-
-    context "single cloud" do
-      it "should display available logs" do
-        @client.should_receive(:deploy_logs).with("foo-staging").and_return([
-          {"failed" => false, "created_at" => "2011-12-12-14-14-59"},
-          {"failed" => true, "created_at" => "2011-12-12-15-14-59"}])
-        $stdout.should_receive(:puts).with(green "Available deploy logs")
-        $stdout.should_receive(:puts).with(" * 2011-12-12-14-14-59")
-        $stdout.should_receive(:puts).with(" * 2011-12-12-15-14-59 (failed)")
-        invoke(@deploys, :list)
-      end
+    it "should display available logs" do
+      @client.should_receive(:deploy_logs).with("foo-staging").and_return([
+        {"failed" => false, "created_at" => "2011-12-12-14-14-59"},
+        {"failed" => true, "created_at" => "2011-12-12-15-14-59"}])
+      $stdout.should_receive(:puts).with(green "Available deploy logs")
+      $stdout.should_receive(:puts).with(" * 2011-12-12-14-14-59")
+      $stdout.should_receive(:puts).with(" * 2011-12-12-15-14-59 (failed)")
+      invoke(@deploys, :list)
     end
   end
 
@@ -82,8 +62,11 @@ describe Shelly::CLI::Deploys do
       hooks(@deploys, :show).should include(:logged_in?)
     end
 
-    it "should ensure that Cloudfile is present" do
-      hooks(@deploys, :show).should include(:cloudfile_present?)
+    # multiple_clouds is tested in main_spec.rb in describe "#start" block
+    it "should ensure multiple_clouds check" do
+      @client.should_receive(:deploy_log).with("foo-staging", "last").and_return(response)
+      @deploys.should_receive(:multiple_clouds).and_return(@app)
+      invoke(@deploys, :show, "last")
     end
 
     context "user doesn't have access to cloud" do
@@ -101,28 +84,6 @@ describe Shelly::CLI::Deploys do
         @client.stub(:deploy_log).and_raise(exception)
         $stdout.should_receive(:puts).with(red "Log not found, list all deploy logs using  `shelly deploys list --cloud=foo-staging`")
         lambda { @deploys.show("last") }.should raise_error(SystemExit)
-      end
-    end
-
-    context "multiple clouds" do
-      before do
-        File.open("Cloudfile", 'w') {|f| f.write("foo-staging:\nfoo-production:\n") }
-      end
-
-      it "should show information to select specific cloud and exit" do
-        $stdout.should_receive(:puts).with(red "You have multiple clouds in Cloudfile.")
-        $stdout.should_receive(:puts).with("Select cloud using `shelly deploys show last --cloud foo-production`")
-        $stdout.should_receive(:puts).with("Available clouds:")
-        $stdout.should_receive(:puts).with(" * foo-production")
-        $stdout.should_receive(:puts).with(" * foo-staging")
-        lambda { invoke(@deploys, :show, "last") }.should raise_error(SystemExit)
-      end
-
-      it "should render the logs" do
-        @client.should_receive(:deploy_log).with("foo-staging", "last").and_return(response)
-        expected_output
-        @deploys.options = {:cloud => "foo-staging"}
-        invoke(@deploys, :show, "last")
       end
     end
 
