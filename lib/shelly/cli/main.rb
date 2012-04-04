@@ -18,7 +18,6 @@ module Shelly
       # FIXME: it should be possible to pass single symbol, instead of one element array
       before_hook :logged_in?, :only => [:add, :status, :list, :start, :stop, :logs, :delete, :ip, :logout, :execute, :rake, :setup]
       before_hook :inside_git_repository?, :only => [:add, :setup]
-      before_hook :cloudfile_present?, :only => [:ip]
 
       map %w(-v --version) => :version
       desc "version", "Display shelly version"
@@ -133,21 +132,17 @@ module Shelly
       end
 
       map "status" => :list
-
+      method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
       desc "ip", "List cloud's IP addresses"
       def ip
-        cloudfile = Cloudfile.new
-        cloudfile.clouds.each do |cloud|
-          begin
-            app = App.new(cloud)
-            say "Cloud #{cloud}:", :green
-            print_wrapped "Web server IP: #{app.web_server_ip}", :ident => 2
-            print_wrapped "Mail server IP: #{app.mail_server_ip}", :ident => 2
-          rescue Client::NotFoundException => e
-            raise unless e.resource == :cloud
-            say_error "You have no access to '#{cloud}' cloud defined in Cloudfile", :with_exit => false
-          end
-        end
+        app = multiple_clouds(options[:cloud], "ip")
+        web_server_ip = app.web_server_ip
+        say "Cloud #{app}:", :green
+        print_wrapped "Web server IP: #{web_server_ip}", :ident => 2
+        print_wrapped "Mail server IP: #{app.mail_server_ip}", :ident => 2
+      rescue Client::NotFoundException => e
+        raise unless e.resource == :cloud
+        say_error "You have no access to '#{app}' cloud defined in Cloudfile"
       end
 
       desc "start", "Start the cloud"

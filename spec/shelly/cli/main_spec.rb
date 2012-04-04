@@ -740,7 +740,7 @@ We have been notified about it. We will be adding new resources shortly")
 
   describe "#ip" do
     before do
-      File.open("Cloudfile", 'w') {|f| f.write("foo-staging:\nfoo-production:\n") }
+      File.open("Cloudfile", 'w') {|f| f.write("foo-production:\n") }
       @main.stub(:logged_in?).and_return(true)
     end
 
@@ -748,13 +748,12 @@ We have been notified about it. We will be adding new resources shortly")
       hooks(@main, :ip).should include(:logged_in?)
     end
 
-    # This spec tests cloudfile_present? hook
-    it "should exit if there is no Cloudfile" do
-      File.delete("Cloudfile")
-      $stdout.should_receive(:puts).with("\e[31mNo Cloudfile found\e[0m")
-      lambda {
-        invoke(@main, :ip)
-      }.should raise_error(SystemExit)
+    # multiple_clouds is tested in main_spec.rb in describe "#start" block
+    it "should ensure multiple_clouds check" do
+      @app.should_receive(:web_server_ip).and_return("11.11")
+      @app.should_receive(:mail_server_ip).and_return("22.22")
+      @main.should_receive(:multiple_clouds).and_return(@app)
+      invoke(@main, :ip)
     end
 
     context "on success" do
@@ -775,8 +774,8 @@ We have been notified about it. We will be adding new resources shortly")
       it "should raise an error if user does not have access to cloud" do
         exception = Shelly::Client::NotFoundException.new("resource" => "cloud")
         @client.stub(:app).and_raise(exception)
-        $stdout.should_receive(:puts).with(red "You have no access to 'foo-staging' cloud defined in Cloudfile")
-        invoke(@main, :ip)
+        $stdout.should_receive(:puts).with(red "You have no access to 'foo-production' cloud defined in Cloudfile")
+        lambda { invoke(@main, :ip) }.should raise_error(SystemExit)
       end
     end
   end
