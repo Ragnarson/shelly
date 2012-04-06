@@ -373,4 +373,13 @@ config
       @app.edit_billing_url.should == "http://shellyapp.example.com/apps/foo-staging/billing/edit"
     end
   end
+
+  describe "#open" do
+    it "should open returned domain with launchy" do
+      @client.should_receive(:app).with("foo-staging").
+        and_return({"domain" => "example.com"})
+      Launchy.should_receive(:open).with("http://example.com")
+      @app.open
+    end
+  end
 end

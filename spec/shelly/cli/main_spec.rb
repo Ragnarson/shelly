@@ -36,6 +36,7 @@ Tasks:
   shelly login [EMAIL]      # Log into Shelly Cloud
   shelly logout             # Logout from Shelly Cloud
   shelly logs               # Show latest application logs
+  shelly open               # Open application page in browser
   shelly rake TASK          # Run rake task
   shelly redeploy           # Redeploy application
   shelly register [EMAIL]   # Register new account
@@ -740,7 +741,8 @@ We have been notified about it. We will be adding new resources shortly")
 
   describe "#ip" do
     before do
-      File.open("Cloudfile", 'w') {|f| f.write("foo-production:\n") }
+      File.open("Cloudfile", 'w') { |f| f.write("foo-production:\n") }
+      @app = Shelly::App.new("foo-staging")
       @main.stub(:logged_in?).and_return(true)
     end
 
@@ -1249,6 +1251,31 @@ We have been notified about it. We will be adding new resources shortly")
           invoke(@main, :redeploy)
         }.should raise_error(Shelly::Client::ConflictException)
       end
+    end
+  end
+
+  describe "#open" do
+    before do
+      @user = Shelly::User.new
+      @client.stub(:token).and_return("abc")
+      @app = Shelly::App.new("foo-production")
+      @app.stub(:open)
+      Shelly::App.stub(:new).and_return(@app)
+      FileUtils.mkdir_p("/projects/foo")
+      Dir.chdir("/projects/foo")
+      File.open("Cloudfile", 'w') { |f| f.write("foo-production:\n") }
+    end
+
+    # multiple_clouds is tested in main_spec.rb in describe "#start" block
+    it "should ensure multiple_clouds check" do
+      @client.stub(:open)
+      @main.should_receive(:multiple_clouds).and_return(@app)
+      invoke(@main, :open)
+    end
+
+    it "should open app" do
+      @app.should_receive(:open)
+      invoke(@main, :open)
     end
   end
 end

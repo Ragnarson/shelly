@@ -21,6 +21,7 @@ describe Shelly::CLI::Backup do
       FileUtils.mkdir_p("/projects/foo")
       Dir.chdir("/projects/foo")
       File.open("Cloudfile", 'w') { |f| f.write("foo-staging:\n") }
+      $stdout.stub(:puts)
     end
 
     it "should ensure user has logged in" do
@@ -120,6 +121,7 @@ describe Shelly::CLI::Backup do
       FileUtils.mkdir_p("/projects/foo")
       Dir.chdir("/projects/foo")
       File.open("Cloudfile", 'w') {|f| f.write("foo-staging:\n") }
+      $stdout.stub(:puts)
     end
 
     it "should ensure user has logged in" do
@@ -161,6 +163,7 @@ describe Shelly::CLI::Backup do
       @client.stub(:database_backup).and_return({"filename" => "better.tar.gz", "size" => 12345, "kind" => "postgre"})
       @client.stub(:restore_backup).and_return({"filename" => "better.tar.gz", "size" => 12345, "kind" => "postgre"})
       $stdout.stub(:puts)
+      $stdout.stub(:print)
     end
 
     it "should ensure user has logged in" do
