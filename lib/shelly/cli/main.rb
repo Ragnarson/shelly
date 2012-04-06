@@ -326,6 +326,13 @@ We have been notified about it. We will be adding new resources shortly}
         say_error "You have no access to '#{app}' cloud defined in Cloudfile"
       end
 
+      desc "open", "Open application page in browser"
+      method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
+      def open
+        app = multiple_clouds(options[:cloud], "open")
+        app.open
+      end
+
       # FIXME: move to helpers
       no_tasks do
         # Returns valid arguments for rake, removes shelly gem arguments
