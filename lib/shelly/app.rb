@@ -1,5 +1,6 @@
 require 'erb'
-require "shelly/backup"
+require 'launchy'
+require 'shelly/backup'
 
 module Shelly
   class App < Model
@@ -216,6 +217,10 @@ module Shelly
 
     def edit_billing_url
       "#{shelly.shellyapp_url}/apps/#{code_name}/billing/edit"
+    end
+
+    def open
+      Launchy.open("http://#{attributes["domain"]}")
     end
   end
 end
