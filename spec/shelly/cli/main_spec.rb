@@ -740,7 +740,8 @@ We have been notified about it. We will be adding new resources shortly")
 
   describe "#ip" do
     before do
-      File.open("Cloudfile", 'w') {|f| f.write("foo-production:\n") }
+      File.open("Cloudfile", 'w') { |f| f.write("foo-production:\n") }
+      @app = Shelly::App.new("foo-staging")
       @main.stub(:logged_in?).and_return(true)
     end
 
