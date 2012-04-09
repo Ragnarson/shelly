@@ -59,6 +59,7 @@ describe Shelly::CLI::Runner do
       $stdout.should_receive(:puts).with("Required shelly gem version: 0.0.48")
       $stdout.should_receive(:puts).with("Your version: #{Shelly::VERSION}")
       $stdout.should_receive(:puts).with("Update shelly gem with `gem install shelly`")
+      $stdout.should_receive(:puts).with("or `bundle update shelly` when using bundler")
       lambda {
         runner.start
       }.should raise_error(SystemExit)
