@@ -212,11 +212,11 @@ foo-staging:
       # whenever: on
       # delayed_job: 1
     postgresql:
-      size: large
+      size: small
       databases:
         - postgresql
     mongodb:
-      size: large
+      size: small
       databases:
         - mongodb
 config

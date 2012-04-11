@@ -14,7 +14,7 @@
       # delayed_job: 1
     <%- @databases.each do |kind| -%>
     <%= kind %>:
-      size: large
+      size: <%= size %>
       databases:
         - <%= kind %>
     <%- end -%>
