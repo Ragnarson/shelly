@@ -16,7 +16,7 @@ module Shelly
       check_unknown_options!(:except => :rake)
 
       # FIXME: it should be possible to pass single symbol, instead of one element array
-      before_hook :logged_in?, :only => [:add, :status, :list, :start, :stop, :logs, :delete, :ip, :logout, :execute, :rake, :setup]
+      before_hook :logged_in?, :only => [:add, :status, :list, :start, :stop, :logs, :delete, :ip, :logout, :execute, :rake, :setup, :console]
       before_hook :inside_git_repository?, :only => [:add, :setup]
 
       map %w(-v --version) => :version
@@ -331,6 +331,19 @@ We have been notified about it. We will be adding new resources shortly}
       def open
         app = multiple_clouds(options[:cloud], "open")
         app.open
+      end
+
+      desc "console", "Open application console"
+      method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
+      def console
+        app = multiple_clouds(options[:cloud], "console")
+        console = app.console
+        exec "ssh -p #{console['port']} -l #{console['user']} #{console['node_ip']}"
+      rescue Client::NotFoundException => e
+        raise unless e.resource == :cloud
+        say_error "You have no access to '#{app}' cloud defined in Cloudfile"
+      rescue Client::APIException => e
+        say_error "Cloud #{app} is not running. Cannot run console."
       end
 
       # FIXME: move to helpers

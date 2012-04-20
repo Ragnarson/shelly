@@ -222,5 +222,9 @@ module Shelly
     def open
       Launchy.open("http://#{attributes["domain"]}")
     end
+
+    def console
+      shelly.console(code_name)
+    end
   end
 end
