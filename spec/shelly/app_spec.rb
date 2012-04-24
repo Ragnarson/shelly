@@ -382,4 +382,11 @@ config
       @app.open
     end
   end
+
+  describe "#console" do
+    it "should fetch instance data from Api" do
+      @client.should_receive(:console).with("foo-staging")
+      @app.console
+    end
+  end
 end

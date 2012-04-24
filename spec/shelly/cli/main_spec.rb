@@ -27,6 +27,7 @@ Tasks:
   shelly add                # Add a new cloud
   shelly backup <command>   # Manage database backups
   shelly config <command>   # Manage application configuration files
+  shelly console            # Open application console
   shelly delete             # Delete the cloud
   shelly deploys <command>  # View deploy logs
   shelly execute CODE       # Run code on one of application servers
@@ -1276,6 +1277,43 @@ We have been notified about it. We will be adding new resources shortly")
     it "should open app" do
       @app.should_receive(:open)
       invoke(@main, :open)
+    end
+  end
+
+  describe "#console" do
+    before do
+      @user = Shelly::User.new
+      @client.stub(:token).and_return("abc")
+      @app = Shelly::App.new("foo-production")
+      @app.stub(:open)
+      Shelly::App.stub(:new).and_return(@app)
+      FileUtils.mkdir_p("/projects/foo")
+      Dir.chdir("/projects/foo")
+      File.open("Cloudfile", 'w') { |f| f.write("foo-production:\n") }
+    end
+
+    it "execute ssh command" do
+      expected = {"port" => "40010", "node_ip" => "10.0.0.10", "user"=>"foo-production"}
+      @client.stub(:console).and_return(expected)
+      @main.should_receive(:exec).with("ssh -o StrictHostKeyChecking=no -p 40010 -l foo-production 10.0.0.10")
+      invoke(@main, :console)
+    end
+
+    it "should exit if user doesn't have access to clouds in Cloudfile" do
+      exception = Shelly::Client::NotFoundException.new("resource" => "cloud")
+      @client.stub(:console).and_raise(exception)
+      $stdout.should_receive(:puts).with(red "You have no access to 'foo-production' cloud defined in Cloudfile")
+      lambda { invoke(@main, :console) }.should raise_error(SystemExit)
+    end
+
+    context "Instances are not running" do
+      it "should display error" do
+        @client.stub(:console).and_raise(Shelly::Client::APIException)
+        $stdout.should_receive(:puts).with(red "Cloud foo-production is not running. Cannot run console.")
+        lambda {
+          invoke(@main, :console)
+        }.should raise_error(SystemExit)
+      end
     end
   end
 end
