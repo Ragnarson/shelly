@@ -134,7 +134,14 @@ describe Shelly::App do
 
   describe "#attributes" do
     before do
-      @response = {"web_server_ip" => "192.0.2.1", "mail_server_ip" => "192.0.2.3"}
+      @response = {"web_server_ip" => "192.0.2.1",
+                   "mail_server_ip" => "192.0.2.3",
+                   "state" => "running",
+                   "git_info" => {
+                     "deployed_commit_message" => "Commit message",
+                     "deployed_commit_sha" => "52e65ed2d085eaae560cdb81b2b56a7d76",
+                     "repository_url" => "git@winniecloud.net:example-cloud",
+                     "deployed_push_author" => "megan@example.com"}}
       @client.stub(:app).and_return(@response)
     end
 
@@ -152,6 +159,22 @@ describe Shelly::App do
     describe "#mail_server_ip" do
       it "should return mail server ip address" do
         @app.mail_server_ip.should == "192.0.2.3"
+      end
+    end
+
+    describe "#state" do
+      it "should return state of cloud" do
+        @app.state.should == "running"
+      end
+    end
+
+    describe "#git_info" do
+      it "should return git info" do
+        @app.git_info.should == {
+           "deployed_commit_message" => "Commit message",
+           "deployed_commit_sha" => "52e65ed2d085eaae560cdb81b2b56a7d76",
+           "repository_url" => "git@winniecloud.net:example-cloud",
+           "deployed_push_author" => "megan@example.com"}
       end
     end
   end

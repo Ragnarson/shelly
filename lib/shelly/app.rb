@@ -207,6 +207,14 @@ module Shelly
       attributes["mail_server_ip"]
     end
 
+    def git_info
+      attributes["git_info"]
+    end
+
+    def state
+      attributes["state"]
+    end
+
     def self.inside_git_repository?
       system("git status > /dev/null 2>&1")
     end
