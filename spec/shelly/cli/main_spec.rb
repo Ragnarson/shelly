@@ -32,7 +32,7 @@ Tasks:
   shelly deploys <command>  # View deploy logs
   shelly execute CODE       # Run code on one of application servers
   shelly help [TASK]        # Describe available tasks or one specific task
-  shelly ip                 # List cloud's IP addresses
+  shelly info               # Show basic information about cloud
   shelly list               # List available clouds
   shelly login [EMAIL]      # Log into Shelly Cloud
   shelly logout             # Logout from Shelly Cloud
@@ -740,37 +740,67 @@ We have been notified about it. We will be adding new resources shortly")
 
   end
 
-  describe "#ip" do
+  describe "#info" do
     before do
       File.open("Cloudfile", 'w') { |f| f.write("foo-production:\n") }
-      @app = Shelly::App.new("foo-staging")
+      @app = Shelly::App.new("foo-production")
       @main.stub(:logged_in?).and_return(true)
+      @app.stub(:attributes).and_return(response)
     end
 
     it "should ensure user has logged in" do
-      hooks(@main, :ip).should include(:logged_in?)
+      hooks(@main, :info).should include(:logged_in?)
     end
 
     # multiple_clouds is tested in main_spec.rb in describe "#start" block
     it "should ensure multiple_clouds check" do
-      @app.should_receive(:web_server_ip).and_return("11.11")
-      @app.should_receive(:mail_server_ip).and_return("22.22")
       @main.should_receive(:multiple_clouds).and_return(@app)
-      invoke(@main, :ip)
+      invoke(@main, :info)
     end
 
     context "on success" do
-      it "should display mail and web server ip's" do
-        @client.stub(:app).and_return(response)
-        $stdout.should_receive(:puts).with("\e[32mCloud foo-production:\e[0m")
+      it "should display basic information about cloud" do
+        @main.should_receive(:multiple_clouds).and_return(@app)
+        $stdout.should_receive(:puts).with(green "Cloud foo-production:")
+        $stdout.should_receive(:puts).with("  State: running")
+        $stdout.should_receive(:puts).with("  Deployed commit sha: 52e65ed2d085eaae560cdb81b2b56a7d76")
+        $stdout.should_receive(:puts).with("  Deployed commit message: Commit message")
+        $stdout.should_receive(:puts).with("  Deployed by: megan@example.com")
+        $stdout.should_receive(:puts).with("  Repository URL: git@winniecloud.net:example-cloud")
         $stdout.should_receive(:puts).with("  Web server IP: 22.22.22.22")
         $stdout.should_receive(:puts).with("  Mail server IP: 11.11.11.11")
-        invoke(@main, :ip)
+        invoke(@main, :info)
       end
-    end
 
-    def response
-      {'mail_server_ip' => '11.11.11.11', 'web_server_ip' => '22.22.22.22'}
+      context "when deploy failed or configuration failed" do
+        it "should display basic information about information and command to last log" do
+          @app.stub(:attributes).and_return(response({"state" => "deploy_failed"}))
+          @main.should_receive(:multiple_clouds).and_return(@app)
+          $stdout.should_receive(:puts).with(red "Cloud foo-production:")
+          $stdout.should_receive(:puts).with("  State: deploy_failed (deployment log: `shelly deploys show last -c foo-production`)")
+          $stdout.should_receive(:puts).with("  Deployed commit sha: 52e65ed2d085eaae560cdb81b2b56a7d76")
+          $stdout.should_receive(:puts).with("  Deployed commit message: Commit message")
+          $stdout.should_receive(:puts).with("  Deployed by: megan@example.com")
+          $stdout.should_receive(:puts).with("  Repository URL: git@winniecloud.net:example-cloud")
+          $stdout.should_receive(:puts).with("  Web server IP: 22.22.22.22")
+          $stdout.should_receive(:puts).with("  Mail server IP: 11.11.11.11")
+          invoke(@main, :info)
+        end
+
+        it "should display basic information about information and command to last log" do
+          @app.stub(:attributes).and_return(response({"state" => "configuration_failed"}))
+          @main.should_receive(:multiple_clouds).and_return(@app)
+          $stdout.should_receive(:puts).with(red "Cloud foo-production:")
+          $stdout.should_receive(:puts).with("  State: configuration_failed (deployment log: `shelly deploys show last -c foo-production`)")
+          $stdout.should_receive(:puts).with("  Deployed commit sha: 52e65ed2d085eaae560cdb81b2b56a7d76")
+          $stdout.should_receive(:puts).with("  Deployed commit message: Commit message")
+          $stdout.should_receive(:puts).with("  Deployed by: megan@example.com")
+          $stdout.should_receive(:puts).with("  Repository URL: git@winniecloud.net:example-cloud")
+          $stdout.should_receive(:puts).with("  Web server IP: 22.22.22.22")
+          $stdout.should_receive(:puts).with("  Mail server IP: 11.11.11.11")
+          invoke(@main, :info)
+        end
+      end
     end
 
     context "on failure" do
@@ -780,6 +810,20 @@ We have been notified about it. We will be adding new resources shortly")
         $stdout.should_receive(:puts).with(red "You have no access to 'foo-production' cloud defined in Cloudfile")
         lambda { invoke(@main, :ip) }.should raise_error(SystemExit)
       end
+    end
+
+    def response(options = {})
+      { "code_name" => "foo-production",
+        "state" => "running",
+        "git_info" =>
+        {
+          "deployed_commit_message" => "Commit message",
+          "deployed_commit_sha" => "52e65ed2d085eaae560cdb81b2b56a7d76",
+          "repository_url" => "git@winniecloud.net:example-cloud",
+          "deployed_push_author" => "megan@example.com"
+        },
+        "mail_server_ip" => "11.11.11.11",
+        "web_server_ip" => "22.22.22.22" }.merge(options)
     end
   end
 

@@ -16,7 +16,7 @@ module Shelly
       check_unknown_options!(:except => :rake)
 
       # FIXME: it should be possible to pass single symbol, instead of one element array
-      before_hook :logged_in?, :only => [:add, :status, :list, :start, :stop, :logs, :delete, :ip, :logout, :execute, :rake, :setup, :console]
+      before_hook :logged_in?, :only => [:add, :status, :list, :start, :stop, :logs, :delete, :info, :ip, :logout, :execute, :rake, :setup, :console]
       before_hook :inside_git_repository?, :only => [:add, :setup]
 
       map %w(-v --version) => :version
@@ -132,13 +132,23 @@ module Shelly
       end
 
       map "status" => :list
+      map "ip" => :info
       method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
-      desc "ip", "List cloud's IP addresses"
-      def ip
-        app = multiple_clouds(options[:cloud], "ip")
-        web_server_ip = app.web_server_ip
-        say "Cloud #{app}:", :green
-        print_wrapped "Web server IP: #{web_server_ip}", :ident => 2
+      desc "info", "Show basic information about cloud"
+      def info
+        app = multiple_clouds(options[:cloud], "info")
+        msg = if app.state == "deploy_failed" || app.state == "configuration_failed"
+          " (deployment log: `shelly deploys show last -c #{app}`)"
+        end
+        say "Cloud #{app}:", msg.present? ? :red : :green
+        print_wrapped "State: #{app.state}#{msg}", :ident => 2
+        say_new_line
+        print_wrapped "Deployed commit sha: #{app.git_info["deployed_commit_sha"]}", :ident => 2
+        print_wrapped "Deployed commit message: #{app.git_info["deployed_commit_message"]}", :ident => 2
+        print_wrapped "Deployed by: #{app.git_info["deployed_push_author"]}", :ident => 2
+        say_new_line
+        print_wrapped "Repository URL: #{app.git_info["repository_url"]}", :ident => 2
+        print_wrapped "Web server IP: #{app.web_server_ip}", :ident => 2
         print_wrapped "Mail server IP: #{app.mail_server_ip}", :ident => 2
       rescue Client::NotFoundException => e
         raise unless e.resource == :cloud
