@@ -338,7 +338,7 @@ We have been notified about it. We will be adding new resources shortly}
       def console
         app = multiple_clouds(options[:cloud], "console")
         console = app.console
-        exec "ssh -p #{console['port']} -l #{console['user']} #{console['node_ip']}"
+        exec "ssh -o StrictHostKeyChecking=no -p #{console['port']} -l #{console['user']} #{console['node_ip']}"
       rescue Client::NotFoundException => e
         raise unless e.resource == :cloud
         say_error "You have no access to '#{app}' cloud defined in Cloudfile"

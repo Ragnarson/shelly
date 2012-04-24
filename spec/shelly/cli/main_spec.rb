@@ -1295,7 +1295,7 @@ We have been notified about it. We will be adding new resources shortly")
     it "execute ssh command" do
       expected = {"port" => "40010", "node_ip" => "10.0.0.10", "user"=>"foo-production"}
       @client.stub(:console).and_return(expected)
-      @main.should_receive(:exec).with("ssh -p 40010 -l foo-production 10.0.0.10")
+      @main.should_receive(:exec).with("ssh -o StrictHostKeyChecking=no -p 40010 -l foo-production 10.0.0.10")
       invoke(@main, :console)
     end
 
