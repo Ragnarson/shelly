@@ -124,7 +124,7 @@ module Shelly
       post("/apps/#{cloud}/command", {:body => body, :type => type})
     end
 
-    def console(code_name)
+    def node_and_port(code_name)
       get("/apps/#{code_name}/console")
     end
 

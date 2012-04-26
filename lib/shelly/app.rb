@@ -231,8 +231,18 @@ module Shelly
       Launchy.open("http://#{attributes["domain"]}")
     end
 
+    def node_and_port
+      shelly.node_and_port(code_name)
+    end
+
     def console
-      shelly.console(code_name)
+      params = node_and_port
+      exec "ssh -o StrictHostKeyChecking=no -p #{params['port']} -l #{params['user']} #{params['node_ip']}"
+    end
+
+    def upload(path)
+      params = node_and_port
+      exec "rsync -avz -e 'ssh -p #{params['port']}' --progress #{path} #{params['user']}@#{params['node_ip']}:/srv/glusterfs/disk"
     end
   end
 end
