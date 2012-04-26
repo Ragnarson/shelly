@@ -406,10 +406,28 @@ config
     end
   end
 
-  describe "#console" do
+  describe "#node_and_console" do
     it "should fetch instance data from Api" do
-      @client.should_receive(:console).with("foo-staging")
+      @client.should_receive(:node_and_port).with("foo-staging")
+      @app.node_and_port
+    end
+  end
+
+  describe "#console" do
+    it "should run ssh with all parameters" do
+      @client.stub(:node_and_port).and_return(
+        {"node_ip" => "10.0.0.1", "port" => "40010", "user" => "foo"})
+      @app.should_receive(:exec).with("ssh -o StrictHostKeyChecking=no -p 40010 -l foo 10.0.0.1")
       @app.console
+    end
+  end
+
+  describe "#upload" do
+    it "should run rsync with all parameters" do
+      @client.stub(:node_and_port).and_return(
+        {"node_ip" => "10.0.0.1", "port" => "40010", "user" => "foo"})
+      @app.should_receive(:exec).with("rsync -avz -e 'ssh -p 40010' --progress /path foo@10.0.0.1:/srv/glusterfs/disk")
+      @app.upload("/path")
     end
   end
 end

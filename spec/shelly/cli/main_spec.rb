@@ -44,6 +44,7 @@ Tasks:
   shelly setup              # Set up clouds
   shelly start              # Start the cloud
   shelly stop               # Shutdown the cloud
+  shelly upload PATH        # Upload files to persisted data storage
   shelly user <command>     # Manage collaborators
   shelly version            # Display shelly version
 
@@ -1326,36 +1327,77 @@ We have been notified about it. We will be adding new resources shortly")
 
   describe "#console" do
     before do
-      @user = Shelly::User.new
       @client.stub(:token).and_return("abc")
       @app = Shelly::App.new("foo-production")
-      @app.stub(:open)
       Shelly::App.stub(:new).and_return(@app)
       FileUtils.mkdir_p("/projects/foo")
       Dir.chdir("/projects/foo")
       File.open("Cloudfile", 'w') { |f| f.write("foo-production:\n") }
     end
 
+    it "should ensure user has logged in" do
+      hooks(@main, :console).should include(:logged_in?)
+    end
+
     it "execute ssh command" do
       expected = {"port" => "40010", "node_ip" => "10.0.0.10", "user"=>"foo-production"}
-      @client.stub(:console).and_return(expected)
-      @main.should_receive(:exec).with("ssh -o StrictHostKeyChecking=no -p 40010 -l foo-production 10.0.0.10")
+      @client.stub(:node_and_port).and_return(expected)
+      @app.should_receive(:console)
       invoke(@main, :console)
     end
 
     it "should exit if user doesn't have access to clouds in Cloudfile" do
       exception = Shelly::Client::NotFoundException.new("resource" => "cloud")
-      @client.stub(:console).and_raise(exception)
+      @client.stub(:node_and_port).and_raise(exception)
       $stdout.should_receive(:puts).with(red "You have no access to 'foo-production' cloud defined in Cloudfile")
       lambda { invoke(@main, :console) }.should raise_error(SystemExit)
     end
 
     context "Instances are not running" do
       it "should display error" do
-        @client.stub(:console).and_raise(Shelly::Client::APIException)
+        @client.stub(:node_and_port).and_raise(Shelly::Client::APIException)
         $stdout.should_receive(:puts).with(red "Cloud foo-production is not running. Cannot run console.")
         lambda {
           invoke(@main, :console)
+        }.should raise_error(SystemExit)
+      end
+    end
+  end
+
+  describe "#upload" do
+    before do
+      @client.stub(:token).and_return("abc")
+      @app = Shelly::App.new("foo-production")
+      Shelly::App.stub(:new).and_return(@app)
+      FileUtils.mkdir_p("/projects/foo")
+      Dir.chdir("/projects/foo")
+      File.open("Cloudfile", 'w') { |f| f.write("foo-production:\n") }
+    end
+
+    it "should ensure user has logged in" do
+      hooks(@main, :upload).should include(:logged_in?)
+    end
+
+    it "should upload files" do
+      expected = {"port" => "40010", "node_ip" => "10.0.0.10", "user"=>"foo-production"}
+      @client.stub(:node_and_port).and_return(expected)
+      @app.should_receive(:upload).with("some/path")
+      invoke(@main, :upload, "some/path")
+    end
+
+    it "should exit if user doesn't have access to clouds in Cloudfile" do
+      exception = Shelly::Client::NotFoundException.new("resource" => "cloud")
+      @client.stub(:node_and_port).and_raise(exception)
+      $stdout.should_receive(:puts).with(red "You have no access to 'foo-production' cloud defined in Cloudfile")
+      lambda { invoke(@main, :upload, "some/path") }.should raise_error(SystemExit)
+    end
+
+    context "Instances are not running" do
+      it "should display error" do
+        @client.stub(:node_and_port).and_raise(Shelly::Client::APIException)
+        $stdout.should_receive(:puts).with(red "Cloud foo-production is not running. Cannot upload files.")
+        lambda {
+          invoke(@main, :upload, "some/path")
         }.should raise_error(SystemExit)
       end
     end
