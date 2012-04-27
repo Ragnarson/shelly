@@ -199,12 +199,12 @@ describe Shelly::Client do
     end
   end
 
-  describe "#console" do
+  describe "#node_and_port" do
     it "should fetch instance data from API" do
       body = {:port => "40010", :node_ip => "10.0.0.10", :user => "foo-production"}
       FakeWeb.register_uri(:get, api_url("apps/staging-foo/console"),
         :body => body.to_json)
-      response = @client.console("staging-foo")
+      response = @client.node_and_port("staging-foo")
       response.should == {"port" => "40010", "node_ip" => "10.0.0.10", "user"=>"foo-production"}
     end
   end

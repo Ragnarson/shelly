@@ -95,7 +95,7 @@ module Shelly
       unless Cloudfile.present? || cloud
         say_error "You have to specify cloud.", :with_exit => false
         say "Select cloud using `shelly #{action} --cloud CLOUD_NAME`"
-        invoke :list
+        Shelly::CLI::Main.new.list
         exit 1
       end
 
