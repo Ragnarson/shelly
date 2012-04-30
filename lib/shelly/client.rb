@@ -5,11 +5,12 @@ require "cgi"
 module Shelly
   class Client
     class APIException < Exception
-      attr_reader :status_code, :body
+      attr_reader :status_code, :body, :request_id
 
-      def initialize(body = {}, status_code = nil)
+      def initialize(body = {}, status_code = nil, request_id = nil)
         @status_code = status_code
         @body = body
+        @request_id = request_id
       end
 
       def [](key)
@@ -234,7 +235,7 @@ module Shelly
         when 422; ValidationException
         else; APIException
         end
-        raise exception_class.new(body, code)
+        raise exception_class.new(body, code, response.headers[:x_request_id])
       end
       response.return!
       body
