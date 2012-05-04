@@ -118,9 +118,23 @@ describe Shelly::CLI::Runner do
       end
 
       it "should catch exception thrown by API Client" do
-        Shelly::CLI::Main.stub(:start).and_raise(Shelly::Client::APIException.new)
+        Shelly::CLI::Main.stub(:start).and_raise(Shelly::Client::APIException.new({}, 500, "test123"))
         runner = Shelly::CLI::Runner.new(%w(version))
-        $stdout.should_receive(:puts).with("Unknown error, to see debug information run command with --debug")
+        $stdout.should_receive(:puts).with("You have found a bug in the shelly gem. We're sorry.")
+        $stdout.should_receive(:puts).with(<<-eos
+You can report it to support@shellycloud.com by describing what you wanted
+to do and mentioning error id test123.
+        eos
+        )
+        lambda {
+          runner.start
+        }.should raise_error(SystemExit)
+      end
+
+      it "should not print reporting info if no request id returned" do
+        Shelly::CLI::Main.stub(:start).and_raise(Shelly::Client::APIException.new({}, 500, nil))
+        runner = Shelly::CLI::Runner.new(%w(version))
+        $stdout.should_receive(:puts).with("You have found a bug in the shelly gem. We're sorry.")
         lambda {
           runner.start
         }.should raise_error(SystemExit)

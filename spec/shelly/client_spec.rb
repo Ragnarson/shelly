@@ -363,6 +363,7 @@ describe Shelly::Client do
       it "should raise UnauthorizedException" do
         @response.stub(:code).and_return(401)
         @response.stub(:body).and_return("")
+        @response.stub(:headers).and_return({})
         lambda {
           @client.post("/")
         }.should raise_error(Shelly::Client::UnauthorizedException)
@@ -373,6 +374,7 @@ describe Shelly::Client do
       it "should raise NotFoundException" do
         @response.stub(:code).and_return(404)
         @response.stub(:body).and_return("")
+        @response.stub(:headers).and_return({})
         lambda {
           @client.post("/")
         }.should raise_error(Shelly::Client::NotFoundException)
@@ -383,6 +385,7 @@ describe Shelly::Client do
       it "should raise ConflictException" do
         @response.stub(:code).and_return(409)
         @response.stub(:body).and_return("")
+        @response.stub(:headers).and_return({})
         lambda {
           @client.post("/")
         }.should raise_error(Shelly::Client::ConflictException)
@@ -393,6 +396,7 @@ describe Shelly::Client do
       it "should raise ValidationException" do
         @response.stub(:code).and_return(422)
         @response.stub(:body).and_return("")
+        @response.stub(:headers).and_return({})
         lambda {
           @client.post("/")
         }.should raise_error(Shelly::Client::ValidationException)
@@ -403,9 +407,13 @@ describe Shelly::Client do
       it "should raise generic APIException" do
         @response.stub(:code).and_return(500)
         @response.stub(:body).and_return("")
+        @response.stub(:headers).and_return({:x_request_id => "id123"})
         lambda {
           @client.post("/")
-        }.should raise_error(Shelly::Client::APIException)
+        }.should raise_error { |error|
+          error.should be_a(Shelly::Client::APIException)
+          error.request_id.should == "id123"
+        }
       end
     end
 
@@ -413,6 +421,7 @@ describe Shelly::Client do
       JSON.should_receive(:parse).with("").and_raise(JSON::ParserError)
       @response.stub(:code).and_return("204")
       @response.stub(:body).and_return("")
+      @response.stub(:headers).and_return({})
       @client.post("/api/apps/flower").should == {}
     end
   end
