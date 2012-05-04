@@ -34,8 +34,7 @@ module Shelly
       rescue Client::APIException => e
         raise if debug?
         say_error "You have found a bug in the shelly gem. We're sorry.",
-          :with_exit => false
-        exit 1 unless e.request_id
+          :with_exit => e.request_id.blank?
         say_error <<-eos
 You can report it to support@shellycloud.com by describing what you wanted
 to do and mentioning error id #{e.request_id}.
