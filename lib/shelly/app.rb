@@ -242,7 +242,7 @@ module Shelly
 
     def upload(path)
       params = node_and_port
-      exec "rsync -avz -e 'ssh -p #{params['port']}' --progress #{path} #{params['user']}@#{params['node_ip']}:/srv/glusterfs/disk"
+      exec "rsync -avz -e 'ssh -o StrictHostKeyChecking=no -p #{params['port']}' --progress #{path} #{params['user']}@#{params['node_ip']}:/srv/glusterfs/disk"
     end
   end
 end
