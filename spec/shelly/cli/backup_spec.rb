@@ -1,6 +1,7 @@
 require "spec_helper"
 require "shelly/cli/backup"
 require "shelly/download_progress_bar"
+require "open3"
 
 describe Shelly::CLI::Backup do
   before do
@@ -192,7 +193,7 @@ describe Shelly::CLI::Backup do
       end
     end
 
-    context "on type no" do
+    context "when answering no" do
       it "should cancel restore database" do
         $stdout.should_receive(:puts).with("You are about restore database postgre for cloud foo-staging to state from better.tar.gz")
         $stdout.should_receive(:print).with("I want to restore the database (yes/no): ")

@@ -28,5 +28,11 @@ class Thor
       ENV["THOR_DEBUG"] == "1" ? (raise e) : config[:shell].error(e.message)
       exit(1) if exit_on_failure?
     end
+
+    # We overwrite this method so namespace is show
+    # shelly *backup* restore FILENAME
+    def handle_argument_error(task, error)
+      raise InvocationError, "#{task.name.inspect} was called incorrectly. Call as #{self.banner(task, nil, self.new.class != Shelly::CLI::Main).inspect}."
+    end
   end
 end
