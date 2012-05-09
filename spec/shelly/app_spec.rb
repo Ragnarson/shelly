@@ -358,30 +358,12 @@ config
     end
   end
 
-  describe "#run" do
-    before do
-      @response = {
-        "result" => "4"
-      }
-      @client.stub(:command).and_return(@response)
-      File.open("to_run.rb", 'w') {|f| f.write("User.count\n") }
-    end
-
-    it "should return result of executed code" do
-      @client.should_receive(:command).with("foo-staging", "2 + 2", :ruby)
-      @app.run("2 + 2").should == "4"
-    end
-
-    it "should send contents of file when file exists" do
-      @client.should_receive(:command).with("foo-staging", "User.count\n", :ruby)
-      @app.run("to_run.rb")
-    end
-  end
-
   describe "#rake" do
     it "should return result of rake task" do
-      @client.should_receive(:command).with("foo-staging", "db:create", :rake).and_return({"result" => "OK"})
-      @app.rake("db:create").should == "OK"
+      @client.stub(:node_and_port).and_return(
+        {"node_ip" => "10.0.0.1", "port" => "40010", "user" => "foo"})
+      @app.should_receive(:exec).with("ssh -o StrictHostKeyChecking=no -p 40010 -l foo 10.0.0.1 rake_runner \"test\"")
+      @app.rake("test")
     end
   end
 
@@ -417,7 +399,7 @@ config
     it "should run ssh with all parameters" do
       @client.stub(:node_and_port).and_return(
         {"node_ip" => "10.0.0.1", "port" => "40010", "user" => "foo"})
-      @app.should_receive(:exec).with("ssh -o StrictHostKeyChecking=no -p 40010 -l foo 10.0.0.1")
+      @app.should_receive(:exec).with("ssh -o StrictHostKeyChecking=no -p 40010 -l foo 10.0.0.1 ")
       @app.console
     end
   end
