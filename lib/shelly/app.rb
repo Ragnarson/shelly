@@ -177,22 +177,8 @@ module Shelly
       shelly.app_delete_config(code_name, path)
     end
 
-    # returns result of execution of given code, or false when app was not
-    # running
-    def run(file_name_or_code)
-      code = if File.exists?(file_name_or_code)
-               File.read(file_name_or_code)
-             else
-               file_name_or_code
-             end
-
-      response = shelly.command(code_name, code, :ruby)
-      response["result"]
-    end
-
     def rake(task)
-      response = shelly.command(code_name, task, :rake)
-      response["result"]
+      ssh("rake_runner \"#{task}\"")
     end
 
     def attributes
@@ -236,8 +222,12 @@ module Shelly
     end
 
     def console
+      ssh
+    end
+
+    def ssh(command = "")
       params = node_and_port
-      exec "ssh -o StrictHostKeyChecking=no -p #{params['port']} -l #{params['user']} #{params['node_ip']}"
+      exec "ssh -o StrictHostKeyChecking=no -p #{params['port']} -l #{params['user']} #{params['node_ip']} #{command}"
     end
 
     def upload(path)
