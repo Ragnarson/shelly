@@ -112,6 +112,7 @@ module Shelly
         say_error "shelly add --code-name=#{app.code_name} --databases=#{app.databases.join(',')} --size=#{app.size}"
       end
 
+      map "status" => :list
       desc "list", "List available clouds"
       def list
         user = Shelly::User.new
@@ -131,7 +132,6 @@ module Shelly
         end
       end
 
-      map "status" => :list
       map "ip" => :info
       method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
       desc "info", "Show basic information about cloud"
@@ -282,35 +282,16 @@ We have been notified about it. We will be adding new resources shortly}
         say "You have been successfully logged out" if user.delete_credentials
       end
 
-      desc "execute CODE", "Run code on one of application servers"
-      method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
-      long_desc %{
-        Run code given in parameter on one of application servers.
-        If a file name is given, run contents of that file."
-      }
-      def execute(file_name_or_code)
-        app = multiple_clouds(options[:cloud], "execute #{file_name_or_code}")
-
-        result = app.run(file_name_or_code)
-        say result
-
-      rescue Client::APIException => e
-        if e[:message] == "App not running"
-          say_error "Cloud #{app} is not running. Cannot run code."
-        else
-          raise
-        end
-      end
-
       desc "rake TASK", "Run rake task"
       method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
       def rake(task = nil)
         task = rake_args.join(" ")
         app = multiple_clouds(options[:cloud], "rake #{task}")
-        result = app.rake(task)
-        say result
-      rescue Client::APIException => e
-        raise unless e[:message] == "App not running"
+        app.rake(task)
+      rescue Client::NotFoundException => e
+        raise unless e.resource == :cloud
+        say_error "You have no access to '#{app}' cloud defined in Cloudfile"
+      rescue Client::ConflictException
         say_error "Cloud #{app} is not running. Cannot run rake task."
       end
 
@@ -343,6 +324,12 @@ We have been notified about it. We will be adding new resources shortly}
         app.open
       end
 
+      desc "execute CODE", "Run code on one of application servers"
+      method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
+      def execute(file)
+        say_error "`shelly execute` is deprecated and will be removed in a future release of shelly gem, please use `shelly console`"
+      end
+
       desc "console", "Open application console"
       method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
       def console
@@ -351,7 +338,7 @@ We have been notified about it. We will be adding new resources shortly}
       rescue Client::NotFoundException => e
         raise unless e.resource == :cloud
         say_error "You have no access to '#{app}' cloud defined in Cloudfile"
-      rescue Client::APIException => e
+      rescue Client::ConflictException
         say_error "Cloud #{app} is not running. Cannot run console."
       end
 
@@ -366,7 +353,7 @@ We have been notified about it. We will be adding new resources shortly}
       rescue Client::NotFoundException => e
         raise unless e.resource == :cloud
         say_error "You have no access to '#{app}' cloud defined in Cloudfile"
-      rescue Client::APIException => e
+      rescue Client::ConflictException
         say_error "Cloud #{app} is not running. Cannot upload files."
       end
 

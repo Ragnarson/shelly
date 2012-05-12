@@ -1112,67 +1112,6 @@ We have been notified about it. We will be adding new resources shortly")
     end
   end
 
-  describe "#execute" do
-    before do
-      FileUtils.mkdir_p("/projects/foo")
-      Dir.chdir("/projects/foo")
-      File.open("Cloudfile", 'w') {|f| f.write("foo-production:\n") }
-      @user = Shelly::User.new
-      @user.stub(:token)
-      Shelly::User.stub(:new).and_return(@user)
-      @client.stub(:apps).and_return([{"code_name" => "foo-production"},
-                                     {"code_name" => "foo-staging"}])
-      @app = Shelly::App.new("foo-production")
-      Shelly::App.stub(:new).and_return(@app)
-      File.open("to_execute.rb", 'w') {|f| f.write("User.count") }
-    end
-
-    it "should ensure user has logged in" do
-      hooks(@main, :execute).should include(:logged_in?)
-    end
-
-    # multiple_clouds is tested in main_spec.rb in describe "#start" block
-    it "should ensure multiple_clouds check" do
-      @client.should_receive(:command).with("foo-production", "User.count", :ruby).
-        and_return({"result" => "3"})
-      @main.should_receive(:multiple_clouds).and_return(@app)
-      invoke(@main, :execute, "to_execute.rb")
-    end
-
-    it "should execute code for the cloud" do
-      @client.should_receive(:command).with("foo-production", "User.count", :ruby).
-        and_return({"result" => "3"})
-      $stdout.should_receive(:puts).with("3")
-      invoke(@main, :execute, "to_execute.rb")
-    end
-
-    it "should run code when no file from parameter is found" do
-      @client.should_receive(:command).with("foo-production", "2 + 2", :ruby).
-        and_return({"result" => "4"})
-      $stdout.should_receive(:puts).with("4")
-      invoke(@main, :execute, "2 + 2")
-    end
-
-    context "cloud is not in running state" do
-      it "should print error" do
-        @client.should_receive(:command).with("foo-staging", "2 + 2", :ruby).
-          and_raise(Shelly::Client::APIException.new(
-            {"message" => "App not running"}, 504))
-        $stdout.should_receive(:puts).
-          with(red "Cloud foo-staging is not running. Cannot run code.")
-        @main.options = {:cloud => "foo-staging"}
-        lambda { invoke(@main, :execute, "2 + 2") }.should raise_error(SystemExit)
-      end
-
-      it "should re-raise other exceptions" do
-        @client.should_receive(:command).with("foo-staging", "2 + 2", :ruby).
-          and_raise(Exception)
-        @main.options = {:cloud => "foo-staging"}
-        lambda { invoke(@main, :execute, "2 + 2") }.should raise_error(Exception)
-      end
-    end
-  end
-
   describe "#rake" do
     before do
       FileUtils.mkdir_p("/projects/foo")
@@ -1192,23 +1131,14 @@ We have been notified about it. We will be adding new resources shortly")
 
     # multiple_clouds is tested in main_spec.rb in describe "#start" block
     it "should ensure multiple_clouds check" do
-      @client.should_receive(:command).with("foo-production", "db:migrate", :rake).
-        and_return({"result" => "OK"})
+      @app.stub(:rake)
       @main.should_receive(:multiple_clouds).and_return(@app)
       invoke(@main, :rake, "db:migrate")
     end
 
-    it "should invoke :command on app with rake task" do
-      @client.should_receive(:command).with("foo-production", "db:migrate", :rake).and_return("result" => "OK")
-      $stdout.should_receive(:puts).with("OK")
+    it "should invoke rake task" do
+      @app.should_receive(:rake).with("db:migrate")
       invoke(@main, :rake, "db:migrate")
-    end
-
-    it "should pass rake arguments to the client" do
-      @main.stub(:rake_args).and_return(%w(-T db:schema))
-      @client.should_receive(:command).with("foo-production", "-T db:schema", :rake).and_return("result" => "OK")
-      $stdout.should_receive(:puts).with("OK")
-      invoke(@main, :rake, nil)
     end
 
     describe "#rake_args" do
@@ -1227,13 +1157,11 @@ We have been notified about it. We will be adding new resources shortly")
 
     context "cloud is not in running state" do
       it "should print error" do
-        @client.should_receive(:command).with("foo-staging", "db:migrate", :rake).
-          and_raise(Shelly::Client::APIException.new(
-            {"message" => "App not running"}, 504))
-        $stdout.should_receive(:puts).
-          with(red "Cloud foo-staging is not running. Cannot run rake task.")
-        @main.options = {:cloud => "foo-staging"}
-        lambda { invoke(@main, :rake, "db:migrate") }.should raise_error(SystemExit)
+        @client.stub(:node_and_port).and_raise(Shelly::Client::ConflictException)
+        $stdout.should_receive(:puts).with(red "Cloud foo-production is not running. Cannot upload files.")
+        lambda {
+          invoke(@main, :upload, "some/path")
+        }.should raise_error(SystemExit)
       end
     end
   end
@@ -1355,7 +1283,7 @@ We have been notified about it. We will be adding new resources shortly")
 
     context "Instances are not running" do
       it "should display error" do
-        @client.stub(:node_and_port).and_raise(Shelly::Client::APIException)
+        @client.stub(:node_and_port).and_raise(Shelly::Client::ConflictException)
         $stdout.should_receive(:puts).with(red "Cloud foo-production is not running. Cannot run console.")
         lambda {
           invoke(@main, :console)
@@ -1400,7 +1328,7 @@ We have been notified about it. We will be adding new resources shortly")
 
     context "Instances are not running" do
       it "should display error" do
-        @client.stub(:node_and_port).and_raise(Shelly::Client::APIException)
+        @client.stub(:node_and_port).and_raise(Shelly::Client::ConflictException)
         $stdout.should_receive(:puts).with(red "Cloud foo-production is not running. Cannot upload files.")
         lambda {
           invoke(@main, :upload, "some/path")
