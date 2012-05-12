@@ -17,3 +17,10 @@ RSpec.configure do |config|
   config.include RSpec::Helpers
   config.include FakeFS::SpecHelpers
 end
+
+# FakeFS doesn't support executable? class method
+class FakeFS::File
+  def self.executable?(file)
+    true
+  end
+end

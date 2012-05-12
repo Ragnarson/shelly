@@ -32,7 +32,7 @@ class Thor
     # We overwrite this method so namespace is show
     # shelly *backup* restore FILENAME
     def handle_argument_error(task, error)
-      raise InvocationError, "#{task.name.inspect} was called incorrectly. Call as #{self.banner(task, nil, self.new.class != Shelly::CLI::Main).inspect}."
+      raise InvocationError, "#{task.name.inspect} was called incorrectly. Call as #{self.banner(task, nil, self != 'Shelly::CLI::Main').inspect}."
     end
   end
 end

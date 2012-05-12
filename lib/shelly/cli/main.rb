@@ -358,6 +358,9 @@ We have been notified about it. We will be adding new resources shortly}
       desc "upload PATH", "Upload files to persisted data storage"
       method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
       def upload(path)
+        unless command_exists?("rsync")
+          say_error "You need to install rsync in order to use `shelly upload`"
+        end
         app = multiple_clouds(options[:cloud], "upload #{path}")
         app.upload(path)
       rescue Client::NotFoundException => e

@@ -1392,6 +1392,12 @@ We have been notified about it. We will be adding new resources shortly")
       lambda { invoke(@main, :upload, "some/path") }.should raise_error(SystemExit)
     end
 
+    it "should exit if rsync isn't installed" do
+      FakeFS::File.stub(:executable?).and_return(false)
+      $stdout.should_receive(:puts).with(red "You need to install rsync in order to use `shelly upload`")
+      lambda { invoke(@main, :upload, "some/path") }.should raise_error(SystemExit)
+    end
+
     context "Instances are not running" do
       it "should display error" do
         @client.stub(:node_and_port).and_raise(Shelly::Client::APIException)

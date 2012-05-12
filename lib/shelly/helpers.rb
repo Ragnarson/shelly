@@ -81,6 +81,17 @@ module Shelly
       say_error "You are not logged in. To log in use: `shelly login`"
     end
 
+    def command_exists?(cmd)
+      exts = ENV['PATHEXT'] ? ENV['PATHEXT'].split(';') : ['']
+      ENV['PATH'].split(File::PATH_SEPARATOR).each do |path|
+        exts.each { |ext|
+          exe = "#{path}/#{cmd}#{ext}"
+          return exe if File.executable? exe
+        }
+      end
+      return false
+    end
+
     def multiple_clouds(cloud, action)
       clouds = Cloudfile.new.clouds
       if clouds && clouds.count > 1 && cloud.nil?
