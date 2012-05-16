@@ -259,19 +259,28 @@ We have been notified about it. We will be adding new resources shortly}
 
       desc "logs", "Show latest application logs"
       method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
+      method_option :limit, :type => :numeric, :aliases => "-n", :desc => "Amount of messages to show"
+      method_option :tail, :type => :boolean, :aliases => "-f", :desc => "Show new logs automatically"
       def logs
         cloud = options[:cloud]
         app = multiple_clouds(cloud, "logs")
         begin
-          logs = app.application_logs
-          say "Cloud #{app}:", :green
-          logs.each_with_index do |log, i|
-            say "Instance #{i+1}:", :green
-            say log
+          logs = app.application_logs(:limit => options[:limit])
+          print_logs(logs)
+
+          if options[:tail]
+            loop do
+              logs = app.application_logs(:from => logs['range']['last'])
+              print_logs(logs)
+              sleep 1
+            end
           end
         rescue Client::NotFoundException => e
           raise unless e.resource == :cloud
           say_error "You have no access to '#{cloud || app}' cloud defined in Cloudfile"
+        rescue Client::APIException => e
+          raise e unless e.status_code == 416
+          say_error "You have requested too many log messages. Try a lower number."
         end
       end
 

@@ -114,5 +114,11 @@ module Shelly
       app.code_name = cloud || clouds.first
       app
     end
+
+    def print_logs(logs)
+      logs['entries'].each do |entry|
+        say "%8.8s | %s\n" % entry
+      end
+    end
   end
 end

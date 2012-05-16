@@ -137,8 +137,10 @@ module Shelly
       get("/apps/#{cloud}/deployment_logs/#{log}")
     end
 
-    def application_logs(cloud)
-      get("/apps/#{cloud}/application_logs")
+    def application_logs(cloud, options = {})
+      query = "?" + options.map { |k, v|
+        URI.escape(k.to_s) + "=" + URI.escape(v.to_s) }.join("&")
+      get("/apps/#{cloud}/application_logs#{query}")
     end
 
     def database_backups(code_name)

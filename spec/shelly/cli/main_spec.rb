@@ -56,18 +56,11 @@ OUT
     end
 
     it "should display options in help for logs" do
-      expected = <<-OUT
-Usage:
-  shelly logs
-
-Options:
-  -c, [--cloud=CLOUD]  # Specify cloud
-      [--debug]        # Show debug information
-
-Show latest application logs
-OUT
       out = IO.popen("bin/shelly help logs").read.strip
-      out.should == expected.strip
+      out.should include("-c, [--cloud=CLOUD]  # Specify cloud")
+      out.should include("-n, [--limit=N]      # Amount of messages to show")
+      out.should include("-f, [--tail]         # Show new logs automatically")
+      out.should include("[--debug]        # Show debug information")
     end
   end
 
@@ -1070,6 +1063,7 @@ We have been notified about it. We will be adding new resources shortly")
                                      {"code_name" => "foo-staging"}])
       @app = Shelly::App.new
       Shelly::App.stub(:new).and_return(@app)
+      @sample_logs = {"entries" => [['app1', 'log1'], ['app1', 'log2']]}
     end
 
     it "should ensure user has logged in" do
@@ -1078,7 +1072,7 @@ We have been notified about it. We will be adding new resources shortly")
 
     # multiple_clouds is tested in main_spec.rb in describe "#start" block
     it "should ensure multiple_clouds check" do
-      @client.stub(:application_logs).and_return(["log1"])
+      @client.stub(:application_logs).and_return(@sample_logs)
       @main.should_receive(:multiple_clouds).and_return(@app)
       invoke(@main, :logs)
     end
@@ -1091,24 +1085,26 @@ We have been notified about it. We will be adding new resources shortly")
       lambda { invoke(@main, :logs) }.should raise_error(SystemExit)
     end
 
+    it "should exit if user requested too many log lines" do
+      exception = Shelly::Client::APIException.new({}, 416)
+      @client.stub(:application_logs).and_raise(exception)
+      $stdout.should_receive(:puts).
+        with(red "You have requested too many log messages. Try a lower number.")
+      lambda { invoke(@main, :logs) }.should raise_error(SystemExit)
+    end
+
     it "should show logs for the cloud" do
-      @client.stub(:application_logs).and_return(["log1"])
-      $stdout.should_receive(:puts).with(green "Cloud foo-production:")
-      $stdout.should_receive(:puts).with(green "Instance 1:")
-      $stdout.should_receive(:puts).with("log1")
+      @client.stub(:application_logs).and_return(@sample_logs)
+      $stdout.should_receive(:puts).with("    app1 | log1\n")
+      $stdout.should_receive(:puts).with("    app1 | log2\n")
       invoke(@main, :logs)
     end
 
-    context "multiple instances" do
-      it "should show logs from each instance" do
-        @client.stub(:application_logs).and_return(["log1", "log2"])
-        $stdout.should_receive(:puts).with(green "Cloud foo-production:")
-        $stdout.should_receive(:puts).with(green "Instance 1:")
-        $stdout.should_receive(:puts).with("log1")
-        $stdout.should_receive(:puts).with(green "Instance 2:")
-        $stdout.should_receive(:puts).with("log2")
-        invoke(@main, :logs)
-      end
+    it "should show requested amount of logs" do
+      @client.should_receive(:application_logs).
+        with("foo-production", {:limit => 2}).and_return(@sample_logs)
+      @main.options = {:limit => 2}
+      invoke(@main, :logs)
     end
   end
 

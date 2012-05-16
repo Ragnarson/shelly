@@ -292,8 +292,8 @@ config
 
   describe "#application_logs" do
     it "should list application_logs" do
-      @client.should_receive(:application_logs).with("foo-staging").
-        and_return({"logs" => ["log1", "log2"]})
+      @client.should_receive(:application_logs).with("foo-staging", {}).
+        and_return({"entries" => [["app1", "log1"], ["app2", "log2"]]})
       @app.application_logs
     end
   end

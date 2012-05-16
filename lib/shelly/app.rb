@@ -77,8 +77,8 @@ module Shelly
       shelly.deploy_log(code_name, log)
     end
 
-    def application_logs
-      shelly.application_logs(code_name)
+    def application_logs(options = {})
+      shelly.application_logs(code_name, options)
     end
 
     def database_backups
