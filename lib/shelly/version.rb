@@ -1,3 +1,3 @@
 module Shelly
-  VERSION = "0.1.4.pre2"
+  VERSION = "0.1.5"
 end
