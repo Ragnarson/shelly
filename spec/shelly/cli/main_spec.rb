@@ -60,6 +60,7 @@ OUT
       out.should include("-c, [--cloud=CLOUD]  # Specify cloud")
       out.should include("-n, [--limit=N]      # Amount of messages to show")
       out.should include("-f, [--tail]         # Show new logs automatically")
+      out.should include("[--from=FROM]    # Time from which to find the logs")
       out.should include("[--debug]        # Show debug information")
     end
   end

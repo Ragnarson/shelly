@@ -260,12 +260,17 @@ We have been notified about it. We will be adding new resources shortly}
       desc "logs", "Show latest application logs"
       method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
       method_option :limit, :type => :numeric, :aliases => "-n", :desc => "Amount of messages to show"
+      method_option :from, :type => :string, :desc => "Time from which to find the logs"
       method_option :tail, :type => :boolean, :aliases => "-f", :desc => "Show new logs automatically"
       def logs
         cloud = options[:cloud]
         app = multiple_clouds(cloud, "logs")
         begin
-          logs = app.application_logs(:limit => options[:limit])
+          limit = options[:limit].to_i <= 0 ? 100 : options[:limit]
+          query = {:limit => limit}
+          query.merge!(:from => options[:from]) if options[:from]
+
+          logs = app.application_logs(query)
           print_logs(logs)
 
           if options[:tail]
