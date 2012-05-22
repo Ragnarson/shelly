@@ -185,6 +185,10 @@ module Shelly
       @attributes ||= shelly.app(code_name)
     end
 
+    def statistics
+      @stats ||= shelly.statistics(code_name)
+    end
+
     def web_server_ip
       attributes["web_server_ip"]
     end

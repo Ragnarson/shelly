@@ -190,6 +190,24 @@ describe Shelly::Client do
     end
   end
 
+  describe "#statistics" do
+    it "should fetch app statistics from API" do
+      @body = [{:name => "app1",
+                :memory => {:kilobyte => "276756", :percent => "74.1"},
+                :swap => {:kilobyte => "44332", :percent => "2.8"},
+                :cpu => {:wait => "0.8", :system => "0.0", :user => "0.1"},
+                :load => {:avg15 => "0.13", :avg05 => "0.15", :avg01 => "0.04"}}]
+      FakeWeb.register_uri(:get, api_url("apps/staging-foo/statistics"),
+        :body => @body.to_json)
+      response = @client.statistics("staging-foo")
+      response.should == [{"name" => "app1",
+                           "memory" => {"kilobyte" => "276756", "percent" => "74.1"},
+                           "swap" => {"kilobyte" => "44332", "percent" => "2.8"},
+                           "cpu" => {"wait" => "0.8", "system" => "0.0", "user" => "0.1"},
+                           "load" => {"avg15" =>"0.13", "avg05" => "0.15", "avg01" => "0.04"}}]
+    end
+  end
+
   describe "#command" do
     it "should send post request with app code_name, body and type" do
       @client.should_receive(:post).with("/apps/staging-foo/command",

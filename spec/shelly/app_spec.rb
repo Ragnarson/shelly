@@ -179,6 +179,22 @@ describe Shelly::App do
     end
   end
 
+  describe "#statistics" do
+    before do
+      @response = [{"name"=>"app1",
+                    "memory" => {"kilobyte"=>"276756", "percent" => "74.1"},
+                    "swap" => {"kilobyte" => "44332", "percent" => "2.8"},
+                    "cpu" => {"wait" => "0.8", "system" => "0.0", "user" => "0.1"},
+                    "load" => {"avg15" => "0.13", "avg05" => "0.15", "avg01" => "0.04"}}]
+      @client.stub(:statistics).and_return(@response)
+    end
+
+    it "should fetch app statistics from API and cache them" do
+      @client.should_receive(:statistics).with("foo-staging").exactly(:once).and_return(@response)
+      2.times { @app.statistics }
+    end
+  end
+
   describe "#generate_cloudfile" do
     it "should return generated cloudfile for large instance" do
       user = mock(:email => "bob@example.com")
