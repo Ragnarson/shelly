@@ -21,6 +21,7 @@ module Shelly
     class UnauthorizedException < APIException; end
     class ConflictException < APIException; end
     class GemVersionException < APIException; end
+    class GatewayTimeoutException < APIException; end
     class ValidationException < APIException
       def errors
         self[:errors]
@@ -119,6 +120,10 @@ module Shelly
 
     def app(code_name)
       get("/apps/#{code_name}")
+    end
+
+    def statistics(code_name)
+      get("/apps/#{code_name}/statistics")
     end
 
     def command(cloud, body, type)
@@ -235,6 +240,7 @@ module Shelly
         when 409; ConflictException
         when 412; GemVersionException
         when 422; ValidationException
+        when 504; GatewayTimeoutException
         else; APIException
         end
         raise exception_class.new(body, code, response.headers[:x_request_id])

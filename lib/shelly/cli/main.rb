@@ -150,9 +150,20 @@ module Shelly
         print_wrapped "Repository URL: #{app.git_info["repository_url"]}", :ident => 2
         print_wrapped "Web server IP: #{app.web_server_ip}", :ident => 2
         print_wrapped "Mail server IP: #{app.mail_server_ip}", :ident => 2
+        say_new_line
+        if app.statistics.present?
+          print_wrapped "Statistics:", :ident => 2
+          app.statistics.each do |stat|
+            print_wrapped "#{stat['name']}:", :ident => 4
+            print_wrapped "Load average: 1m: #{stat['load']['avg01']}, 5m: #{stat['load']['avg05']}, 15m: #{stat['load']['avg15']}", :ident => 6
+            print_wrapped "CPU: #{stat['cpu']['wait']}%, MEM: #{stat['memory']['percent']}%, SWAP: #{stat['swap']['percent']}%", :ident => 6
+          end
+        end
       rescue Client::NotFoundException => e
         raise unless e.resource == :cloud
         say_error "You have no access to '#{app}' cloud defined in Cloudfile"
+      rescue Client::GatewayTimeoutException
+        say_error "Server statistics temporarily unavailable"
       end
 
       desc "start", "Start the cloud"

@@ -741,6 +741,12 @@ We have been notified about it. We will be adding new resources shortly")
       @app = Shelly::App.new("foo-production")
       @main.stub(:logged_in?).and_return(true)
       @app.stub(:attributes).and_return(response)
+      @statistics = [{"name" => "app1",
+                      "memory" => {"kilobyte" => "276756", "percent" => "74.1"},
+                      "swap" => {"kilobyte" => "44332", "percent" => "2.8"},
+                      "cpu" => {"wait" => "0.8", "system" => "0.0", "user" => "0.1"},
+                      "load" => {"avg15" => "0.13", "avg05" => "0.15", "avg01" => "0.04"}}]
+      @app.stub(:statistics).and_return(@statistics)
     end
 
     it "should ensure user has logged in" do
@@ -764,6 +770,10 @@ We have been notified about it. We will be adding new resources shortly")
         $stdout.should_receive(:puts).with("  Repository URL: git@winniecloud.net:example-cloud")
         $stdout.should_receive(:puts).with("  Web server IP: 22.22.22.22")
         $stdout.should_receive(:puts).with("  Mail server IP: 11.11.11.11")
+        $stdout.should_receive(:puts).with("  Statistics:")
+        $stdout.should_receive(:puts).with("    app1:")
+        $stdout.should_receive(:puts).with("      Load average: 1m: 0.04, 5m: 0.15, 15m: 0.13")
+        $stdout.should_receive(:puts).with("      CPU: 0.8%, MEM: 74.1%, SWAP: 2.8%")
         invoke(@main, :info)
       end
 
@@ -779,6 +789,10 @@ We have been notified about it. We will be adding new resources shortly")
           $stdout.should_receive(:puts).with("  Repository URL: git@winniecloud.net:example-cloud")
           $stdout.should_receive(:puts).with("  Web server IP: 22.22.22.22")
           $stdout.should_receive(:puts).with("  Mail server IP: 11.11.11.11")
+          $stdout.should_receive(:puts).with("  Statistics:")
+          $stdout.should_receive(:puts).with("    app1:")
+          $stdout.should_receive(:puts).with("      Load average: 1m: 0.04, 5m: 0.15, 15m: 0.13")
+          $stdout.should_receive(:puts).with("      CPU: 0.8%, MEM: 74.1%, SWAP: 2.8%")
           invoke(@main, :info)
         end
 
@@ -793,7 +807,29 @@ We have been notified about it. We will be adding new resources shortly")
           $stdout.should_receive(:puts).with("  Repository URL: git@winniecloud.net:example-cloud")
           $stdout.should_receive(:puts).with("  Web server IP: 22.22.22.22")
           $stdout.should_receive(:puts).with("  Mail server IP: 11.11.11.11")
+          $stdout.should_receive(:puts).with("  Statistics:")
+          $stdout.should_receive(:puts).with("    app1:")
+          $stdout.should_receive(:puts).with("      Load average: 1m: 0.04, 5m: 0.15, 15m: 0.13")
+          $stdout.should_receive(:puts).with("      CPU: 0.8%, MEM: 74.1%, SWAP: 2.8%")
           invoke(@main, :info)
+        end
+
+        it "should not display statistics when statistics are empty" do
+          @app.stub(:attributes).and_return(response({"state" => "turned_off"}))
+          @main.should_receive(:multiple_clouds).and_return(@app)
+          @app.stub(:statistics).and_return([])
+          $stdout.should_not_receive(:puts).with("Statistics:")
+          invoke(@main, :info)
+        end
+      end
+
+      context "on failure" do
+        it "should raise an error if statistics unavailable" do
+          @main.should_receive(:multiple_clouds).and_return(@app)
+          exception = Shelly::Client::GatewayTimeoutException.new
+          @app.stub(:statistics).and_raise(exception)
+          $stdout.should_receive(:puts).with(red "Server statistics temporarily unavailable")
+          lambda { invoke(@main, :info) }.should raise_error(SystemExit)
         end
       end
     end
