@@ -39,18 +39,6 @@ module Shelly
       system("git remote rm #{code_name} > /dev/null 2>&1")
     end
 
-    def generate_cloudfile
-      @email = current_user.email
-      thin = (size == "small" ? 2 : 4)
-      template = File.read(cloudfile_template_path)
-      cloudfile = ERB.new(template, 0, "%<>-")
-      cloudfile.result(binding)
-    end
-
-    def cloudfile_template_path
-      File.join(File.dirname(__FILE__), "templates", "Cloudfile.erb")
-    end
-
     def create
       attributes = {:code_name => code_name}
       response = shelly.create_app(attributes)
@@ -60,13 +48,19 @@ module Shelly
       self.environment = response["environment"]
     end
 
-    def delete
-      shelly.delete_app(code_name)
+    def create_cloudfile
+      cloudfile = Cloudfile.new
+      cloudfile.code_name = code_name
+      cloudfile.ruby_version = ruby_version
+      cloudfile.environment = environment
+      cloudfile.domains = domains
+      cloudfile.size = size
+      cloudfile.databases = databases
+      cloudfile.create
     end
 
-    def create_cloudfile
-      content = generate_cloudfile
-      File.open(cloudfile_path, "a+") { |f| f << content }
+    def delete
+      shelly.delete_app(code_name)
     end
 
     def deploy_logs
@@ -114,10 +108,6 @@ module Shelly
 
     def redeploy
       shelly.redeploy(code_name)
-    end
-
-    def cloudfile_path
-      File.join(Dir.pwd, "Cloudfile")
     end
 
     def self.guess_code_name
