@@ -7,46 +7,52 @@ module Shelly
     attr_accessor :code_name, :ruby_version, :environment, :domains,
       :databases, :size
 
-    # FIXME: use path here
-    def self.present?
-      File.exists?(File.join(Dir.pwd, "Cloudfile"))
+    # Public: Return true if Cloudfile is present in current directory
+    def present?
+      File.exists?(path)
     end
 
-    def initialize
-      open if File.exists?(path)
-    end
-
-    # Public: Path to Cloudfile in current directory
-    # Returns path as String
-    def path
-      File.join(Dir.pwd, "Cloudfile")
-    end
-
-    def open
-      @content = YAML.load(File.open(path))
-    end
-
-    def create
-      File.open(path, "a+") { |f| f << generate }
-    end
-
-    # Internal: Return path to Cloudfile template
-    def template_path
-      File.join(File.dirname(__FILE__), "templates", "Cloudfile.erb")
+    # Public: Clouds in Cloudfile
+    # Returns Array of clouds names from Cloudfile
+    # nil if there is no cloudfile
+    def clouds
+      content.keys.sort if content
     end
 
     # Public: Generate example Cloudfile based on object attributes
     # Returns the generated Cloudfile as String
     def generate
       @email = current_user.email
-      @thin = (@size == "small" ? 2 : 4)
+      @thin = @size == "small" ? 2 : 4
       template = File.read(template_path)
       cloudfile = ERB.new(template, 0, "%<>-")
       cloudfile.result(binding)
     end
 
-    def clouds
-      @content.keys.sort if @content
+    # Public: Create Cloudfile in current path (or append if exists)
+    # File is created based on assigned attributes
+    def create
+      File.open(path, "a+") { |f| f << generate }
+    end
+
+    private
+
+    # Internal: Load and parse Cloudfile
+    def content
+      return unless present?
+      @content ||= YAML.load(File.open(path))
+    end
+
+    # Internal: Path to Cloudfile in current directory
+    # Returns path as String
+    def path
+      File.join(Dir.pwd, "Cloudfile")
+    end
+
+    # Internal: Return path to Cloudfile template
+    # Returns path as String
+    def template_path
+      File.join(File.dirname(__FILE__), "templates", "Cloudfile.erb")
     end
   end
 end

@@ -112,8 +112,9 @@ module Shelly
 
     def self.guess_code_name
       guessed = nil
-      if Cloudfile.present?
-        clouds = Cloudfile.new.clouds
+      cloudfile = Cloudfile.new
+      if cloudfile.present?
+        clouds = cloudfile.clouds
         if clouds.grep(/staging/).present?
           guessed = "production"
           production_clouds = clouds.grep(/production/)
