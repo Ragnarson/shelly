@@ -12,9 +12,12 @@
       thin: <%= @thin %>
       # whenever: on
       # delayed_job: 1
-      <%- if @databases.present? -%>
       databases:
+        <%- if @databases.present? -%>
         <%- @databases.each do |kind| -%>
         - <%= kind %>
         <%- end -%>
-      <%- end -%>
+        <%- end -%>
+        <%- (Shelly::App::DATABASE_KINDS - @databases).each do |kind| -%>
+        # - <%= kind %>
+        <%- end -%>

@@ -53,6 +53,7 @@ foo-staging:
       databases:
         - postgresql
         - mongodb
+        # - redis
 config
 
         @cloudfile.generate.should == expected
@@ -80,6 +81,7 @@ foo-staging:
       databases:
         - postgresql
         - mongodb
+        # - redis
 config
         @cloudfile.generate.should == expected
       end

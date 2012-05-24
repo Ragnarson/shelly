@@ -4,7 +4,8 @@ require 'shelly/backup'
 
 module Shelly
   class App < Model
-    DATABASE_KINDS = %w(postgresql mongodb redis none)
+    DATABASE_KINDS = %w(postgresql mongodb redis)
+    DATABASE_CHOICES = DATABASE_KINDS + %w(none)
     SERVER_SIZES = %w(small large)
 
     attr_accessor :code_name, :databases, :ruby_version, :environment,
