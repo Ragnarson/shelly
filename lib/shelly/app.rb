@@ -4,7 +4,8 @@ require 'shelly/backup'
 
 module Shelly
   class App < Model
-    DATABASE_KINDS = %w(postgresql mongodb redis none)
+    DATABASE_KINDS = %w(postgresql mongodb redis)
+    DATABASE_CHOICES = DATABASE_KINDS + %w(none)
     SERVER_SIZES = %w(small large)
 
     attr_accessor :code_name, :databases, :ruby_version, :environment,
@@ -39,18 +40,6 @@ module Shelly
       system("git remote rm #{code_name} > /dev/null 2>&1")
     end
 
-    def generate_cloudfile
-      @email = current_user.email
-      thin = (size == "small" ? 2 : 4)
-      template = File.read(cloudfile_template_path)
-      cloudfile = ERB.new(template, 0, "%<>-")
-      cloudfile.result(binding)
-    end
-
-    def cloudfile_template_path
-      File.join(File.dirname(__FILE__), "templates", "Cloudfile.erb")
-    end
-
     def create
       attributes = {:code_name => code_name}
       response = shelly.create_app(attributes)
@@ -60,13 +49,19 @@ module Shelly
       self.environment = response["environment"]
     end
 
-    def delete
-      shelly.delete_app(code_name)
+    def create_cloudfile
+      cloudfile = Cloudfile.new
+      cloudfile.code_name = code_name
+      cloudfile.ruby_version = ruby_version
+      cloudfile.environment = environment
+      cloudfile.domains = domains
+      cloudfile.size = size
+      cloudfile.databases = databases
+      cloudfile.create
     end
 
-    def create_cloudfile
-      content = generate_cloudfile
-      File.open(cloudfile_path, "a+") { |f| f << content }
+    def delete
+      shelly.delete_app(code_name)
     end
 
     def deploy_logs
@@ -116,14 +111,11 @@ module Shelly
       shelly.redeploy(code_name)
     end
 
-    def cloudfile_path
-      File.join(Dir.pwd, "Cloudfile")
-    end
-
     def self.guess_code_name
       guessed = nil
-      if Cloudfile.present?
-        clouds = Cloudfile.new.clouds
+      cloudfile = Cloudfile.new
+      if cloudfile.present?
+        clouds = cloudfile.clouds
         if clouds.grep(/staging/).present?
           guessed = "production"
           production_clouds = clouds.grep(/production/)

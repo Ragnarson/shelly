@@ -1,6 +1,6 @@
 <%= @code_name %>:
-  ruby_version: 1.9.3 # 1.9.3, 1.9.2 or ree-1.8.7
-  environment: production # RAILS_ENV
+  ruby_version: <%= @ruby_version %> # 1.9.3, 1.9.2 or ree-1.8.7
+  environment: <%= @environment %> # RAILS_ENV
   monitoring_email: <%= @email %>
   domains:
     <%- @domains.each do |domain| -%>
@@ -8,14 +8,16 @@
     <%- end -%>
   servers:
     app1:
-      size: <%= size %>
-      thin: <%= thin %>
+      size: <%= @size %>
+      thin: <%= @thin %>
       # whenever: on
       # delayed_job: 1
-    <%- @databases.each do |kind| -%>
-    <%= kind %>:
-      size: <%= size %>
       databases:
+        <%- if @databases.present? -%>
+        <%- @databases.each do |kind| -%>
         - <%= kind %>
-    <%- end -%>
-
+        <%- end -%>
+        <%- end -%>
+        <%- (Shelly::App::DATABASE_KINDS - @databases).each do |kind| -%>
+        # - <%= kind %>
+        <%- end -%>

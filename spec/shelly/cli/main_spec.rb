@@ -277,7 +277,7 @@ OUT
       @app = Shelly::App.new
       @app.stub(:add_git_remote)
       @app.stub(:create)
-      @app.stub(:generate_cloudfile).and_return("Example Cloudfile")
+      @app.stub(:create_cloudfile)
       @app.stub(:git_url).and_return("git@git.shellycloud.com:foooo.git")
       Shelly::App.stub(:inside_git_repository?).and_return(true)
       Shelly::App.stub(:new).and_return(@app)
@@ -470,11 +470,8 @@ OUT
     end
 
     it "should create Cloudfile" do
-      File.exists?("/projects/foo/Cloudfile").should be_false
-      fake_stdin(["foooo", ""]) do
-        invoke(@main, :add)
-      end
-      File.read("/projects/foo/Cloudfile").should == "Example Cloudfile"
+      @app.should_receive(:create_cloudfile)
+      fake_stdin(["foooo", ""]) { invoke(@main, :add) }
     end
 
     it "should display info about adding Cloudfile to repository" do
