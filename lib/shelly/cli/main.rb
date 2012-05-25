@@ -71,7 +71,7 @@ module Shelly
       method_option "code-name", :type => :string, :aliases => "-c",
         :desc => "Unique code-name of your cloud"
       method_option :databases, :type => :array, :aliases => "-d",
-        :banner => Shelly::App::DATABASE_KINDS.join(', '),
+        :banner => Shelly::App::DATABASE_CHOICES.join(', '),
         :desc => "List of databases of your choice"
       method_option :size, :type => :string, :aliases => "-s",
         :desc => "Server size [large, small]"
@@ -417,7 +417,7 @@ We have been notified about it. We will be adding new resources shortly}
 
         def valid_databases?(databases)
           return true unless databases.present?
-          kinds = Shelly::App::DATABASE_KINDS
+          kinds = Shelly::App::DATABASE_CHOICES
           databases.all? { |kind| kinds.include?(kind) }
         end
 
@@ -452,7 +452,7 @@ We have been notified about it. We will be adding new resources shortly}
         end
 
         def ask_for_databases
-          kinds = Shelly::App::DATABASE_KINDS
+          kinds = Shelly::App::DATABASE_CHOICES
           databases = ask("Which database do you want to use #{kinds.join(", ")} (postgresql - default):")
           begin
             databases = databases.split(/[\s,]/).reject(&:blank?)
