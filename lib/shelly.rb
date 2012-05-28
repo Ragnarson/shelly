@@ -14,6 +14,7 @@ module Shelly
   autoload :App, "shelly/app"
   autoload :Cloudfile, "shelly/cloudfile"
   autoload :Client, "shelly/client"
+  autoload :StructureValidator, "shelly/structure_validator"
   autoload :User, "shelly/user"
   autoload :VERSION, "shelly/version"
 end

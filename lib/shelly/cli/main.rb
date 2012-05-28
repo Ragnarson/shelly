@@ -17,7 +17,7 @@ module Shelly
 
       # FIXME: it should be possible to pass single symbol, instead of one element array
       before_hook :logged_in?, :only => [:add, :status, :list, :start, :stop, :logs, :delete, :info, :ip, :logout, :execute, :rake, :setup, :console, :upload]
-      before_hook :inside_git_repository?, :only => [:add, :setup]
+      before_hook :inside_git_repository?, :only => [:add, :setup, :check]
 
       map %w(-v --version) => :version
       desc "version", "Display shelly version"
@@ -380,6 +380,22 @@ We have been notified about it. We will be adding new resources shortly}
         say_error "You have no access to '#{app}' cloud defined in Cloudfile"
       rescue Client::ConflictException
         say_error "Cloud #{app} is not running. Cannot upload files."
+      end
+
+      require 'bundler'
+      desc "check", "List all requirements and check which are fulfilled"
+      def check
+        s = Shelly::StructureValidator.new
+        say "Checking dependencies:", :green
+        print_check s.gemfile_exists?, "Gemfile exists"
+        print_check s.gems.include?("thin"), "gem 'thin' present in Gemfile"
+        print_check s.config_ru_exists?, "config.ru exists"
+        print_check !(s.gems.include?("mysql2") or s.gems.include?("mysql")),
+          "application doesn't use mysql database"
+      rescue Bundler::BundlerError => e
+        say_new_line
+        say_error e.message, :with_exit => false
+        say_error "Try to run `bundle install`"
       end
 
       # FIXME: move to helpers

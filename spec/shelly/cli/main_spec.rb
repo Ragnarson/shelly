@@ -26,6 +26,7 @@ describe Shelly::CLI::Main do
 Tasks:
   shelly add                # Add a new cloud
   shelly backup <command>   # Manage database backups
+  shelly check              # List all requirements and check which are fulfilled
   shelly config <command>   # Manage application configuration files
   shelly console            # Open application console
   shelly delete             # Delete the cloud
@@ -1362,6 +1363,97 @@ We have been notified about it. We will be adding new resources shortly")
         $stdout.should_receive(:puts).with(red "Cloud foo-production is not running. Cannot upload files.")
         lambda {
           invoke(@main, :upload, "some/path")
+        }.should raise_error(SystemExit)
+      end
+    end
+  end
+
+  describe "#check" do
+    before do
+      Shelly::App.stub(:inside_git_repository?).and_return(true)
+      Bundler::Definition.stub_chain(:build, :specs, :map).and_return(["thin"])
+      Grit::Repo.stub_chain(:new, :status, :map).and_return(["config.ru"])
+      File.open("Gemfile", 'w')
+    end
+
+    it "should ensure user is in git repository" do
+      hooks(@main, :check).should include(:inside_git_repository?)
+    end
+
+    context "when gemfile exists" do
+      it "should show that Gemfile exists" do
+        $stdout.should_receive(:puts).with("  #{green("+")} Gemfile exists")
+        invoke(@main, :check)
+      end
+    end
+
+    context "when gemfile doesn't exist" do
+      it "should show that Gemfile doesn't exist" do
+        File.delete("Gemfile")
+        $stdout.should_receive(:puts).with("  #{red("-")} Gemfile exists")
+        invoke(@main, :check)
+      end
+    end
+
+    context "when thin gem exists" do
+      it "should show that necessary gem exists" do
+        $stdout.should_receive(:puts).with("  #{green("+")} gem 'thin' present in Gemfile")
+        invoke(@main, :check)
+      end
+    end
+
+    context "when thin gem doesn't exist" do
+      it "should show that necessary gem dosn't exist" do
+        Bundler::Definition.stub_chain(:build, :specs, :map).and_return([])
+        $stdout.should_receive(:puts).with("  #{red("-")} gem 'thin' present in Gemfile")
+        invoke(@main, :check)
+      end
+    end
+
+    context "when config.ru exists" do
+      it "should show that config.ru exists" do
+        $stdout.should_receive(:puts).with("  #{green("+")} config.ru exists")
+        invoke(@main, :check)
+      end
+    end
+
+    context "when config.ru doesn't exist" do
+      it "should show that config.ru is neccessary" do
+        Grit::Repo.stub_chain(:new, :status, :map).and_return([])
+        $stdout.should_receive(:puts).with("  #{red("-")} config.ru exists")
+        invoke(@main, :check)
+      end
+    end
+
+    context "when mysql gem exists" do
+      it "should show that mysql gem is not supported by Shelly Cloud" do
+        Bundler::Definition.stub_chain(:build, :specs, :map).and_return(["mysql"])
+        $stdout.should_receive(:puts).with("  #{red("-")} application doesn't use mysql database")
+        invoke(@main, :check)
+      end
+
+      it "should show that mysql2 gem is not supported by Shelly Cloud" do
+        Bundler::Definition.stub_chain(:build, :specs, :map).and_return(["mysql2"])
+        $stdout.should_receive(:puts).with("  #{red("-")} application doesn't use mysql database")
+        invoke(@main, :check)
+      end
+    end
+
+    context "when mysql gem doesn't exist" do
+      it "should show that mysql gem doesn't exist" do
+        $stdout.should_receive(:puts).with("  #{green("+")} application doesn't use mysql database")
+        invoke(@main, :check)
+      end
+    end
+
+    context "when bundler raise error" do
+      it "should display error message" do
+        exception = Bundler::BundlerError.new('Bundler error')
+        Bundler::Definition.stub(:build).and_raise(exception)
+        $stdout.should_receive(:puts).with(red "Bundler error")
+        $stdout.should_receive(:puts).with(red "Try to run `bundle install`")
+        lambda {
+          invoke(@main, :check)
         }.should raise_error(SystemExit)
       end
     end
