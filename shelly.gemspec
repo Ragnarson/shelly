@@ -27,6 +27,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency "rest-client"
   s.add_runtime_dependency "json"
   s.add_runtime_dependency "progressbar"
+  s.add_runtime_dependency "grit"
   s.add_runtime_dependency "launchy"
   s.add_runtime_dependency "shelly-dependencies", "~> 0.1.1"
 
