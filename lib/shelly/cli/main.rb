@@ -390,8 +390,7 @@ We have been notified about it. We will be adding new resources shortly}
         print_check s.gemfile_exists?, "Gemfile exists"
         print_check s.gems.include?("thin"), "gem 'thin' present in Gemfile"
         print_check s.config_ru_exists?, "config.ru exists"
-        print_check !(s.gems.include?("mysql2") or s.gems.include?("mysql")),
-          "application doesn't use mysql database"
+        print_check false, "application runs mysql (not supported on Shelly Cloud)" if s.gems.include?("mysql2") or s.gems.include?("mysql")
       rescue Bundler::BundlerError => e
         say_new_line
         say_error e.message, :with_exit => false

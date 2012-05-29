@@ -1431,20 +1431,13 @@ We have been notified about it. We will be adding new resources shortly")
     context "when mysql gem exists" do
       it "should show that mysql gem is not supported by Shelly Cloud" do
         Bundler::Definition.stub_chain(:build, :specs, :map).and_return(["mysql"])
-        $stdout.should_receive(:puts).with("  #{red("-")} application doesn't use mysql database")
+        $stdout.should_receive(:puts).with("  #{red("-")} application runs mysql (not supported on Shelly Cloud)")
         invoke(@main, :check)
       end
 
       it "should show that mysql2 gem is not supported by Shelly Cloud" do
         Bundler::Definition.stub_chain(:build, :specs, :map).and_return(["mysql2"])
-        $stdout.should_receive(:puts).with("  #{red("-")} application doesn't use mysql database")
-        invoke(@main, :check)
-      end
-    end
-
-    context "when mysql gem doesn't exist" do
-      it "should show that mysql gem doesn't exist" do
-        $stdout.should_receive(:puts).with("  #{green("+")} application doesn't use mysql database")
+        $stdout.should_receive(:puts).with("  #{red("-")} application runs mysql (not supported on Shelly Cloud)")
         invoke(@main, :check)
       end
     end
