@@ -26,6 +26,7 @@ describe Shelly::CLI::Main do
 Tasks:
   shelly add                # Add a new cloud
   shelly backup <command>   # Manage database backups
+  shelly check              # List all requirements and check which are fulfilled
   shelly config <command>   # Manage application configuration files
   shelly console            # Open application console
   shelly delete             # Delete the cloud
@@ -56,18 +57,12 @@ OUT
     end
 
     it "should display options in help for logs" do
-      expected = <<-OUT
-Usage:
-  shelly logs
-
-Options:
-  -c, [--cloud=CLOUD]  # Specify cloud
-      [--debug]        # Show debug information
-
-Show latest application logs
-OUT
       out = IO.popen("bin/shelly help logs").read.strip
-      out.should == expected.strip
+      out.should include("-c, [--cloud=CLOUD]  # Specify cloud")
+      out.should include("-n, [--limit=N]      # Amount of messages to show")
+      out.should include("-f, [--tail]         # Show new logs automatically")
+      out.should include("[--from=FROM]    # Time from which to find the logs")
+      out.should include("[--debug]        # Show debug information")
     end
   end
 
@@ -283,7 +278,7 @@ OUT
       @app = Shelly::App.new
       @app.stub(:add_git_remote)
       @app.stub(:create)
-      @app.stub(:generate_cloudfile).and_return("Example Cloudfile")
+      @app.stub(:create_cloudfile)
       @app.stub(:git_url).and_return("git@git.shellycloud.com:foooo.git")
       Shelly::App.stub(:inside_git_repository?).and_return(true)
       Shelly::App.stub(:new).and_return(@app)
@@ -476,11 +471,8 @@ OUT
     end
 
     it "should create Cloudfile" do
-      File.exists?("/projects/foo/Cloudfile").should be_false
-      fake_stdin(["foooo", ""]) do
-        invoke(@main, :add)
-      end
-      File.read("/projects/foo/Cloudfile").should == "Example Cloudfile"
+      @app.should_receive(:create_cloudfile)
+      fake_stdin(["foooo", ""]) { invoke(@main, :add) }
     end
 
     it "should display info about adding Cloudfile to repository" do
@@ -747,6 +739,12 @@ We have been notified about it. We will be adding new resources shortly")
       @app = Shelly::App.new("foo-production")
       @main.stub(:logged_in?).and_return(true)
       @app.stub(:attributes).and_return(response)
+      @statistics = [{"name" => "app1",
+                      "memory" => {"kilobyte" => "276756", "percent" => "74.1"},
+                      "swap" => {"kilobyte" => "44332", "percent" => "2.8"},
+                      "cpu" => {"wait" => "0.8", "system" => "0.0", "user" => "0.1"},
+                      "load" => {"avg15" => "0.13", "avg05" => "0.15", "avg01" => "0.04"}}]
+      @app.stub(:statistics).and_return(@statistics)
     end
 
     it "should ensure user has logged in" do
@@ -770,6 +768,10 @@ We have been notified about it. We will be adding new resources shortly")
         $stdout.should_receive(:puts).with("  Repository URL: git@winniecloud.net:example-cloud")
         $stdout.should_receive(:puts).with("  Web server IP: 22.22.22.22")
         $stdout.should_receive(:puts).with("  Mail server IP: 11.11.11.11")
+        $stdout.should_receive(:puts).with("  Statistics:")
+        $stdout.should_receive(:puts).with("    app1:")
+        $stdout.should_receive(:puts).with("      Load average: 1m: 0.04, 5m: 0.15, 15m: 0.13")
+        $stdout.should_receive(:puts).with("      CPU: 0.8%, MEM: 74.1%, SWAP: 2.8%")
         invoke(@main, :info)
       end
 
@@ -785,6 +787,10 @@ We have been notified about it. We will be adding new resources shortly")
           $stdout.should_receive(:puts).with("  Repository URL: git@winniecloud.net:example-cloud")
           $stdout.should_receive(:puts).with("  Web server IP: 22.22.22.22")
           $stdout.should_receive(:puts).with("  Mail server IP: 11.11.11.11")
+          $stdout.should_receive(:puts).with("  Statistics:")
+          $stdout.should_receive(:puts).with("    app1:")
+          $stdout.should_receive(:puts).with("      Load average: 1m: 0.04, 5m: 0.15, 15m: 0.13")
+          $stdout.should_receive(:puts).with("      CPU: 0.8%, MEM: 74.1%, SWAP: 2.8%")
           invoke(@main, :info)
         end
 
@@ -799,7 +805,29 @@ We have been notified about it. We will be adding new resources shortly")
           $stdout.should_receive(:puts).with("  Repository URL: git@winniecloud.net:example-cloud")
           $stdout.should_receive(:puts).with("  Web server IP: 22.22.22.22")
           $stdout.should_receive(:puts).with("  Mail server IP: 11.11.11.11")
+          $stdout.should_receive(:puts).with("  Statistics:")
+          $stdout.should_receive(:puts).with("    app1:")
+          $stdout.should_receive(:puts).with("      Load average: 1m: 0.04, 5m: 0.15, 15m: 0.13")
+          $stdout.should_receive(:puts).with("      CPU: 0.8%, MEM: 74.1%, SWAP: 2.8%")
           invoke(@main, :info)
+        end
+
+        it "should not display statistics when statistics are empty" do
+          @app.stub(:attributes).and_return(response({"state" => "turned_off"}))
+          @main.should_receive(:multiple_clouds).and_return(@app)
+          @app.stub(:statistics).and_return([])
+          $stdout.should_not_receive(:puts).with("Statistics:")
+          invoke(@main, :info)
+        end
+      end
+
+      context "on failure" do
+        it "should raise an error if statistics unavailable" do
+          @main.should_receive(:multiple_clouds).and_return(@app)
+          exception = Shelly::Client::GatewayTimeoutException.new
+          @app.stub(:statistics).and_raise(exception)
+          $stdout.should_receive(:puts).with(red "Server statistics temporarily unavailable")
+          lambda { invoke(@main, :info) }.should raise_error(SystemExit)
         end
       end
     end
@@ -1070,6 +1098,7 @@ We have been notified about it. We will be adding new resources shortly")
                                      {"code_name" => "foo-staging"}])
       @app = Shelly::App.new
       Shelly::App.stub(:new).and_return(@app)
+      @sample_logs = {"entries" => [['app1', 'log1'], ['app1', 'log2']]}
     end
 
     it "should ensure user has logged in" do
@@ -1078,7 +1107,7 @@ We have been notified about it. We will be adding new resources shortly")
 
     # multiple_clouds is tested in main_spec.rb in describe "#start" block
     it "should ensure multiple_clouds check" do
-      @client.stub(:application_logs).and_return(["log1"])
+      @client.stub(:application_logs).and_return(@sample_logs)
       @main.should_receive(:multiple_clouds).and_return(@app)
       invoke(@main, :logs)
     end
@@ -1091,24 +1120,26 @@ We have been notified about it. We will be adding new resources shortly")
       lambda { invoke(@main, :logs) }.should raise_error(SystemExit)
     end
 
+    it "should exit if user requested too many log lines" do
+      exception = Shelly::Client::APIException.new({}, 416)
+      @client.stub(:application_logs).and_raise(exception)
+      $stdout.should_receive(:puts).
+        with(red "You have requested too many log messages. Try a lower number.")
+      lambda { invoke(@main, :logs) }.should raise_error(SystemExit)
+    end
+
     it "should show logs for the cloud" do
-      @client.stub(:application_logs).and_return(["log1"])
-      $stdout.should_receive(:puts).with(green "Cloud foo-production:")
-      $stdout.should_receive(:puts).with(green "Instance 1:")
-      $stdout.should_receive(:puts).with("log1")
+      @client.stub(:application_logs).and_return(@sample_logs)
+      $stdout.should_receive(:puts).with("    app1 | log1\n")
+      $stdout.should_receive(:puts).with("    app1 | log2\n")
       invoke(@main, :logs)
     end
 
-    context "multiple instances" do
-      it "should show logs from each instance" do
-        @client.stub(:application_logs).and_return(["log1", "log2"])
-        $stdout.should_receive(:puts).with(green "Cloud foo-production:")
-        $stdout.should_receive(:puts).with(green "Instance 1:")
-        $stdout.should_receive(:puts).with("log1")
-        $stdout.should_receive(:puts).with(green "Instance 2:")
-        $stdout.should_receive(:puts).with("log2")
-        invoke(@main, :logs)
-      end
+    it "should show requested amount of logs" do
+      @client.should_receive(:application_logs).
+        with("foo-production", {:limit => 2}).and_return(@sample_logs)
+      @main.options = {:limit => 2}
+      invoke(@main, :logs)
     end
   end
 
@@ -1332,6 +1363,90 @@ We have been notified about it. We will be adding new resources shortly")
         $stdout.should_receive(:puts).with(red "Cloud foo-production is not running. Cannot upload files.")
         lambda {
           invoke(@main, :upload, "some/path")
+        }.should raise_error(SystemExit)
+      end
+    end
+  end
+
+  describe "#check" do
+    before do
+      Shelly::App.stub(:inside_git_repository?).and_return(true)
+      Bundler::Definition.stub_chain(:build, :specs, :map).and_return(["thin"])
+      Grit::Repo.stub_chain(:new, :status, :map).and_return(["config.ru"])
+      File.open("Gemfile", 'w')
+    end
+
+    it "should ensure user is in git repository" do
+      hooks(@main, :check).should include(:inside_git_repository?)
+    end
+
+    context "when gemfile exists" do
+      it "should show that Gemfile exists" do
+        $stdout.should_receive(:puts).with("  #{green("+")} Gemfile exists")
+        invoke(@main, :check)
+      end
+    end
+
+    context "when gemfile doesn't exist" do
+      it "should show that Gemfile doesn't exist" do
+        File.delete("Gemfile")
+        $stdout.should_receive(:puts).with("  #{red("-")} Gemfile exists")
+        invoke(@main, :check)
+      end
+    end
+
+    context "when thin gem exists" do
+      it "should show that necessary gem exists" do
+        $stdout.should_receive(:puts).with("  #{green("+")} gem 'thin' present in Gemfile")
+        invoke(@main, :check)
+      end
+    end
+
+    context "when thin gem doesn't exist" do
+      it "should show that necessary gem dosn't exist" do
+        Bundler::Definition.stub_chain(:build, :specs, :map).and_return([])
+        $stdout.should_receive(:puts).with("  #{red("-")} gem 'thin' present in Gemfile")
+        invoke(@main, :check)
+      end
+    end
+
+    context "when config.ru exists" do
+      it "should show that config.ru exists" do
+        $stdout.should_receive(:puts).with("  #{green("+")} config.ru exists")
+        invoke(@main, :check)
+      end
+    end
+
+    context "when config.ru doesn't exist" do
+      it "should show that config.ru is neccessary" do
+        Grit::Repo.stub_chain(:new, :status, :map).and_return([])
+        $stdout.should_receive(:puts).with("  #{red("-")} config.ru exists")
+        invoke(@main, :check)
+      end
+    end
+
+    context "when mysql gem exists" do
+      it "should show that mysql gem is not supported by Shelly Cloud" do
+        Bundler::Definition.stub_chain(:build, :specs, :map).and_return(["mysql"])
+        $stdout.should_receive(:puts).with("  #{red("-")} application runs mysql (not supported on Shelly Cloud)")
+        invoke(@main, :check)
+      end
+
+      it "should show that mysql2 gem is not supported by Shelly Cloud" do
+        Bundler::Definition.stub_chain(:build, :specs, :map).and_return(["mysql2"])
+        $stdout.should_receive(:puts).with("  #{red("-")} application runs mysql (not supported on Shelly Cloud)")
+        invoke(@main, :check)
+      end
+    end
+
+    context "when bundler raise error" do
+      it "should display error message" do
+        exception = Bundler::BundlerError.new('Bundler error')
+        Bundler::Definition.stub(:build).and_raise(exception)
+        $stdout.should_receive(:puts).with(red "Bundler error")
+        $stdout.should_receive(:puts).with(red "Try to run `bundle install`")
+        lambda {
+          invoke(@main, :check)
         }.should raise_error(SystemExit)
       end
     end

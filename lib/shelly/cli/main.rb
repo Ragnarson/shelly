@@ -17,7 +17,7 @@ module Shelly
 
       # FIXME: it should be possible to pass single symbol, instead of one element array
       before_hook :logged_in?, :only => [:add, :status, :list, :start, :stop, :logs, :delete, :info, :ip, :logout, :execute, :rake, :setup, :console, :upload]
-      before_hook :inside_git_repository?, :only => [:add, :setup]
+      before_hook :inside_git_repository?, :only => [:add, :setup, :check]
 
       map %w(-v --version) => :version
       desc "version", "Display shelly version"
@@ -71,7 +71,7 @@ module Shelly
       method_option "code-name", :type => :string, :aliases => "-c",
         :desc => "Unique code-name of your cloud"
       method_option :databases, :type => :array, :aliases => "-d",
-        :banner => Shelly::App::DATABASE_KINDS.join(', '),
+        :banner => Shelly::App::DATABASE_CHOICES.join(', '),
         :desc => "List of databases of your choice"
       method_option :size, :type => :string, :aliases => "-s",
         :desc => "Server size [large, small]"
@@ -150,9 +150,20 @@ module Shelly
         print_wrapped "Repository URL: #{app.git_info["repository_url"]}", :ident => 2
         print_wrapped "Web server IP: #{app.web_server_ip}", :ident => 2
         print_wrapped "Mail server IP: #{app.mail_server_ip}", :ident => 2
+        say_new_line
+        if app.statistics.present?
+          print_wrapped "Statistics:", :ident => 2
+          app.statistics.each do |stat|
+            print_wrapped "#{stat['name']}:", :ident => 4
+            print_wrapped "Load average: 1m: #{stat['load']['avg01']}, 5m: #{stat['load']['avg05']}, 15m: #{stat['load']['avg15']}", :ident => 6
+            print_wrapped "CPU: #{stat['cpu']['wait']}%, MEM: #{stat['memory']['percent']}%, SWAP: #{stat['swap']['percent']}%", :ident => 6
+          end
+        end
       rescue Client::NotFoundException => e
         raise unless e.resource == :cloud
         say_error "You have no access to '#{app}' cloud defined in Cloudfile"
+      rescue Client::GatewayTimeoutException
+        say_error "Server statistics temporarily unavailable"
       end
 
       desc "start", "Start the cloud"
@@ -259,19 +270,33 @@ We have been notified about it. We will be adding new resources shortly}
 
       desc "logs", "Show latest application logs"
       method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
+      method_option :limit, :type => :numeric, :aliases => "-n", :desc => "Amount of messages to show"
+      method_option :from, :type => :string, :desc => "Time from which to find the logs"
+      method_option :tail, :type => :boolean, :aliases => "-f", :desc => "Show new logs automatically"
       def logs
         cloud = options[:cloud]
         app = multiple_clouds(cloud, "logs")
         begin
-          logs = app.application_logs
-          say "Cloud #{app}:", :green
-          logs.each_with_index do |log, i|
-            say "Instance #{i+1}:", :green
-            say log
+          limit = options[:limit].to_i <= 0 ? 100 : options[:limit]
+          query = {:limit => limit}
+          query.merge!(:from => options[:from]) if options[:from]
+
+          logs = app.application_logs(query)
+          print_logs(logs)
+
+          if options[:tail]
+            loop do
+              logs = app.application_logs(:from => logs['range']['last'])
+              print_logs(logs)
+              sleep 1
+            end
           end
         rescue Client::NotFoundException => e
           raise unless e.resource == :cloud
           say_error "You have no access to '#{cloud || app}' cloud defined in Cloudfile"
+        rescue Client::APIException => e
+          raise e unless e.status_code == 416
+          say_error "You have requested too many log messages. Try a lower number."
         end
       end
 
@@ -357,6 +382,21 @@ We have been notified about it. We will be adding new resources shortly}
         say_error "Cloud #{app} is not running. Cannot upload files."
       end
 
+      require 'bundler'
+      desc "check", "List all requirements and check which are fulfilled"
+      def check
+        s = Shelly::StructureValidator.new
+        say "Checking dependencies:", :green
+        print_check s.gemfile_exists?, "Gemfile exists"
+        print_check s.gems.include?("thin"), "gem 'thin' present in Gemfile"
+        print_check s.config_ru_exists?, "config.ru exists"
+        print_check false, "application runs mysql (not supported on Shelly Cloud)" if s.gems.include?("mysql2") or s.gems.include?("mysql")
+      rescue Bundler::BundlerError => e
+        say_new_line
+        say_error e.message, :with_exit => false
+        say_error "Try to run `bundle install`"
+      end
+
       # FIXME: move to helpers
       no_tasks do
         # Returns valid arguments for rake, removes shelly gem arguments
@@ -392,7 +432,7 @@ We have been notified about it. We will be adding new resources shortly}
 
         def valid_databases?(databases)
           return true unless databases.present?
-          kinds = Shelly::App::DATABASE_KINDS
+          kinds = Shelly::App::DATABASE_CHOICES
           databases.all? { |kind| kinds.include?(kind) }
         end
 
@@ -427,7 +467,7 @@ We have been notified about it. We will be adding new resources shortly}
         end
 
         def ask_for_databases
-          kinds = Shelly::App::DATABASE_KINDS
+          kinds = Shelly::App::DATABASE_CHOICES
           databases = ask("Which database do you want to use #{kinds.join(", ")} (postgresql - default):")
           begin
             databases = databases.split(/[\s,]/).reject(&:blank?)

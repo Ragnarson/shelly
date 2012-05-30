@@ -179,95 +179,19 @@ describe Shelly::App do
     end
   end
 
-  describe "#generate_cloudfile" do
-    it "should return generated cloudfile for large instance" do
-      user = mock(:email => "bob@example.com")
-      @app.stub(:current_user).and_return(user)
-      @app.databases = %w(postgresql mongodb)
-      @app.domains = %w(foo-staging.winniecloud.com foo.example.com)
-      @app.size = "large"
-      FakeFS.deactivate!
-      expected = <<-config
-foo-staging:
-  ruby_version: 1.9.3 # 1.9.3, 1.9.2 or ree-1.8.7
-  environment: production # RAILS_ENV
-  monitoring_email: bob@example.com
-  domains:
-    - foo-staging.winniecloud.com
-    - foo.example.com
-  servers:
-    app1:
-      size: large
-      thin: 4
-      # whenever: on
-      # delayed_job: 1
-    postgresql:
-      size: large
-      databases:
-        - postgresql
-    mongodb:
-      size: large
-      databases:
-        - mongodb
-config
-      @app.generate_cloudfile.strip.should == expected.strip
-    end
-
-    it "should return generated cloudfile for small instance" do
-      user = mock(:email => "bob@example.com")
-      @app.stub(:current_user).and_return(user)
-      @app.databases = %w(postgresql mongodb)
-      @app.domains = %w(foo-staging.winniecloud.com foo.example.com)
-      @app.size = "small"
-      FakeFS.deactivate!
-      expected = <<-config
-foo-staging:
-  ruby_version: 1.9.3 # 1.9.3, 1.9.2 or ree-1.8.7
-  environment: production # RAILS_ENV
-  monitoring_email: bob@example.com
-  domains:
-    - foo-staging.winniecloud.com
-    - foo.example.com
-  servers:
-    app1:
-      size: small
-      thin: 2
-      # whenever: on
-      # delayed_job: 1
-    postgresql:
-      size: small
-      databases:
-        - postgresql
-    mongodb:
-      size: small
-      databases:
-        - mongodb
-config
-      @app.generate_cloudfile.strip.should == expected.strip
-    end
-  end
-
-  describe "#create_cloudfile" do
+  describe "#statistics" do
     before do
-      @app.stub(:generate_cloudfile).and_return("foo-staging:")
+      @response = [{"name"=>"app1",
+                    "memory" => {"kilobyte"=>"276756", "percent" => "74.1"},
+                    "swap" => {"kilobyte" => "44332", "percent" => "2.8"},
+                    "cpu" => {"wait" => "0.8", "system" => "0.0", "user" => "0.1"},
+                    "load" => {"avg15" => "0.13", "avg05" => "0.15", "avg01" => "0.04"}}]
+      @client.stub(:statistics).and_return(@response)
     end
 
-    it "should create file if Cloudfile doesn't exist" do
-      File.exists?("/projects/foo/Cloudfile").should be_false
-      @app.create_cloudfile
-      File.exists?("/projects/foo/Cloudfile").should be_true
-    end
-
-    it "should append content if Cloudfile exists" do
-      File.open("/projects/foo/Cloudfile", "w") { |f| f << "foo-production:\n" }
-      @app.create_cloudfile
-      File.read("/projects/foo/Cloudfile").strip.should == "foo-production:\nfoo-staging:"
-    end
-  end
-
-  describe "#cloudfile_path" do
-    it "should return path to Cloudfile" do
-      @app.cloudfile_path.should == "/projects/foo/Cloudfile"
+    it "should fetch app statistics from API and cache them" do
+      @client.should_receive(:statistics).with("foo-staging").exactly(:once).and_return(@response)
+      2.times { @app.statistics }
     end
   end
 
@@ -292,8 +216,8 @@ config
 
   describe "#application_logs" do
     it "should list application_logs" do
-      @client.should_receive(:application_logs).with("foo-staging").
-        and_return({"logs" => ["log1", "log2"]})
+      @client.should_receive(:application_logs).with("foo-staging", {}).
+        and_return({"entries" => [["app1", "log1"], ["app2", "log2"]]})
       @app.application_logs
     end
   end
@@ -410,6 +334,26 @@ config
         {"node_ip" => "10.0.0.1", "port" => "40010", "user" => "foo"})
       @app.should_receive(:exec).with("rsync -avz -e 'ssh -o StrictHostKeyChecking=no -p 40010' --progress /path foo@10.0.0.1:/srv/glusterfs/disk")
       @app.upload("/path")
+    end
+  end
+
+  describe "#create_cloudfile" do
+    it "should create cloudfile with app attributes" do
+      @app.ruby_version = "1.9.3"
+      @app.environment = "production"
+      @app.domains = ["example.com", "another.example.com"]
+      @app.size = "large"
+      @app.databases = []
+      cloudfile = mock
+      cloudfile.should_receive(:code_name=).with("foo-staging")
+      cloudfile.should_receive(:ruby_version=).with("1.9.3")
+      cloudfile.should_receive(:environment=).with("production")
+      cloudfile.should_receive(:domains=).with(["example.com", "another.example.com"])
+      cloudfile.should_receive(:size=).with("large")
+      cloudfile.should_receive(:databases=).with([])
+      cloudfile.should_receive(:create)
+      Shelly::Cloudfile.should_receive(:new).and_return(cloudfile)
+      @app.create_cloudfile
     end
   end
 end

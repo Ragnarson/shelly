@@ -64,7 +64,7 @@ module Shelly
     end
 
     def cloudfile_present?
-      say_error "No Cloudfile found" unless Cloudfile.present?
+      say_error "No Cloudfile found" unless Cloudfile.new.present?
     end
 
     def ask_to_restore_database
@@ -103,7 +103,7 @@ module Shelly
         end
         exit 1
       end
-      unless Cloudfile.present? || cloud
+      unless Cloudfile.new.present? || cloud
         say_error "You have to specify cloud.", :with_exit => false
         say "Select cloud using `shelly #{action} --cloud CLOUD_NAME`"
         Shelly::CLI::Main.new.list
@@ -113,6 +113,24 @@ module Shelly
       app = Shelly::App.new
       app.code_name = cloud || clouds.first
       app
+    end
+
+    def print_logs(logs)
+      logs['entries'].each do |entry|
+        say "%8.8s | %s\n" % entry
+      end
+    end
+
+    def green(string)
+      "\e[32m#{string}\e[0m"
+    end
+
+    def red(string)
+      "\e[31m#{string}\e[0m"
+    end
+
+    def print_check(checked, string, options = {})
+      print_wrapped (checked ? green("+") : red("-")) + " #{string}", :ident => 2
     end
   end
 end
