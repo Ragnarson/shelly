@@ -53,7 +53,7 @@ module Shelly
         when :cloud
           say_error "You have no access to '#{app.code_name}' cloud defined in Cloudfile"
         when :log
-          say_error "Log not found, list all deploy logs using  `shelly deploys list --cloud=#{app.code_name}`"
+          say_error "Log not found, list all deploy logs using `shelly deploys list --cloud=#{app.code_name}`"
         else raise
         end
       end
@@ -62,7 +62,7 @@ module Shelly
         def specify_log(log)
           unless log
             say_error "Specify log by passing date value or to see last log use:", :with_exit => false
-            say "  shelly deploys show last"
+            say "`shelly deploys show last`"
             exit 1
           end
         end

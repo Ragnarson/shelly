@@ -82,7 +82,7 @@ describe Shelly::CLI::Deploys do
       it "should exit 1 with message" do
         exception = Shelly::Client::NotFoundException.new("resource" => "log")
         @client.stub(:deploy_log).and_raise(exception)
-        $stdout.should_receive(:puts).with(red "Log not found, list all deploy logs using  `shelly deploys list --cloud=foo-staging`")
+        $stdout.should_receive(:puts).with(red "Log not found, list all deploy logs using `shelly deploys list --cloud=foo-staging`")
         lambda { @deploys.show("last") }.should raise_error(SystemExit)
       end
     end

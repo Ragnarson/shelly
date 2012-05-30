@@ -186,7 +186,7 @@ describe Shelly::CLI::Backup do
       $stdout.should_receive(:puts).with("\n")
       @client.stub(:restore_backup).with("todo-list-test","better.tar.gz")
       $stdout.should_receive(:puts).with("\n")
-      $stdout.should_receive(:puts).with("Restore has been scheduled. Wait a few minutes till database is restored.")
+      $stdout.should_receive(:puts).with(green "Restore has been scheduled. Wait a few minutes till database is restored.")
 
       fake_stdin(["yes"]) do
         invoke(@backup, :restore, "better.tar.gz")

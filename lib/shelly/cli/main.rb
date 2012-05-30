@@ -39,8 +39,8 @@ module Shelly
           say_error "No such file or directory - #{user.ssh_key_path}", :with_exit => false
           say_error "Use ssh-keygen to generate ssh key pair, after that use: `shelly login`", :with_exit => false
         end
-        say "Successfully registered!"
-        say "Check you mailbox for email address confirmation"
+        say "Successfully registered!", :green
+        say "Check you mailbox for email address confirmation", :green
       rescue Client::ValidationException => e
         e.each_error { |error| say_error "#{error}", :with_exit => false }
         exit 1
@@ -53,7 +53,7 @@ module Shelly
         user.email = email || ask_for_email
         user.password = ask_for_password(:with_confirmation => false)
         user.login
-        say "Login successful"
+        say "Login successful", :green
         user.upload_ssh_key
         say "Uploading your public SSH key"
         list
@@ -172,7 +172,7 @@ module Shelly
         when "no_code"
           say_error "Not starting: no source code provided", :with_exit => false
           say_error "Push source code using:", :with_exit => false
-          say       "  git push #{app} master"
+          say       "`git push #{app} master`"
         when "deploy_failed", "configuration_failed"
           say_error "Not starting: deployment failed", :with_exit => false
           say_error "Support has been notified", :with_exit => false

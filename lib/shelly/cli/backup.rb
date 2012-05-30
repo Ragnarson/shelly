@@ -84,7 +84,7 @@ module Shelly
         ask_to_restore_database
         app.restore_backup(filename)
         say_new_line
-        say "Restore has been scheduled. Wait a few minutes till database is restored."
+        say "Restore has been scheduled. Wait a few minutes till database is restored.", :green
       rescue Client::NotFoundException => e
         case e.resource
         when :cloud

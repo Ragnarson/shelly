@@ -161,8 +161,8 @@ OUT
     context "on successful registration" do
       it "should display message about registration and email address confirmation" do
         @client.stub(:register_user).and_return(true)
-        $stdout.should_receive(:puts).with("Successfully registered!")
-        $stdout.should_receive(:puts).with("Check you mailbox for email address confirmation")
+        $stdout.should_receive(:puts).with(green "Successfully registered!")
+        $stdout.should_receive(:puts).with(green "Check you mailbox for email address confirmation")
         fake_stdin(["kate@example.com", "pass", "pass", "yes"]) do
           invoke(@main, :register)
         end
@@ -216,14 +216,14 @@ OUT
 
     context "on successful login" do
       it "should display message about successful login" do
-        $stdout.should_receive(:puts).with("Login successful")
+        $stdout.should_receive(:puts).with(green "Login successful")
         fake_stdin(["megan@example.com", "secret"]) do
           invoke(@main, :login)
         end
       end
 
       it "should accept email as parameter" do
-        $stdout.should_receive(:puts).with("Login successful")
+        $stdout.should_receive(:puts).with(green "Login successful")
         fake_stdin(["secret"]) do
           invoke(@main, :login, "megan@example.com")
         end
@@ -648,7 +648,7 @@ OUT
         raise_conflict("state" => "no_code")
         $stdout.should_receive(:puts).with(red "Not starting: no source code provided")
         $stdout.should_receive(:puts).with(red "Push source code using:")
-        $stdout.should_receive(:puts).with("  git push foo-production master")
+        $stdout.should_receive(:puts).with("`git push foo-production master`")
         lambda { invoke(@main, :start) }.should raise_error(SystemExit)
       end
 
