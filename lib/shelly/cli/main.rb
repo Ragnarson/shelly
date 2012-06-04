@@ -382,7 +382,6 @@ We have been notified about it. We will be adding new resources shortly}
         say_error "Cloud #{app} is not running. Cannot upload files."
       end
 
-      require 'bundler'
       desc "check", "List all requirements and check which are fulfilled"
       def check
         s = Shelly::StructureValidator.new

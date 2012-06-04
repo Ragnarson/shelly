@@ -1,4 +1,5 @@
 require 'grit'
+require 'bundler'
 
 module Shelly
   class StructureValidator
