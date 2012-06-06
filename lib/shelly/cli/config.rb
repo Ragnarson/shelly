@@ -30,9 +30,6 @@ module Shelly
         else
           say "Cloud #{cloud} has no configuration files"
         end
-      rescue Client::NotFoundException => e
-        raise unless e.resource == :cloud
-        say_error "You have no access to '#{app}' cloud defined in Cloudfile"
       end
 
       desc "show PATH", "View configuration file"
@@ -42,14 +39,9 @@ module Shelly
         say "Content of #{config["path"]}:", :green
         say config["content"]
       rescue Client::NotFoundException => e
-        case e.resource
-        when :cloud
-          say_error "You have no access to '#{app}' cloud defined in Cloudfile"
-        when :config
-          say_error "Config '#{path}' not found", :with_exit => false
-          say_error "You can list available config files with `shelly config list --cloud #{app}`"
-        else raise
-        end
+        raise unless e.resource == :config
+        say_error "Config '#{path}' not found", :with_exit => false
+        say_error "You can list available config files with `shelly config list --cloud #{app}`"
       end
 
       map "new" => :create
@@ -61,9 +53,6 @@ module Shelly
         say "File '#{path}' created.", :green
         say "To make changes to running application redeploy it using:"
         say "`shelly redeploy --cloud #{app}`"
-      rescue Client::NotFoundException => e
-        raise unless e.resource == :cloud
-        say_error "You have no access to '#{app}' cloud defined in Cloudfile"
       rescue Client::ValidationException => e
         e.each_error { |error| say_error error, :with_exit => false }
         exit 1
@@ -81,14 +70,9 @@ module Shelly
         say "To make changes to running application redeploy it using:"
         say "`shelly redeploy --cloud #{app}`"
       rescue Client::NotFoundException => e
-        case e.resource
-        when :cloud
-          say_error "You have no access to '#{app}' cloud defined in Cloudfile"
-        when :config
-          say_error "Config '#{path}' not found", :with_exit => false
-          say_error "You can list available config files with `shelly config list --cloud #{app}`"
-        else raise
-        end
+        raise unless e.resource == :config
+        say_error "Config '#{path}' not found", :with_exit => false
+        say_error "You can list available config files with `shelly config list --cloud #{app}`"
       rescue Client::ValidationException => e
         e.each_error { |error| say_error error, :with_exit => false }
         exit 1
@@ -108,14 +92,9 @@ module Shelly
           say "File not deleted"
         end
       rescue Client::NotFoundException => e
-        case e.resource
-        when :cloud
-          say_error "You have no access to '#{app}' cloud defined in Cloudfile"
-        when :config
-          say_error "Config '#{path}' not found", :with_exit => false
-          say_error "You can list available config files with `shelly config list --cloud #{app}`"
-        else raise
-        end
+        raise unless e.resource == :config
+        say_error "Config '#{path}' not found", :with_exit => false
+        say_error "You can list available config files with `shelly config list --cloud #{app}`"
       end
 
       no_tasks do
@@ -145,7 +124,6 @@ module Shelly
           say_error "Please set EDITOR environment variable"
         end
       end
-
     end
   end
 end

@@ -36,13 +36,6 @@ describe Shelly::CLI::Backup do
       invoke(@backup, :list)
     end
 
-    it "should exit if user doesn't have access to cloud in Cloudfile" do
-      exception = Shelly::Client::NotFoundException.new("resource" => "cloud")
-      @client.stub(:database_backups).and_raise(exception)
-      $stdout.should_receive(:puts).with(red "You have no access to 'foo-staging' cloud defined in Cloudfile")
-      lambda { invoke(@backup, :list) }.should raise_error(SystemExit)
-    end
-
     it "should take cloud from command line for which to show backups" do
       @client.should_receive(:database_backups).with("foo-staging").and_return([{"filename" => "backup.postgre.tar.gz", "human_size" => "10kb", "size" => 12345},{"filename" => "backup.mongo.tar.gz", "human_size" => "22kb", "size" => 333}])
       $stdout.should_receive(:puts).with(green "Available backups:")
@@ -134,13 +127,6 @@ describe Shelly::CLI::Backup do
       @client.stub(:request_backup)
       @backup.should_receive(:multiple_clouds).and_return(@app)
       invoke(@backup, :create)
-    end
-
-    it "should exit if user doesn't have access to cloud in Cloudfile" do
-      exception = Shelly::Client::NotFoundException.new({"resource" => "cloud"})
-      @client.stub(:request_backup).and_raise(exception)
-      $stdout.should_receive(:puts).with(red "You have no access to 'foo-staging' cloud defined in Cloudfile")
-      lambda { invoke(@backup, :create) }.should raise_error(SystemExit)
     end
 
     it "should display errors and exit 1 when kind is not valid" do

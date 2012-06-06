@@ -28,9 +28,6 @@ module Shelly
         else
           say "No database backups available"
         end
-      rescue Client::NotFoundException => e
-        raise unless e.resource == :cloud
-        say_error "You have no access to '#{app}' cloud defined in Cloudfile"
       end
 
       desc "get [FILENAME]", "Download database backup"
@@ -48,14 +45,9 @@ module Shelly
         say_new_line
         say "Backup file saved to #{backup.filename}", :green
       rescue Client::NotFoundException => e
-        case e.resource
-        when :cloud
-          say_error "You have no access to '#{app}' cloud defined in Cloudfile"
-        when :database_backup
-          say_error "Backup not found", :with_exit => false
-          say "You can list available backups with `shelly backup list` command"
-        else; raise
-        end
+        raise unless e.resource == :database_backup
+        say_error "Backup not found", :with_exit => false
+        say "You can list available backups with `shelly backup list` command"
       end
 
       desc "create [DB_KIND]", "Create backup of given database"
@@ -70,9 +62,6 @@ module Shelly
           "the backup process to finish and the backup to show up in backups list.", :green
       rescue Client::ValidationException => e
         say_error e[:message]
-      rescue Client::NotFoundException => e
-        raise unless e.resource == :cloud
-        say_error "You have no access to '#{app}' cloud defined in Cloudfile"
       end
 
       desc "restore FILENAME", "Restore database to state from given backup"
@@ -86,14 +75,9 @@ module Shelly
         say_new_line
         say "Restore has been scheduled. Wait a few minutes till database is restored.", :green
       rescue Client::NotFoundException => e
-        case e.resource
-        when :cloud
-          say_error "You have no access to '#{app}' cloud defined in Cloudfile"
-        when :database_backup
-          say_error "Backup not found", :with_exit => false
-          say "You can list available backups with `shelly backup list` command"
-        else; raise
-        end
+        raise unless e.resource == :database_backup
+        say_error "Backup not found", :with_exit => false
+        say "You can list available backups with `shelly backup list` command"
       end
     end
   end

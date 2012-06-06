@@ -53,15 +53,6 @@ describe Shelly::CLI::User do
         invoke(@cli_user, :list)
       end
     end
-
-    context "on failure" do
-      it "should exit with 1 if user does not have access to cloud" do
-        exception = Shelly::Client::NotFoundException.new("resource" => "cloud")
-        @client.stub(:collaborations).and_raise(exception)
-        $stdout.should_receive(:puts).with(red "You have no access to 'foo-staging' cloud defined in Cloudfile")
-        lambda { invoke(@cli_user, :list) }.should raise_error(SystemExit)
-      end
-    end
   end
 
   describe "#add" do
@@ -100,17 +91,6 @@ describe Shelly::CLI::User do
       it "should receive clouds from the Cloudfile" do
         $stdout.should_receive(:puts).with("\e[32mSending invitation to megan@example.com to work on foo-staging\e[0m")
         invoke(@cli_user, :add, "megan@example.com")
-      end
-    end
-
-    context "on failure" do
-      it "should raise error if user doesnt have access to cloud" do
-        exception = Shelly::Client::NotFoundException.new("resource" => "cloud")
-        @client.stub(:send_invitation).and_raise(exception)
-        $stdout.should_receive(:puts).with(red "You have no access to 'foo-staging' cloud defined in Cloudfile")
-        lambda {
-          invoke(@cli_user, :add, "megan@example.com")
-        }.should raise_error(SystemExit)
       end
     end
   end
@@ -159,15 +139,6 @@ describe Shelly::CLI::User do
         @client.stub(:delete_collaboration).and_raise(exception)
         $stdout.should_receive(:puts).with(red "User 'megan@example.com' not found")
         $stdout.should_receive(:puts).with(red "You can list users with `shelly user list`")
-        lambda {
-          invoke(@cli_user, :delete, "megan@example.com")
-        }.should raise_error(SystemExit)
-      end
-
-      it "should raise error if user doesnt have access to cloud" do
-        exception = Shelly::Client::NotFoundException.new("resource" => "cloud")
-        @client.stub(:delete_collaboration).and_raise(exception)
-        $stdout.should_receive(:puts).with(red "You have no access to 'foo-staging' cloud defined in Cloudfile")
         lambda {
           invoke(@cli_user, :delete, "megan@example.com")
         }.should raise_error(SystemExit)
