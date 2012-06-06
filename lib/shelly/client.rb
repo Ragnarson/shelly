@@ -37,6 +37,10 @@ module Shelly
       def resource
         self[:resource].to_sym
       end
+
+      def id
+        self[:id]
+      end
     end
 
     attr_reader :email, :password

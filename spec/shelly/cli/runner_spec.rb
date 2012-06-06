@@ -65,16 +65,38 @@ describe Shelly::CLI::Runner do
       }.should raise_error(SystemExit)
     end
 
-    it "should rescue unauthorized exception and display message" do
-      @client = mock
-      runner = Shelly::CLI::Runner.new(%w(status))
-      Shelly::Client.stub(:new).and_return(@client)
-      @client.stub(:token).and_return("abc")
-      @client.stub(:apps).and_raise(Shelly::Client::UnauthorizedException.new)
-      $stdout.should_receive(:puts).with("You are not logged in. To log in use: `shelly login`")
-      lambda {
-        runner.start
-      }.should raise_error(SystemExit)
+    describe "API exception handling" do
+      before do
+        @client = mock
+        Shelly::Client.stub(:new).and_return(@client)
+        @client.stub(:token).and_return("abc")
+        @runner = Shelly::CLI::Runner.new(%w(status))
+      end
+
+      it "should rescue unauthorized exception and display message" do
+        @client.stub(:apps).and_raise(Shelly::Client::UnauthorizedException.new)
+        $stdout.should_receive(:puts).with("You are not logged in. To log in use: `shelly login`")
+        lambda {
+          @runner.start
+        }.should raise_error(SystemExit)
+      end
+
+      it "should rescue not found exception for cloud" do
+        exception = Shelly::Client::NotFoundException.new({"resource" => "cloud", "id" => "foooo"}, 404)
+        @client.stub(:apps).and_raise(exception)
+        $stdout.should_receive(:puts).with("You have no access to 'foooo' cloud defined in Cloudfile")
+        lambda {
+          @runner.start
+        }.should raise_error(SystemExit)
+      end
+
+      it "should re-raise not found exception for non cloud" do
+        exception = Shelly::Client::NotFoundException.new({"resource" => "config"}, 404)
+        @client.stub(:apps).and_raise(exception)
+        lambda {
+          @runner.start
+        }.should raise_error(exception)
+      end
     end
 
     context "with --debug option (debug mode)" do

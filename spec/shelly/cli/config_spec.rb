@@ -33,13 +33,6 @@ describe Shelly::CLI::Config do
       invoke(@config, :list)
     end
 
-    it "should exit if user doesn't have access to cloud in Cloudfile" do
-      exception = Shelly::Client::NotFoundException.new("resource" => "cloud")
-      @client.stub(:app_configs).and_raise(exception)
-      $stdout.should_receive(:puts).with(red "You have no access to 'foo-production' cloud defined in Cloudfile")
-      lambda { invoke(@config, :list) }.should raise_error(SystemExit)
-    end
-
     it "should list available configuration files for clouds" do
       @client.should_receive(:app_configs).with("foo-production").and_return([{"created_by_user" => false, "path" => "config/app.yml"}])
       $stdout.should_receive(:puts).with(green "Configuration files for foo-production")
@@ -77,17 +70,6 @@ describe Shelly::CLI::Config do
           @client.should_receive(:app_config).and_raise(exception)
           $stdout.should_receive(:puts).with(red "Config 'config/app.yml' not found")
           $stdout.should_receive(:puts).with(red "You can list available config files with `shelly config list --cloud foo-production`")
-          lambda {
-            invoke(@config, :show, "config/app.yml")
-          }.should raise_error(SystemExit)
-        end
-      end
-
-      context "when user doesn't have access to cloud" do
-        it "should display error message and exit with 1" do
-          exception = Shelly::Client::NotFoundException.new("resource" => "cloud")
-          @client.should_receive(:app_config).and_raise(exception)
-          $stdout.should_receive(:puts).with(red "You have no access to 'foo-production' cloud defined in Cloudfile")
           lambda {
             invoke(@config, :show, "config/app.yml")
           }.should raise_error(SystemExit)
@@ -192,17 +174,6 @@ describe Shelly::CLI::Config do
         end
       end
 
-      context "when user doesn't have access to cloud" do
-        it "should display error message and exit with 1" do
-          exception = Shelly::Client::NotFoundException.new("resource" => "cloud")
-          @client.should_receive(:app_config).and_raise(exception)
-          $stdout.should_receive(:puts).with(red "You have no access to 'foo-production' cloud defined in Cloudfile")
-          lambda {
-            invoke(@config, :edit, "config/app.yml")
-          }.should raise_error(SystemExit)
-        end
-      end
-
       context "on validation errors" do
         it "should display validation errors" do
           exception = Shelly::Client::ValidationException.new({"errors" => [["path", "is already taken"]]})
@@ -255,19 +226,6 @@ describe Shelly::CLI::Config do
           @client.should_receive(:app_delete_config).and_raise(exception)
           $stdout.should_receive(:puts).with(red "Config 'config/app.yml' not found")
           $stdout.should_receive(:puts).with(red "You can list available config files with `shelly config list --cloud foo-production`")
-          fake_stdin(["y"]) do
-            lambda {
-              invoke(@config, :delete, "config/app.yml")
-            }.should raise_error(SystemExit)
-          end
-        end
-      end
-
-      context "when user doesn't have access to cloud" do
-        it "should display error message and exit with 1" do
-          exception = Shelly::Client::NotFoundException.new("resource" => "cloud")
-          @client.should_receive(:app_delete_config).and_raise(exception)
-          $stdout.should_receive(:puts).with(red "You have no access to 'foo-production' cloud defined in Cloudfile")
           fake_stdin(["y"]) do
             lambda {
               invoke(@config, :delete, "config/app.yml")

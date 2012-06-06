@@ -162,9 +162,6 @@ module Shelly
             print_wrapped "CPU: #{stat['cpu']['wait']}%, MEM: #{stat['memory']['percent']}%, SWAP: #{stat['swap']['percent']}%", :ident => 6
           end
         end
-      rescue Client::NotFoundException => e
-        raise unless e.resource == :cloud
-        say_error "You have no access to '#{app}' cloud defined in Cloudfile"
       rescue Client::GatewayTimeoutException
         say_error "Server statistics temporarily unavailable"
       end
@@ -201,9 +198,6 @@ We have been notified about it. We will be adding new resources shortly}
           say_error "Not starting. Invoice for cloud '#{app}' was declined."
         end
         exit 1
-      rescue Client::NotFoundException => e
-        raise unless e.resource == :cloud
-        say_error "You have no access to '#{app}' cloud defined in Cloudfile"
       end
 
       desc "setup", "Set up clouds"
@@ -228,9 +222,6 @@ We have been notified about it. We will be adding new resources shortly}
 
         say_new_line
         say "Your application is set up.", :green
-      rescue Client::NotFoundException => e
-        raise unless e.resource == :cloud
-        say_error "You have no access to '#{app}' cloud defined in Cloudfile"
       end
 
       desc "stop", "Shutdown the cloud"
@@ -266,9 +257,6 @@ We have been notified about it. We will be adding new resources shortly}
         else
           say "Missing git remote"
         end
-      rescue Client::NotFoundException => e
-        raise unless e.resource == :cloud
-        say_error "You have no access to '#{app}' cloud defined in Cloudfile"
       end
 
       desc "logs", "Show latest application logs"
@@ -279,28 +267,23 @@ We have been notified about it. We will be adding new resources shortly}
       def logs
         cloud = options[:cloud]
         app = multiple_clouds(cloud, "logs")
-        begin
-          limit = options[:limit].to_i <= 0 ? 100 : options[:limit]
-          query = {:limit => limit}
-          query.merge!(:from => options[:from]) if options[:from]
+        limit = options[:limit].to_i <= 0 ? 100 : options[:limit]
+        query = {:limit => limit}
+        query.merge!(:from => options[:from]) if options[:from]
 
-          logs = app.application_logs(query)
-          print_logs(logs)
+        logs = app.application_logs(query)
+        print_logs(logs)
 
-          if options[:tail]
-            loop do
-              logs = app.application_logs(:from => logs['range']['last'])
-              print_logs(logs)
-              sleep 1
-            end
+        if options[:tail]
+          loop do
+            logs = app.application_logs(:from => logs['range']['last'])
+            print_logs(logs)
+            sleep 1
           end
-        rescue Client::NotFoundException => e
-          raise unless e.resource == :cloud
-          say_error "You have no access to '#{cloud || app}' cloud defined in Cloudfile"
-        rescue Client::APIException => e
-          raise e unless e.status_code == 416
-          say_error "You have requested too many log messages. Try a lower number."
         end
+      rescue Client::APIException => e
+        raise e unless e.status_code == 416
+        say_error "You have requested too many log messages. Try a lower number."
       end
 
       desc "logout", "Logout from Shelly Cloud"
@@ -316,9 +299,6 @@ We have been notified about it. We will be adding new resources shortly}
         task = rake_args.join(" ")
         app = multiple_clouds(options[:cloud], "rake #{task}")
         app.rake(task)
-      rescue Client::NotFoundException => e
-        raise unless e.resource == :cloud
-        say_error "You have no access to '#{app}' cloud defined in Cloudfile"
       rescue Client::ConflictException
         say_error "Cloud #{app} is not running. Cannot run rake task."
       end
@@ -340,9 +320,6 @@ We have been notified about it. We will be adding new resources shortly}
           exit 1
         else raise
         end
-      rescue Client::NotFoundException => e
-        raise unless e.resource == :cloud
-        say_error "You have no access to '#{app}' cloud defined in Cloudfile"
       end
 
       desc "open", "Open application page in browser"
@@ -363,9 +340,6 @@ We have been notified about it. We will be adding new resources shortly}
       def console
         app = multiple_clouds(options[:cloud], "console")
         app.console
-      rescue Client::NotFoundException => e
-        raise unless e.resource == :cloud
-        say_error "You have no access to '#{app}' cloud defined in Cloudfile"
       rescue Client::ConflictException
         say_error "Cloud #{app} is not running. Cannot run console."
       end
