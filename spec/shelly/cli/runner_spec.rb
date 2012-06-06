@@ -95,7 +95,7 @@ describe Shelly::CLI::Runner do
         @client.stub(:apps).and_raise(exception)
         lambda {
           @runner.start
-        }.should raise_error(exception)
+        }.should raise_error(Shelly::Client::NotFoundException)
       end
     end
 
