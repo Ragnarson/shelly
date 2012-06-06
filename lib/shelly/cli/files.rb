@@ -14,9 +14,6 @@ module Shelly
       def upload(path)
         app = multiple_clouds(options[:cloud], "upload #{path}")
         app.upload(path)
-      rescue Client::NotFoundException => e
-        raise unless e.resource == :cloud
-        say_error "You have no access to '#{app}' cloud defined in Cloudfile"
       rescue Client::ConflictException
         say_error "Cloud #{app} is not running. Cannot upload files."
       end
@@ -30,9 +27,6 @@ module Shelly
       def download(relative_source = ".", destination = ".")
         app = multiple_clouds(options[:cloud], "download #{relative_source} #{destination}")
         app.download(relative_source, destination)
-      rescue Client::NotFoundException => e
-        raise unless e.resource == :cloud
-        say_error "You have no access to '#{app}' cloud defined in Cloudfile"
       rescue Client::ConflictException
         say_error "Cloud #{app} is not running. Cannot download files."
       end

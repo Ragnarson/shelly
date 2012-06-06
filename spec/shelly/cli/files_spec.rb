@@ -27,15 +27,9 @@ describe Shelly::CLI::Files do
       invoke(@cli_files, :upload, "some/path")
     end
 
-    it "should exit if user doesn't have access to clouds in Cloudfile" do
-      exception = Shelly::Client::NotFoundException.new("resource" => "cloud")
-      @client.stub(:node_and_port).and_raise(exception)
-      $stdout.should_receive(:puts).with(red "You have no access to 'foo-production' cloud defined in Cloudfile")
-      lambda { invoke(@cli_files, :upload, "some/path") }.should raise_error(SystemExit)
-    end
-
     it "should exit if rsync isn't installed" do
       FakeFS::File.stub(:executable?).and_return(false)
+
       $stdout.should_receive(:puts).with(red "You need to install rsync in order to upload and download files")
       lambda { invoke(@cli_files, :upload, "some/path") }.should raise_error(SystemExit)
     end
@@ -51,7 +45,7 @@ describe Shelly::CLI::Files do
     end
   end
 
-  describe "download" do
+  describe "#download" do
     it "should ensure user has logged in" do
       hooks(@cli_files, :download).should include(:logged_in?)
     end

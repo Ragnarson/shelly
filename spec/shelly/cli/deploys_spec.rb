@@ -33,12 +33,6 @@ describe Shelly::CLI::Deploys do
       invoke(@deploys, :list)
     end
 
-    it "should exit if user doesn't have access to cloud in Cloudfile" do
-      @client.stub(:deploy_logs).and_raise(Shelly::Client::NotFoundException.new("resource" => "cloud"))
-      $stdout.should_receive(:puts).with(red "You have no access to 'foo-staging' cloud defined in Cloudfile")
-      lambda { invoke(@deploys, :list) }.should raise_error(SystemExit)
-    end
-
     it "should display available logs" do
       @client.should_receive(:deploy_logs).with("foo-staging").and_return([
         {"failed" => false, "created_at" => "2011-12-12-14-14-59"},
@@ -67,15 +61,6 @@ describe Shelly::CLI::Deploys do
       @client.should_receive(:deploy_log).with("foo-staging", "last").and_return(response)
       @deploys.should_receive(:multiple_clouds).and_return(@app)
       invoke(@deploys, :show, "last")
-    end
-
-    context "user doesn't have access to cloud" do
-      it "should exit 1 with message" do
-        exception = Shelly::Client::NotFoundException.new("resource" => "cloud")
-        @client.stub(:deploy_log).and_raise(exception)
-        $stdout.should_receive(:puts).with(red "You have no access to 'foo-staging' cloud defined in Cloudfile")
-        lambda { @deploys.show("last") }.should raise_error(SystemExit)
-      end
     end
 
     context "log not found" do

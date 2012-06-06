@@ -16,9 +16,6 @@ module Shelly
         app.active_collaborations.each { |c| say "  #{c["email"]}" }
         app.inactive_collaborations.each { |c|
           say "  #{c["email"]} (invited)" }
-      rescue Client::NotFoundException => e
-        raise unless e.resource == :cloud
-        say_error "You have no access to '#{app}' cloud defined in Cloudfile"
       end
 
       desc "add [EMAIL]", "Add new developer to clouds defined in Cloudfile"
@@ -35,9 +32,6 @@ module Shelly
           e.each_error { |error| say_error error, :with_exit => false }
           exit 1
         end
-      rescue Client::NotFoundException => e
-        raise unless e.resource == :cloud
-        say_error "You have no access to '#{app}' cloud defined in Cloudfile"
       end
 
       desc "delete [EMAIL]", "Remove developer from clouds defined in Cloudfile"
@@ -50,16 +44,10 @@ module Shelly
       rescue Client::ConflictException => e
         say_error e[:message]
       rescue Client::NotFoundException => e
-        case e.resource
-        when :cloud
-          say_error "You have no access to '#{app}' cloud defined in Cloudfile"
-        when :user
-          say_error "User '#{user_email}' not found", :with_exit => false
-          say_error "You can list users with `shelly user list`"
-        else raise
-        end
+        raise unless e.resource == :user
+        say_error "User '#{user_email}' not found", :with_exit => false
+        say_error "You can list users with `shelly user list`"
       end
-
     end
   end
 end

@@ -559,13 +559,6 @@ OUT
       hooks(@main, :start).should include(:logged_in?)
     end
 
-    it "should exit if user doesn't have access to clouds in Cloudfile" do
-      exception = Shelly::Client::NotFoundException.new("resource" => "cloud")
-      @client.stub(:start_cloud).and_raise(exception)
-      $stdout.should_receive(:puts).with(red "You have no access to 'foo-production' cloud defined in Cloudfile")
-      lambda { invoke(@main, :start) }.should raise_error(SystemExit)
-    end
-
     context "single cloud in Cloudfile" do
       it "should start the cloud" do
         @client.stub(:start_cloud)
@@ -833,15 +826,6 @@ We have been notified about it. We will be adding new resources shortly")
       end
     end
 
-    context "on failure" do
-      it "should raise an error if user does not have access to cloud" do
-        exception = Shelly::Client::NotFoundException.new("resource" => "cloud")
-        @client.stub(:app).and_raise(exception)
-        $stdout.should_receive(:puts).with(red "You have no access to 'foo-production' cloud defined in Cloudfile")
-        lambda { invoke(@main, :ip) }.should raise_error(SystemExit)
-      end
-    end
-
     def response(options = {})
       { "code_name" => "foo-production",
         "state" => "running",
@@ -1011,25 +995,6 @@ We have been notified about it. We will be adding new resources shortly")
       end
     end
 
-    context "when cloud given in option doesn't exist" do
-      before do
-        File.open("Cloudfile", 'w') {|f|
-          f.write("foo-staging:\n") }
-      end
-
-      it "should raise Client::NotFoundException" do
-        exception = Shelly::Client::NotFoundException.new("resource" => "cloud")
-        @app.stub(:delete).and_raise(exception)
-        $stdout.should_receive(:puts).with(red "You have no access to 'foo-bar' cloud defined in Cloudfile")
-        lambda{
-          fake_stdin(["yes", "yes", "yes"]) do
-            @main.options = {:cloud => "foo-bar"}
-            invoke(@main, :delete)
-          end
-        }.should raise_error(SystemExit)
-      end
-    end
-
     context "when no cloud option is given" do
       before do
         File.open("Cloudfile", 'w') {|f|
@@ -1111,14 +1076,6 @@ We have been notified about it. We will be adding new resources shortly")
       @client.stub(:application_logs).and_return(@sample_logs)
       @main.should_receive(:multiple_clouds).and_return(@app)
       invoke(@main, :logs)
-    end
-
-    it "should exit if user doesn't have access to clouds in Cloudfile" do
-      exception = Shelly::Client::NotFoundException.new("resource" => "cloud")
-      @client.stub(:application_logs).and_raise(exception)
-      $stdout.should_receive(:puts).
-        with(red "You have no access to 'foo-production' cloud defined in Cloudfile")
-      lambda { invoke(@main, :logs) }.should raise_error(SystemExit)
     end
 
     it "should exit if user requested too many log lines" do
@@ -1294,13 +1251,6 @@ We have been notified about it. We will be adding new resources shortly")
       @client.stub(:node_and_port).and_return(expected)
       @app.should_receive(:console)
       invoke(@main, :console)
-    end
-
-    it "should exit if user doesn't have access to clouds in Cloudfile" do
-      exception = Shelly::Client::NotFoundException.new("resource" => "cloud")
-      @client.stub(:node_and_port).and_raise(exception)
-      $stdout.should_receive(:puts).with(red "You have no access to 'foo-production' cloud defined in Cloudfile")
-      lambda { invoke(@main, :console) }.should raise_error(SystemExit)
     end
 
     context "Instances are not running" do
