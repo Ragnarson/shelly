@@ -1,5 +1,6 @@
 require "spec_helper"
 require "shelly/cli/main"
+require "grit"
 
 describe Shelly::CLI::Main do
   before do
@@ -32,6 +33,7 @@ Tasks:
   shelly delete             # Delete the cloud
   shelly deploys <command>  # View deploy logs
   shelly execute CODE       # Run code on one of application servers
+  shelly files <command>    # Upload and download files to and from persistent storage
   shelly help [TASK]        # Describe available tasks or one specific task
   shelly info               # Show basic information about cloud
   shelly list               # List available clouds
@@ -45,7 +47,6 @@ Tasks:
   shelly setup              # Set up clouds
   shelly start              # Start the cloud
   shelly stop               # Shutdown the cloud
-  shelly upload PATH        # Upload files to persisted data storage
   shelly user <command>     # Manage collaborators
   shelly version            # Display shelly version
 
@@ -1185,16 +1186,6 @@ We have been notified about it. We will be adding new resources shortly")
         @main.rake_args.should == @main.rake_args(ARGV)
       end
     end
-
-    context "cloud is not in running state" do
-      it "should print error" do
-        @client.stub(:node_and_port).and_raise(Shelly::Client::ConflictException)
-        $stdout.should_receive(:puts).with(red "Cloud foo-production is not running. Cannot upload files.")
-        lambda {
-          invoke(@main, :upload, "some/path")
-        }.should raise_error(SystemExit)
-      end
-    end
   end
 
   describe "#redeploy" do
@@ -1318,51 +1309,6 @@ We have been notified about it. We will be adding new resources shortly")
         $stdout.should_receive(:puts).with(red "Cloud foo-production is not running. Cannot run console.")
         lambda {
           invoke(@main, :console)
-        }.should raise_error(SystemExit)
-      end
-    end
-  end
-
-  describe "#upload" do
-    before do
-      @client.stub(:token).and_return("abc")
-      @app = Shelly::App.new("foo-production")
-      Shelly::App.stub(:new).and_return(@app)
-      FileUtils.mkdir_p("/projects/foo")
-      Dir.chdir("/projects/foo")
-      File.open("Cloudfile", 'w') { |f| f.write("foo-production:\n") }
-    end
-
-    it "should ensure user has logged in" do
-      hooks(@main, :upload).should include(:logged_in?)
-    end
-
-    it "should upload files" do
-      expected = {"port" => "40010", "node_ip" => "10.0.0.10", "user"=>"foo-production"}
-      @client.stub(:node_and_port).and_return(expected)
-      @app.should_receive(:upload).with("some/path")
-      invoke(@main, :upload, "some/path")
-    end
-
-    it "should exit if user doesn't have access to clouds in Cloudfile" do
-      exception = Shelly::Client::NotFoundException.new("resource" => "cloud")
-      @client.stub(:node_and_port).and_raise(exception)
-      $stdout.should_receive(:puts).with(red "You have no access to 'foo-production' cloud defined in Cloudfile")
-      lambda { invoke(@main, :upload, "some/path") }.should raise_error(SystemExit)
-    end
-
-    it "should exit if rsync isn't installed" do
-      FakeFS::File.stub(:executable?).and_return(false)
-      $stdout.should_receive(:puts).with(red "You need to install rsync in order to use `shelly upload`")
-      lambda { invoke(@main, :upload, "some/path") }.should raise_error(SystemExit)
-    end
-
-    context "Instances are not running" do
-      it "should display error" do
-        @client.stub(:node_and_port).and_raise(Shelly::Client::ConflictException)
-        $stdout.should_receive(:puts).with(red "Cloud foo-production is not running. Cannot upload files.")
-        lambda {
-          invoke(@main, :upload, "some/path")
         }.should raise_error(SystemExit)
       end
     end
