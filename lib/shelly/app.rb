@@ -170,7 +170,7 @@ module Shelly
     end
 
     def rake(task)
-      ssh("rake_runner \"#{task}\"")
+      ssh_command("rake_runner \"#{task}\"")
     end
 
     def attributes
@@ -213,22 +213,35 @@ module Shelly
       Launchy.open("http://#{attributes["domain"]}")
     end
 
-    def node_and_port
-      shelly.node_and_port(code_name)
-    end
-
     def console
-      ssh
+      ssh_command
     end
 
-    def ssh(command = "")
-      params = node_and_port
-      exec "ssh -o StrictHostKeyChecking=no -p #{params['port']} -l #{params['user']} #{params['node_ip']} #{command}"
+    def upload(source)
+      rsync(source, "#{ssh['node_ip']}:/srv/glusterfs/disk")
     end
 
-    def upload(path)
-      params = node_and_port
-      exec "rsync -avz -e 'ssh -o StrictHostKeyChecking=no -p #{params['port']}' --progress #{path} #{params['user']}@#{params['node_ip']}:/srv/glusterfs/disk"
+    def download(relative_source, destination)
+      source = File.join("#{ssh['node_ip']}:/srv/glusterfs/disk", relative_source)
+      rsync(source, destination)
+    end
+
+    private
+
+    def ssh
+      @ssh ||= shelly.node_and_port(code_name)
+    end
+
+    def ssh_command(command = "")
+      exec "ssh #{ssh_options} #{ssh['node_ip']} #{command}"
+    end
+
+    def ssh_options
+      "-o StrictHostKeyChecking=no -p #{ssh['port']} -l #{ssh['user']}"
+    end
+
+    def rsync(source, destination)
+      exec "rsync -avz -e 'ssh #{ssh_options}' --progress #{source} #{destination}"
     end
   end
 end
