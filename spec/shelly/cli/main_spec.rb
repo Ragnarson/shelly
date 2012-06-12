@@ -59,11 +59,12 @@ OUT
 
     it "should display options in help for logs" do
       out = IO.popen("bin/shelly help logs").read.strip
-      out.should include("-c, [--cloud=CLOUD]  # Specify cloud")
-      out.should include("-n, [--limit=N]      # Amount of messages to show")
-      out.should include("-f, [--tail]         # Show new logs automatically")
-      out.should include("[--from=FROM]    # Time from which to find the logs")
-      out.should include("[--debug]        # Show debug information")
+      out.should include("-c, [--cloud=CLOUD]    # Specify cloud")
+      out.should include("-n, [--limit=N]        # Amount of messages to show")
+      out.should include("-s, [--source=SOURCE]  # Limit logs to a single source, e.g. nginx")
+      out.should include("-f, [--tail]           # Show new logs automatically")
+      out.should include("[--from=FROM]      # Time from which to find the logs")
+      out.should include("[--debug]          # Show debug information")
     end
   end
 
@@ -1095,8 +1096,8 @@ We have been notified about it. We will be adding new resources shortly")
 
     it "should show requested amount of logs" do
       @client.should_receive(:application_logs).
-        with("foo-production", {:limit => 2}).and_return(@sample_logs)
-      @main.options = {:limit => 2}
+        with("foo-production", {:limit => 2, :source => 'nginx'}).and_return(@sample_logs)
+      @main.options = {:limit => 2, :source => 'nginx'}
       invoke(@main, :logs)
     end
   end
