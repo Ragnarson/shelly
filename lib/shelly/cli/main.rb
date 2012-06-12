@@ -277,7 +277,7 @@ We have been notified about it. We will be adding new resources shortly}
 
         if options[:tail]
           loop do
-            logs = app.application_logs(:from => logs['range']['last'])
+            logs = app.application_logs(:from => logs['range']['last'], :source => options[:source])
             print_logs(logs)
             sleep 1
           end
