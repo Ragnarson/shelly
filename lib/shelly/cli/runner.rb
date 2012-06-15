@@ -21,7 +21,6 @@ module Shelly
       rescue Client::UnauthorizedException
         raise if debug?
         say_error "You are not logged in. To log in use: `shelly login`"
-        desc "download [SOURCE_PATH] [DEST_PATH]", "Download files from persitent data storage"
       rescue Client::NotFoundException => e
         raise if debug? or e.resource != :cloud
         say_error "You have no access to '#{e.id}' cloud defined in Cloudfile"
