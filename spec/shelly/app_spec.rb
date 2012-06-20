@@ -12,6 +12,11 @@ describe Shelly::App do
   end
 
   describe ".guess_code_name" do
+    it "should downcase and dasherize code name" do
+      Dir.stub(:pwd).and_return("/project/FOO")
+      Shelly::App.guess_code_name.should == "foo-staging"
+    end
+
     context "no Cloudfile" do
       it "should return name of current working directory" do
         Shelly::App.guess_code_name.should == "foo-staging"

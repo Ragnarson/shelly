@@ -112,7 +112,7 @@ module Shelly
         e.each_error { |error| say_error error, :with_exit => false }
         say_new_line
         say_error "Fix erros in the below command and type it again to create your cloud" , :with_exit => false
-        say_error "shelly add --code-name=#{app.code_name} --databases=#{app.databases.join(',')} --size=#{app.size}"
+        say_error "shelly add --code-name=#{app.code_name.downcase.tr('_','-')} --databases=#{app.databases.join(',')} --size=#{app.size}"
       end
 
       map "status" => :list

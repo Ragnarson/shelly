@@ -426,11 +426,11 @@ OUT
       body = {"message" => "Validation Failed", "errors" => [["code_name", "has been already taken"]]}
       exception = Shelly::Client::ValidationException.new(body)
       @app.should_receive(:create).and_raise(exception)
-      $stdout.should_receive(:puts).with("\e[31mCode name has been already taken\e[0m")
-      $stdout.should_receive(:puts).with("\e[31mFix erros in the below command and type it again to create your cloud\e[0m")
-      $stdout.should_receive(:puts).with("\e[31mshelly add --code-name=foo-staging --databases=postgresql --size=large\e[0m")
+      $stdout.should_receive(:puts).with(red "Code name has been already taken")
+      $stdout.should_receive(:puts).with(red "Fix erros in the below command and type it again to create your cloud")
+      $stdout.should_receive(:puts).with(red "shelly add --code-name=big-letters --databases=postgresql --size=large")
       lambda {
-        fake_stdin(["", ""]) do
+        fake_stdin(["BiG_LETTERS", ""]) do
           invoke(@main, :add)
         end
       }.should raise_error(SystemExit)

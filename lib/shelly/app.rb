@@ -125,7 +125,7 @@ module Shelly
           end
         end
       end
-      "#{File.basename(Dir.pwd)}-#{guessed || 'staging'}"
+      "#{File.basename(Dir.pwd)}-#{guessed || 'staging'}".downcase.tr('_','-')
     end
 
     def collaborations
