@@ -1,3 +1,4 @@
+# encoding: utf-8
 require "spec_helper"
 require "shelly/cli/main"
 require "grit"
@@ -27,7 +28,7 @@ describe Shelly::CLI::Main do
 Tasks:
   shelly add                # Add a new cloud
   shelly backup <command>   # Manage database backups
-  shelly check              # List all requirements and check which are fulfilled
+  shelly check              # Check if application fulfills Shelly Cloud requirements
   shelly config <command>   # Manage application configuration files
   shelly console            # Open application console
   shelly delete             # Delete the cloud
@@ -287,6 +288,7 @@ OUT
       @client.stub(:token).and_return("abc")
       @app.stub(:attributes).and_return({"trial" => false})
       @app.stub(:git_remote_exist?).and_return(false)
+      @main.stub(:check => true)
     end
 
     # This spec tests inside_git_repository? hook
@@ -493,6 +495,24 @@ OUT
       $stdout.should_receive(:puts).with("  git push")
       $stdout.should_receive(:puts).with("\e[32mDeploy to your cloud using:\e[0m")
       $stdout.should_receive(:puts).with("  git push foooo master")
+      fake_stdin(["foooo", "none"]) do
+        invoke(@main, :add)
+      end
+    end
+
+    it "should check shelly requirements" do
+      $stdout.should_receive(:puts) \
+        .with("\e[32mWhen you make sure all settings are correct please issue following commands:\e[0m")
+      @main.should_receive(:check).with(false).and_return(true)
+      fake_stdin(["foooo", "none"]) do
+        invoke(@main, :add)
+      end
+    end
+
+    it "should abort when shelly requirements are not met" do
+      $stdout.should_not_receive(:puts) \
+        .with("\e[32mWhen you make sure all settings are correct please issue following commands:\e[0m")
+      @main.should_receive(:check).with(false).and_return(false)
       fake_stdin(["foooo", "none"]) do
         invoke(@main, :add)
       end
@@ -1268,9 +1288,10 @@ We have been notified about it. We will be adding new resources shortly")
   describe "#check" do
     before do
       Shelly::App.stub(:inside_git_repository?).and_return(true)
-      Bundler::Definition.stub_chain(:build, :specs, :map).and_return(["thin"])
-      Grit::Repo.stub_chain(:new, :status, :map).and_return(["config.ru"])
-      File.open("Gemfile", 'w')
+      Bundler::Definition.stub_chain(:build, :specs, :map) \
+        .and_return(["thin"])
+      Grit::Repo.stub_chain(:new, :status, :map) \
+        .and_return(["config.ru", "Gemfile", "Gemfile.lock"])
     end
 
     it "should ensure user is in git repository" do
@@ -1279,37 +1300,52 @@ We have been notified about it. We will be adding new resources shortly")
 
     context "when gemfile exists" do
       it "should show that Gemfile exists" do
-        $stdout.should_receive(:puts).with("  #{green("+")} Gemfile exists")
+        $stdout.should_receive(:puts).with("  #{green("✓")} Gemfile is present")
         invoke(@main, :check)
       end
     end
 
     context "when gemfile doesn't exist" do
       it "should show that Gemfile doesn't exist" do
-        File.delete("Gemfile")
-        $stdout.should_receive(:puts).with("  #{red("-")} Gemfile exists")
+        Grit::Repo.stub_chain(:new, :status, :map).and_return([])
+        $stdout.should_receive(:puts).with("  #{red("✗")} Gemfile is missing in git repository")
+        invoke(@main, :check)
+      end
+    end
+
+    context "when gemfile exists" do
+      it "should show that Gemfile exists" do
+        $stdout.should_receive(:puts).with("  #{green("✓")} Gemfile is present")
+        invoke(@main, :check)
+      end
+    end
+
+    context "when gemfile doesn't exist" do
+      it "should show that Gemfile doesn't exist" do
+        Grit::Repo.stub_chain(:new, :status, :map).and_return([])
+        $stdout.should_receive(:puts).with("  #{red("✗")} Gemfile is missing in git repository")
         invoke(@main, :check)
       end
     end
 
     context "when thin gem exists" do
       it "should show that necessary gem exists" do
-        $stdout.should_receive(:puts).with("  #{green("+")} gem 'thin' present in Gemfile")
+        $stdout.should_receive(:puts).with("  #{green("✓")} Gem 'thin' is present")
         invoke(@main, :check)
       end
     end
 
     context "when thin gem doesn't exist" do
-      it "should show that necessary gem dosn't exist" do
+      it "should show that necessary gem doesn't exist" do
         Bundler::Definition.stub_chain(:build, :specs, :map).and_return([])
-        $stdout.should_receive(:puts).with("  #{red("-")} gem 'thin' present in Gemfile")
+        $stdout.should_receive(:puts).with("  #{red("✗")} Gem 'thin' is missing in the Gemfile")
         invoke(@main, :check)
       end
     end
 
     context "when config.ru exists" do
       it "should show that config.ru exists" do
-        $stdout.should_receive(:puts).with("  #{green("+")} config.ru exists")
+        $stdout.should_receive(:puts).with("  #{green("✓")} File config.ru is present")
         invoke(@main, :check)
       end
     end
@@ -1317,7 +1353,7 @@ We have been notified about it. We will be adding new resources shortly")
     context "when config.ru doesn't exist" do
       it "should show that config.ru is neccessary" do
         Grit::Repo.stub_chain(:new, :status, :map).and_return([])
-        $stdout.should_receive(:puts).with("  #{red("-")} config.ru exists")
+        $stdout.should_receive(:puts).with("  #{red("✗")} File config.ru is missing")
         invoke(@main, :check)
       end
     end
@@ -1325,13 +1361,13 @@ We have been notified about it. We will be adding new resources shortly")
     context "when mysql gem exists" do
       it "should show that mysql gem is not supported by Shelly Cloud" do
         Bundler::Definition.stub_chain(:build, :specs, :map).and_return(["mysql"])
-        $stdout.should_receive(:puts).with("  #{red("-")} application runs mysql (not supported on Shelly Cloud)")
+        $stdout.should_receive(:puts).with("  #{red("✗")} mysql driver present in the Gemfile (not supported on Shelly Cloud)")
         invoke(@main, :check)
       end
 
       it "should show that mysql2 gem is not supported by Shelly Cloud" do
         Bundler::Definition.stub_chain(:build, :specs, :map).and_return(["mysql2"])
-        $stdout.should_receive(:puts).with("  #{red("-")} application runs mysql (not supported on Shelly Cloud)")
+        $stdout.should_receive(:puts).with("  #{red("✗")} mysql driver present in the Gemfile (not supported on Shelly Cloud)")
         invoke(@main, :check)
       end
     end
@@ -1346,6 +1382,15 @@ We have been notified about it. We will be adding new resources shortly")
           invoke(@main, :check)
         }.should raise_error(SystemExit)
       end
+    end
+
+    it "should display only errors and warnings when in verbose mode" do
+      $stdout.should_not_receive(:puts).with("  #{green("✓")} Gem 'thin' is present")
+      $stdout.should_receive(:puts).with("  #{yellow("ϟ")} Gem 'shelly-dependencies' is missing, we recommend to install it\n    See more at https://shellycloud.com/documentation/requirements#shelly-dependencies")
+      $stdout.should_receive(:puts).with("  #{red("✗")} Gem 'rake' is missing in the Gemfile")
+      $stdout.should_receive(:puts).with("\nFix points marked with #{red("✗")} to run your application on the Shelly Cloud")
+      $stdout.should_receive(:puts).with("See more about requirements on https://shellycloud.com/documentation/requirements")
+      @main.check(false)
     end
   end
 end
