@@ -16,6 +16,10 @@ module RSpec
       "\e[31m#{string}\e[0m"
     end
 
+    def yellow(string)
+      "\e[0;33m#{string}\e[0m"
+    end
+
     def hooks(model, method)
       model.class.hooks.inject([]) do |result, v|
         result << v[0] if v[1][:only].include?(method)
