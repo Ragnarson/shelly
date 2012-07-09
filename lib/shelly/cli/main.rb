@@ -117,7 +117,7 @@ module Shelly
         e.each_error { |error| say_error error, :with_exit => false }
         say_new_line
         say_error "Fix erros in the below command and type it again to create your cloud" , :with_exit => false
-        say_error "shelly add --code-name=#{app.code_name.downcase.tr('_','-')} --databases=#{app.databases.join(',')} --size=#{app.size}"
+        say_error "shelly add --code-name=#{app.code_name.downcase.dasherize} --databases=#{app.databases.join(',')} --size=#{app.size}"
       end
 
       map "status" => :list
@@ -132,7 +132,7 @@ module Shelly
             msg = if state == "deploy_failed" || state == "configuration_failed"
               " (deployment log: `shelly deploys show last -c #{app["code_name"]}`)"
             end
-            [app["code_name"], "|  #{state.gsub("_", " ")}#{msg}"]
+            [app["code_name"], "|  #{state.humanize}#{msg}"]
           end
           print_table(apps_table, :ident => 2)
         else

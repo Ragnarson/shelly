@@ -35,6 +35,20 @@ module Shelly
       File.open(path, "a+") { |f| f << generate }
     end
 
+    # Public: Return databases for given Cloud in Cloudfile
+    # Returns Array of databases
+    def databases(cloud)
+      content[cloud.to_s]["servers"].map do |server, settings|
+        settings["databases"]
+      end.flatten.uniq
+    end
+
+    # Public: Return databases to backup for given Cloud in Cloudfile
+    # Returns Array of databases, except redis db
+    def backup_databases(cloud)
+      databases(cloud) - ['redis']
+    end
+
     private
 
     # Internal: Load and parse Cloudfile
