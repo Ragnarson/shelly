@@ -44,7 +44,7 @@ module Shelly
     private
 
     def gems
-      return [] unless gemfile? or gemfile_lock?
+      return [] unless gemfile? && gemfile_lock?
       definition = Bundler::Definition.build(@gemfile_path,
         @gemfile_lock_path, nil)
       @gems ||= definition.specs.map(&:name)
@@ -53,7 +53,11 @@ module Shelly
     def repo_paths
       @repo_paths ||= begin
         repo = Grit::Repo.new(".")
-        repo.status.map(&:path)
+        # Select files from repo which are unchanged, added or modified
+        # and then return their paths
+        repo.status.files.map(&:last).select { |status|
+          status.type.nil? || status.type == 'A' || status.type == 'M'
+        }.map(&:path)
       end
     end
   end
