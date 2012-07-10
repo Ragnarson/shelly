@@ -1290,7 +1290,7 @@ We have been notified about it. We will be adding new resources shortly")
       Shelly::App.stub(:inside_git_repository?).and_return(true)
       Bundler::Definition.stub_chain(:build, :specs, :map) \
         .and_return(["thin"])
-      Grit::Repo.stub_chain(:new, :status, :map) \
+      Shelly::StructureValidator.any_instance.stub(:repo_paths) \
         .and_return(["config.ru", "Gemfile", "Gemfile.lock"])
     end
 
@@ -1307,7 +1307,7 @@ We have been notified about it. We will be adding new resources shortly")
 
     context "when gemfile doesn't exist" do
       it "should show that Gemfile doesn't exist" do
-        Grit::Repo.stub_chain(:new, :status, :map).and_return([])
+        Shelly::StructureValidator.any_instance.stub(:repo_paths).and_return([])
         $stdout.should_receive(:puts).with("  #{red("✗")} Gemfile is missing in git repository")
         invoke(@main, :check)
       end
@@ -1322,7 +1322,7 @@ We have been notified about it. We will be adding new resources shortly")
 
     context "when gemfile doesn't exist" do
       it "should show that Gemfile doesn't exist" do
-        Grit::Repo.stub_chain(:new, :status, :map).and_return([])
+        Shelly::StructureValidator.any_instance.stub(:repo_paths).and_return([])
         $stdout.should_receive(:puts).with("  #{red("✗")} Gemfile is missing in git repository")
         invoke(@main, :check)
       end
@@ -1352,7 +1352,7 @@ We have been notified about it. We will be adding new resources shortly")
 
     context "when config.ru doesn't exist" do
       it "should show that config.ru is neccessary" do
-        Grit::Repo.stub_chain(:new, :status, :map).and_return([])
+        Shelly::StructureValidator.any_instance.stub(:repo_paths).and_return([])
         $stdout.should_receive(:puts).with("  #{red("✗")} File config.ru is missing")
         invoke(@main, :check)
       end

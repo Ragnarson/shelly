@@ -3,9 +3,10 @@ require "spec_helper"
 describe Shelly::StructureValidator do
   before do
     @validator = Shelly::StructureValidator.new
-    Grit::Repo.stub_chain(:new, :status).and_return([
-      mock(:path => "Gemfile"), mock(:path => "Gemfile.lock")
-    ])
+    statuses = [mock(:type => nil, :path => "Gemfile"),
+      mock(:type => nil, :path => "Gemfile.lock"),
+      mock(:type => nil, :path => "config.ru")]
+    Grit::Repo.stub_chain(:new, :status, :files, :map => statuses)
   end
 
   describe "#gemfile?" do
@@ -17,8 +18,9 @@ describe Shelly::StructureValidator do
 
     context "when Gemfile doesn't exist" do
       it "should return false" do
-        Grit::Repo.stub_chain(:new, :status) \
-          .and_return([mock(:path => "Gemfile.lock")])
+        Grit::Repo.stub_chain(:new, :status, :files,
+          :map => [mock(:type => 'D', :path => "Gemfile"),
+            mock(:type => nil, :path => "Gemfile.lock")])
         @validator.gemfile?.should == false
       end
     end
@@ -33,19 +35,15 @@ describe Shelly::StructureValidator do
 
     context "when Gemfile.lock doesn't exist" do
       it "should return false" do
-        Grit::Repo.stub_chain(:new, :status) \
-          .and_return([mock(:path => "Gemfile")])
+        Grit::Repo.stub_chain(:new, :status, :files,
+          :map => [mock(:type => nil, :path => "Gemfile"),
+            mock(:type => 'D' , :path => "Gemfile.lock")])
         @validator.gemfile_lock?.should == false
       end
     end
   end
 
   describe "#config_ru?" do
-    before do
-      Grit::Repo.stub_chain(:new, :status) \
-        .and_return([mock(:path => "config.ru")])
-    end
-
     context "when config.ru exists" do
       it "should return true" do
         @validator.config_ru?.should == true
@@ -54,7 +52,7 @@ describe Shelly::StructureValidator do
 
     context "when config.ru doesn't exist" do
       it "should return false" do
-        Grit::Repo.stub_chain(:new, :status).and_return([])
+        Grit::Repo.stub_chain(:new, :status, :files, :map => [])
         @validator.config_ru?.should == false
       end
     end
@@ -73,6 +71,20 @@ describe Shelly::StructureValidator do
 
     it "should return false if gem is missing" do
       @validator.gem?("rake").should be_false
+    end
+
+    context "when gemfile doesn't exist" do
+      it "should return false" do
+        @validator.stub(:gemfile? => false)
+        @validator.gem?("thin").should be_false
+      end
+    end
+
+    context "when gemfile.lock doesn't exist" do
+      it "should return false" do
+        @validator.stub(:gemfile_lock? => false)
+        @validator.gem?("thin").should be_false
+      end
     end
   end
 end
