@@ -202,7 +202,15 @@ We have been notified about it. We will be adding new resources shortly}
         exit 1
       end
 
-      desc "setup", "Set up clouds"
+      desc "setup", "Set up git remotes for deployment on Shelly Cloud"
+      long_desc %{
+        Set up git remotes for deployment on Shelly Cloud.
+
+        When an application is cloned from a git repository (for example from Github)
+        shelly setup will set up git remotes needed for deployment on Shelly Cloud.
+
+        Application must have Cloudfile in the repository.
+      }
       method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
       def setup
         app = multiple_clouds(options[:cloud], "setup")

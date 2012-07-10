@@ -45,7 +45,7 @@ Tasks:
   shelly rake TASK          # Run rake task
   shelly redeploy           # Redeploy application
   shelly register [EMAIL]   # Register new account
-  shelly setup              # Set up clouds
+  shelly setup              # Set up git remotes for deployment on Shelly Cloud
   shelly start              # Start the cloud
   shelly stop               # Shutdown the cloud
   shelly user <command>     # Manage collaborators
