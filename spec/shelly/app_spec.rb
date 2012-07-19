@@ -142,12 +142,31 @@ describe Shelly::App do
       @response = {"web_server_ip" => "192.0.2.1",
                    "mail_server_ip" => "192.0.2.3",
                    "state" => "running",
+                   "trial" => true,
+                   "credit" => 23.0,
                    "git_info" => {
                      "deployed_commit_message" => "Commit message",
                      "deployed_commit_sha" => "52e65ed2d085eaae560cdb81b2b56a7d76",
                      "repository_url" => "git@winniecloud.net:example-cloud",
                      "deployed_push_author" => "megan@example.com"}}
       @client.stub(:app).and_return(@response)
+    end
+
+    describe "#trial?" do
+      it "should return true if app is trial" do
+        @app.should be_trial
+      end
+
+      it "should return false if app is not trial" do
+        @client.stub(:app).and_return("trial" => false)
+        @app.should_not be_trial
+      end
+    end
+
+    describe "#credit" do
+      it "should return freecredit that app has" do
+        @app.credit.should == 23.0
+      end
     end
 
     it "should fetch app attributes from API and cache them" do
@@ -261,8 +280,10 @@ describe Shelly::App do
   describe "#create" do
     it "should create the app on shelly cloud via API client" do
       @app.code_name = "fooo"
+      @app.redeem_code = "foo123"
       attributes = {
-        :code_name => "fooo"
+        :code_name => "fooo",
+        :redeem_code => "foo123"
       }
       @client.should_receive(:create_app).with(attributes).and_return("git_url" => "git@git.shellycloud.com:fooo.git",
         "domains" => %w(fooo.shellyapp.com))
@@ -362,5 +383,5 @@ describe Shelly::App do
       Shelly::Cloudfile.should_receive(:new).and_return(cloudfile)
       @app.create_cloudfile
     end
-  end
+  end  
 end
