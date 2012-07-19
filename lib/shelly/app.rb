@@ -9,7 +9,8 @@ module Shelly
     SERVER_SIZES = %w(small large)
 
     attr_accessor :code_name, :databases, :ruby_version, :environment,
-      :git_url, :domains, :web_server_ip, :mail_server_ip, :size, :thin
+      :git_url, :domains, :web_server_ip, :mail_server_ip, :size, :thin,
+      :redeem_code
 
     def initialize(code_name = nil)
       self.code_name = code_name
@@ -41,7 +42,7 @@ module Shelly
     end
 
     def create
-      attributes = {:code_name => code_name}
+      attributes = {:code_name => code_name, :redeem_code => redeem_code}
       response = shelly.create_app(attributes)
       self.git_url = response["git_url"]
       self.domains = response["domains"]
@@ -195,6 +196,14 @@ module Shelly
 
     def state
       attributes["state"]
+    end
+
+    def trial?
+      !!attributes["trial"]
+    end
+
+    def credit
+      attributes["credit"]
     end
 
     def self.inside_git_repository?
