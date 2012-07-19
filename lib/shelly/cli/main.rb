@@ -79,6 +79,8 @@ module Shelly
         :desc => "List of databases of your choice"
       method_option :size, :type => :string, :aliases => "-s",
         :desc => "Server size [large, small]"
+      method_option "redeem-code", :type => :string, :aliases => "-r",
+        :desc => "Redeem code for free credits"
       desc "add", "Add a new cloud"
       def add
         check_options(options)
@@ -87,6 +89,7 @@ module Shelly
         app.code_name = options["code-name"] || ask_for_code_name
         app.databases = options["databases"] || ask_for_databases
         app.size = options["size"] || "large"
+        app.redeem_code = options["redeem-code"]
         app.create
 
         if overwrite_remote?(app)
@@ -99,10 +102,10 @@ module Shelly
 
         say "Creating Cloudfile", :green
         app.create_cloudfile
-        if app.attributes["trial"]
+        if app.trial?
           say_new_line
           say "Billing information", :green
-          say "Cloud created with 20 Euro credit."
+          say "Cloud created with #{app.credit} Euro credit."
           say "Remember to provide billing details before trial ends."
           say app.edit_billing_url
         end
