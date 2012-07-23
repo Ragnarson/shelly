@@ -1,3 +1,4 @@
+# encoding: utf-8
 require "shelly/cli/command"
 require "shelly/cli/user"
 require "shelly/cli/backup"
@@ -78,13 +79,17 @@ module Shelly
         :desc => "List of databases of your choice"
       method_option :size, :type => :string, :aliases => "-s",
         :desc => "Server size [large, small]"
+      method_option "redeem-code", :type => :string, :aliases => "-r",
+        :desc => "Redeem code for free credits"
       desc "add", "Add a new cloud"
       def add
         check_options(options)
+        return unless check(verbose = false)
         app = Shelly::App.new
         app.code_name = options["code-name"] || ask_for_code_name
         app.databases = options["databases"] || ask_for_databases
         app.size = options["size"] || "large"
+        app.redeem_code = options["redeem-code"]
         app.create
 
         if overwrite_remote?(app)
@@ -97,10 +102,10 @@ module Shelly
 
         say "Creating Cloudfile", :green
         app.create_cloudfile
-        if app.attributes["trial"]
+        if app.trial?
           say_new_line
           say "Billing information", :green
-          say "Cloud created with 20 Euro credit."
+          say "Cloud created with #{app.credit} Euro credit."
           say "Remember to provide billing details before trial ends."
           say app.edit_billing_url
         end
@@ -200,7 +205,15 @@ We have been notified about it. We will be adding new resources shortly}
         exit 1
       end
 
-      desc "setup", "Set up clouds"
+      desc "setup", "Set up git remotes for deployment on Shelly Cloud"
+      long_desc %{
+        Set up git remotes for deployment on Shelly Cloud.
+
+        When an application is cloned from a git repository (for example from Github)
+        shelly setup will set up git remotes needed for deployment on Shelly Cloud.
+
+        Application must have Cloudfile in the repository.
+      }
       method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
       def setup
         app = multiple_clouds(options[:cloud], "setup")
@@ -277,9 +290,10 @@ We have been notified about it. We will be adding new resources shortly}
 
         if options[:tail]
           loop do
-            logs = app.application_logs(:from => logs['range']['last'], :source => options[:source])
+            logs = app.application_logs(:from => logs['range']['last'],
+              :source => options[:source])
             print_logs(logs)
-            sleep 1
+            sleep 0.5
           end
         end
       rescue Client::APIException => e
@@ -345,14 +359,59 @@ We have been notified about it. We will be adding new resources shortly}
         say_error "Cloud #{app} is not running. Cannot run console."
       end
 
-      desc "check", "List all requirements and check which are fulfilled"
-      def check
-        s = Shelly::StructureValidator.new
-        say "Checking dependencies:", :green
-        print_check s.gemfile_exists?, "Gemfile exists"
-        print_check s.gems.include?("thin"), "gem 'thin' present in Gemfile"
-        print_check s.config_ru_exists?, "config.ru exists"
-        print_check false, "application runs mysql (not supported on Shelly Cloud)" if s.gems.include?("mysql2") or s.gems.include?("mysql")
+      desc "check", "Check if application fulfills Shelly Cloud requirements"
+      # Public: Check if application fulfills shelly's requirements
+      #         and print them
+      # verbose - when true all requirements will be printed out
+      #           together with header and a summary at the end
+      #           when false only not fulfilled requirements will be
+      #           printed
+      # When any requirements is not fulfilled header and summary will
+      # be displayed regardless of verbose value
+      def check(verbose = true)
+        structure = Shelly::StructureValidator.new
+
+        if verbose or structure.invalid? or structure.warnings?
+          say "Checking Shelly Cloud requirements\n\n"
+        end
+
+        print_check(structure.gemfile?, "Gemfile is present",
+          "Gemfile is missing in git repository",
+          :show_fulfilled => verbose)
+
+        print_check(structure.gemfile_lock?, "Gemfile.lock is present",
+          "Gemfile.lock is missing in git repository",
+          :show_fulfilled => verbose)
+
+        print_check(structure.gem?("shelly-dependencies"),
+          "Gem 'shelly-dependencies' is present",
+          "Gem 'shelly-dependencies' is missing, we recommend to install it\n    See more at https://shellycloud.com/documentation/requirements#shelly-dependencies",
+          :show_fulfilled => verbose || structure.warnings?, :failure_level => :warning)
+
+        print_check(structure.gem?("thin"), "Gem 'thin' is present",
+          "Gem 'thin' is missing in the Gemfile", :show_fulfilled => verbose)
+
+        print_check(structure.gem?("rake"), "Gem 'rake' is present",
+          "Gem 'rake' is missing in the Gemfile", :show_fulfilled => verbose)
+
+        print_check(structure.config_ru?, "File config.ru is present",
+          "File config.ru is missing",
+          :show_fulfilled => verbose)
+
+        print_check(!structure.gem?("mysql") && !structure.gem?("mysql2"),"",
+          "mysql driver present in the Gemfile (not supported on Shelly Cloud)",
+          :show_fulfilled => false)
+
+        if structure.valid?
+          if verbose
+            say "\nGreat! Your application is ready to run on Shelly Cloud"
+          end
+        else
+          say "\nFix points marked with #{red("✗")} to run your application on the Shelly Cloud"
+          say "See more about requirements on https://shellycloud.com/documentation/requirements"
+        end
+
+        structure.valid?
       rescue Bundler::BundlerError => e
         say_new_line
         say_error e.message, :with_exit => false

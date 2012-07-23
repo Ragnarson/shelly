@@ -1,3 +1,4 @@
+# encoding: utf-8
 module Shelly
   module Helpers
     def echo_disabled
@@ -129,8 +130,19 @@ module Shelly
       "\e[31m#{string}\e[0m"
     end
 
-    def print_check(checked, string, options = {})
-      print_wrapped (checked ? green("+") : red("-")) + " #{string}", :ident => 2
+    def yellow(string)
+      "\e[0;33m#{string}\e[0m"
+    end
+
+    def print_check(check, success_message, failure_message, options = {})
+      return if check && !options[:show_fulfilled]
+      message = check ? success_message : failure_message
+      indicator = if check
+                    green("✓")
+                  else
+                    options[:failure_level] == :warning ? yellow("ϟ") : red("✗")
+                  end
+      say "  #{indicator} #{message}"
     end
   end
 end
