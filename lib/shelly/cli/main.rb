@@ -209,7 +209,7 @@ We have been notified about it. We will be adding new resources shortly}
         if overwrite_remote?(app)
           say "git remote add #{app} #{app.git_url}"
           app.add_git_remote
-          say "git fetch production"
+          say "git fetch #{app}"
           app.git_fetch_remote
           say "git checkout -b #{app} --track #{app}/master"
           app.git_add_tracking_branch

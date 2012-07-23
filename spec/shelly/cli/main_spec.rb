@@ -871,7 +871,7 @@ We have been notified about it. We will be adding new resources shortly")
     it "should show info about adding remote and branch" do
       $stdout.should_receive(:puts).with(green "Setting up foo-staging cloud")
       $stdout.should_receive(:puts).with("git remote add foo-staging git_url")
-      $stdout.should_receive(:puts).with("git fetch production")
+      $stdout.should_receive(:puts).with("git fetch foo-staging")
       $stdout.should_receive(:puts).with("git checkout -b foo-staging --track foo-staging/master")
       $stdout.should_receive(:puts).with(green "Your application is set up.")
       invoke(@main, :setup)
