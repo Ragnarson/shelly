@@ -17,9 +17,9 @@ module Shelly
         app = multiple_clouds(options[:cloud], "backup list")
         backups = app.database_backups
         if backups.present?
-          to_display = [["Filename", "|  Size"]]
+          to_display = [["Filename", "|  Size", "|  State"]]
           backups.each do |backup|
-            to_display << [backup.filename, "|  #{backup.human_size}"]
+            to_display << [backup.filename, "|  #{backup.human_size}", "|  #{backup.state.humanize}"]
           end
 
           say "Available backups:", :green
@@ -53,14 +53,21 @@ module Shelly
       desc "create [DB_KIND]", "Create backup of given database"
       long_desc %{
         Create backup of given database.
-        If database kind is not specified, backup of all configured databases will be performed.
+        If database kind is not specified, Cloudfile must be present to backup all configured databases.
       }
       def create(kind = nil)
         app = multiple_clouds(options[:cloud], "backup create [DB_KIND]")
-        app.request_backup(kind)
+        cloudfile = Cloudfile.new
+        unless kind || cloudfile.present?
+          say_error "Cloudfile must be present in current working directory or specify database kind with:", :with_exit => false
+          say_error "`shelly backup create DB_KIND`"
+        end
+        app.request_backup(kind || cloudfile.backup_databases(app))
         say "Backup requested. It can take up to several minutes for " +
-          "the backup process to finish and the backup to show up in backups list.", :green
+          "the backup process to finish.", :green
       rescue Client::ValidationException => e
+        say_error e[:message]
+      rescue Client::ConflictException => e
         say_error e[:message]
       end
 
@@ -78,6 +85,8 @@ module Shelly
         raise unless e.resource == :database_backup
         say_error "Backup not found", :with_exit => false
         say "You can list available backups with `shelly backup list` command"
+      rescue Client::ConflictException => e
+        say_error e[:message]
       end
     end
   end

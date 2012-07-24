@@ -1,6 +1,7 @@
 require "rubygems"
 require "core_ext/object"
 require "core_ext/hash"
+require "core_ext/string"
 
 require "yaml"
 if YAML.const_defined?(:ENGINE)

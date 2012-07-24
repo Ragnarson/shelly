@@ -31,18 +31,22 @@ describe Shelly::CLI::Backup do
 
     # multiple_clouds is tested in main_spec.rb in describe "#start" block
     it "should ensure multiple_clouds check" do
-      @client.should_receive(:database_backups).with("foo-staging").and_return([{"filename" => "backup.postgre.tar.gz", "human_size" => "10kb", "size" => 12345}])
+      @client.should_receive(:database_backups).with("foo-staging").and_return([{"filename" => "backup.postgre.tar.gz", "human_size" => "10kb", "size" => 12345, "state" => "completed"}])
       @backup.should_receive(:multiple_clouds).and_return(@app)
       invoke(@backup, :list)
     end
 
     it "should take cloud from command line for which to show backups" do
-      @client.should_receive(:database_backups).with("foo-staging").and_return([{"filename" => "backup.postgre.tar.gz", "human_size" => "10kb", "size" => 12345},{"filename" => "backup.mongo.tar.gz", "human_size" => "22kb", "size" => 333}])
+      @client.should_receive(:database_backups).with("foo-staging").and_return(
+        [{"filename" => "backup.postgre.tar.gz", "human_size" => "10kb",
+          "size" => 12345, "state" => "completed"},
+         {"filename" => "backup.mongo.tar.gz", "human_size" => "22kb",
+          "size" => 333, "state" => "in_progress"}])
       $stdout.should_receive(:puts).with(green "Available backups:")
       $stdout.should_receive(:puts).with("\n")
-      $stdout.should_receive(:puts).with("  Filename               |  Size")
-      $stdout.should_receive(:puts).with("  backup.postgre.tar.gz  |  10kb")
-      $stdout.should_receive(:puts).with("  backup.mongo.tar.gz    |  22kb")
+      $stdout.should_receive(:puts).with("  Filename               |  Size  |  State")
+      $stdout.should_receive(:puts).with("  backup.postgre.tar.gz  |  10kb  |  completed")
+      $stdout.should_receive(:puts).with("  backup.mongo.tar.gz    |  22kb  |  in progress")
       @backup.options = {:cloud => "foo-staging"}
       invoke(@backup, :list)
     end
@@ -114,8 +118,9 @@ describe Shelly::CLI::Backup do
     before do
       FileUtils.mkdir_p("/projects/foo")
       Dir.chdir("/projects/foo")
-      File.open("Cloudfile", 'w') {|f| f.write("foo-staging:\n") }
       $stdout.stub(:puts)
+      @cloudfile = mock(:backup_databases => ['postgresql', 'mongodb'], :clouds => ['foo-staging'])
+      Shelly::Cloudfile.stub(:new).and_return(@cloudfile)
     end
 
     it "should ensure user has logged in" do
@@ -137,11 +142,30 @@ describe Shelly::CLI::Backup do
       lambda { invoke(@backup, :create) }.should raise_error(SystemExit)
     end
 
+    it "should backup db specified by cli" do
+      @app.should_receive(:request_backup).with('postgresql')
+      invoke(@backup, :create, "postgresql")
+    end
+
+    it "should backup all dbs in cloudfile" do
+      @app.should_receive(:request_backup).with(['postgresql', 'mongodb'])
+      invoke(@backup, :create)
+    end
+
     it "should display information about request backup" do
       @client.stub(:request_backup)
       $stdout.should_receive(:puts).with(green "Backup requested. It can take up to several minutes for " +
-          "the backup process to finish and the backup to show up in backups list.")
+          "the backup process to finish.")
       invoke(@backup, :create)
+    end
+
+    it "should display information about missing kind or Cloudfile" do
+      @cloudfile.stub(:present?).and_return(false)
+      $stdout.should_receive(:puts).with(red "Cloudfile must be present in current working directory or specify database kind with:")
+      $stdout.should_receive(:puts).with(red "`shelly backup create DB_KIND`")
+
+      @backup.options = {:cloud => "foo-production"}
+      lambda { invoke(@backup, :create) }.should raise_error(SystemExit)
     end
   end
 
