@@ -14,6 +14,7 @@ describe Shelly::Backup do
     backup.filename.should == "backup.tar.gz"
     backup.human_size.should == "2KB"
     backup.size.should == 2048
+    backup.state.should == "completed"
   end
 
   describe "#download" do
@@ -29,6 +30,7 @@ describe Shelly::Backup do
     {"code_name" => "foo",
     "filename"   => "backup.tar.gz",
     "human_size" => "2KB",
-    "size"       => 2048}
+    "size"       => 2048,
+    "state"      => "completed"}
   end
 end

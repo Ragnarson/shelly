@@ -88,6 +88,31 @@ config
     end
   end
 
+  describe "#databases" do
+    before do
+      content = <<-config
+foo-staging:
+  servers:
+    app1:
+      databases:
+        - postgresql
+        - redis
+    app2:
+      databases:
+        - mongodb
+config
+      File.open("Cloudfile", 'w') {|f| f.write(content) }
+    end
+
+    it "should return databases in cloudfile" do
+      @cloudfile.databases("foo-staging").should =~ ['redis', 'mongodb', 'postgresql']
+    end
+
+    it "should return databases except for redis" do
+      @cloudfile.backup_databases("foo-staging").should =~ ['postgresql', 'mongodb']
+    end
+  end
+
   describe "#create" do
     before do
       @cloudfile.stub(:generate).and_return("foo-staging:")

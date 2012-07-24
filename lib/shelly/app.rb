@@ -92,8 +92,10 @@ module Shelly
       shelly.restore_backup(code_name, filename)
     end
 
-    def request_backup(kind)
-      shelly.request_backup(code_name, kind)
+    def request_backup(kinds)
+      Array(kinds).each do |kind|
+        shelly.request_backup(code_name, kind)
+      end
     end
 
     def logs
@@ -126,7 +128,7 @@ module Shelly
           end
         end
       end
-      "#{File.basename(Dir.pwd)}-#{guessed || 'staging'}".downcase.tr('_','-')
+      "#{File.basename(Dir.pwd)}-#{guessed || 'staging'}".downcase.dasherize
     end
 
     def collaborations
