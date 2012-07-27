@@ -66,7 +66,8 @@ module Shelly
         say "Backup requested. It can take up to several minutes for " +
           "the backup process to finish.", :green
       rescue Client::ValidationException => e
-        say_error e[:message]
+        e.each_error { |error| say_error error, :with_exit => false }
+        exit 1
       rescue Client::ConflictException => e
         say_error e[:message]
       end

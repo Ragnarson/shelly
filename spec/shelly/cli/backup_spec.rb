@@ -135,10 +135,10 @@ describe Shelly::CLI::Backup do
     end
 
     it "should display errors and exit 1 when kind is not valid" do
-      response = {"message" => "Wrong KIND argument. User one of following: postgresql, mongodb, redis"}
+      response = {"errors" => [["kind", "is invalid"]]}
       exception = Shelly::Client::ValidationException.new(response)
       @client.should_receive(:request_backup).and_raise(exception)
-      $stdout.should_receive(:puts).with(red response["message"])
+      $stdout.should_receive(:puts).with(red "Kind is invalid")
       lambda { invoke(@backup, :create) }.should raise_error(SystemExit)
     end
 
