@@ -176,6 +176,10 @@ module Shelly
       ssh_command("rake_runner \"#{task}\"")
     end
 
+    def dbconsole
+      ssh_command("dbconsole")
+    end
+
     def attributes
       @attributes ||= shelly.app(code_name)
     end
@@ -244,7 +248,7 @@ module Shelly
     end
 
     def ssh_command(command = "")
-      exec "ssh #{ssh_options} #{ssh['host']} #{command}"
+      exec "ssh #{ssh_options} -t #{ssh['host']} #{command}"
     end
 
     def ssh_options

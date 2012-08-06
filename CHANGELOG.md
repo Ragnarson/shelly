@@ -1,3 +1,5 @@
+* [feature] Add dbconsole to access 'rails dbconsole' on Shelly Cloud.
+
 * [feature] Limit backups list to 10 backups, --all option to list all backups.
 
   Usage: ```shelly backup list --all```
