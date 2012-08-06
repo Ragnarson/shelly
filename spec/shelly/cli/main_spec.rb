@@ -9,6 +9,7 @@ describe Shelly::CLI::Main do
     @main = Shelly::CLI::Main.new
     Shelly::CLI::Main.stub(:new).and_return(@main)
     @client = mock
+    @client.stub(:token).and_return("abc")
     Shelly::Client.stub(:new).and_return(@client)
     Shelly::User.stub(:guess_email).and_return("")
     $stdout.stub(:puts)
@@ -563,16 +564,10 @@ OUT
 
   describe "#start" do
     before do
-      @user = Shelly::User.new
-      @client.stub(:token).and_return("abc")
-      FileUtils.mkdir_p("/projects/foo")
-      Dir.chdir("/projects/foo")
-      File.open("Cloudfile", 'w') {|f| f.write("foo-production:\n") }
-      Shelly::User.stub(:new).and_return(@user)
-      @client.stub(:apps).and_return([{"code_name" => "foo-production", "state" => "running"},
-         {"code_name" => "foo-staging", "state" => "no_code"}])
-      @app = Shelly::App.new
-      Shelly::App.stub(:new).and_return(@app)
+      setup_project
+      @client.stub(:apps).and_return([
+        {"code_name" => "foo-production", "state" => "running"},
+        {"code_name" => "foo-staging", "state" => "no_code"}])
     end
 
     it "should ensure user has logged in" do
@@ -1074,16 +1069,7 @@ We have been notified about it. We will be adding new resources shortly")
 
   describe "#logs" do
     before do
-      @user = Shelly::User.new
-      @client.stub(:token).and_return("abc")
-      FileUtils.mkdir_p("/projects/foo")
-      Dir.chdir("/projects/foo")
-      File.open("Cloudfile", 'w') { |f| f.write("foo-production:\n") }
-      Shelly::User.stub(:new).and_return(@user)
-      @client.stub(:apps).and_return([{"code_name" => "foo-production"},
-                                     {"code_name" => "foo-staging"}])
-      @app = Shelly::App.new
-      Shelly::App.stub(:new).and_return(@app)
+      setup_project
       @sample_logs = {"entries" => [['app1', 'log1'], ['app1', 'log2']]}
     end
 
@@ -1123,14 +1109,7 @@ We have been notified about it. We will be adding new resources shortly")
 
   describe "#rake" do
     before do
-      FileUtils.mkdir_p("/projects/foo")
-      Dir.chdir("/projects/foo")
-      File.open("Cloudfile", 'w') {|f| f.write("foo-production:\n") }
-      @user = Shelly::User.new
-      @user.stub(:token)
-      Shelly::User.stub(:new).and_return(@user)
-      @app = Shelly::App.new("foo-production")
-      Shelly::App.stub(:new).and_return(@app)
+      setup_project
       @main.stub(:rake_args).and_return(%w(db:migrate))
     end
 
@@ -1167,13 +1146,7 @@ We have been notified about it. We will be adding new resources shortly")
 
   describe "#redeploy" do
     before do
-      @user = Shelly::User.new
-      @client.stub(:token).and_return("abc")
-      @app = Shelly::App.new("foo-production")
-      Shelly::App.stub(:new).and_return(@app)
-      FileUtils.mkdir_p("/projects/foo")
-      Dir.chdir("/projects/foo")
-      File.open("Cloudfile", 'w') { |f| f.write("foo-production:\n") }
+      setup_project
     end
 
     # multiple_clouds is tested in main_spec.rb in describe "#start" block
@@ -1229,14 +1202,8 @@ We have been notified about it. We will be adding new resources shortly")
 
   describe "#open" do
     before do
-      @user = Shelly::User.new
-      @client.stub(:token).and_return("abc")
-      @app = Shelly::App.new("foo-production")
+      setup_project
       @app.stub(:open)
-      Shelly::App.stub(:new).and_return(@app)
-      FileUtils.mkdir_p("/projects/foo")
-      Dir.chdir("/projects/foo")
-      File.open("Cloudfile", 'w') { |f| f.write("foo-production:\n") }
     end
 
     # multiple_clouds is tested in main_spec.rb in describe "#start" block
@@ -1254,12 +1221,7 @@ We have been notified about it. We will be adding new resources shortly")
 
   describe "#console" do
     before do
-      @client.stub(:token).and_return("abc")
-      @app = Shelly::App.new("foo-production")
-      Shelly::App.stub(:new).and_return(@app)
-      FileUtils.mkdir_p("/projects/foo")
-      Dir.chdir("/projects/foo")
-      File.open("Cloudfile", 'w') { |f| f.write("foo-production:\n") }
+      setup_project
     end
 
     it "should ensure user has logged in" do
@@ -1389,5 +1351,13 @@ We have been notified about it. We will be adding new resources shortly")
       $stdout.should_receive(:puts).with("See more about requirements on https://shellycloud.com/documentation/requirements")
       @main.check(false)
     end
+  end
+
+  def setup_project(code_name = "foo")
+    @app = Shelly::App.new("#{code_name}-production")
+    Shelly::App.stub(:new).and_return(@app)
+    FileUtils.mkdir_p("/projects/#{code_name}")
+    Dir.chdir("/projects/#{code_name}")
+    File.open("Cloudfile", 'w') { |f| f.write("#{code_name}-production:\n") }
   end
 end
