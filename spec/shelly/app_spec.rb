@@ -253,6 +253,14 @@ describe Shelly::App do
     end
   end
 
+  describe "#database_backups" do
+    it "should add limit parameter" do
+      @client.stub_chain(:database_backups, :map)
+      @client.should_receive(:database_backups).with("foo-staging")
+      @app.database_backups
+    end
+  end
+
   describe "#database_backup" do
     before do
       @description = {

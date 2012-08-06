@@ -31,23 +31,39 @@ describe Shelly::CLI::Backup do
 
     # multiple_clouds is tested in main_spec.rb in describe "#start" block
     it "should ensure multiple_clouds check" do
-      @client.should_receive(:database_backups).with("foo-staging").and_return([{"filename" => "backup.postgre.tar.gz", "human_size" => "10kb", "size" => 12345, "state" => "completed"}])
+      @client.should_receive(:database_backups).with("foo-staging").and_return(
+         [{"filename" => "backup.postgre.tar.gz", "human_size" => "10kb",
+         "size" => 12345, "state" => "completed"}])
       @backup.should_receive(:multiple_clouds).and_return(@app)
       invoke(@backup, :list)
     end
 
     it "should take cloud from command line for which to show backups" do
+      stub_const("Shelly::Backup::LIMIT", 1)
       @client.should_receive(:database_backups).with("foo-staging").and_return(
         [{"filename" => "backup.postgre.tar.gz", "human_size" => "10kb",
           "size" => 12345, "state" => "completed"},
          {"filename" => "backup.mongo.tar.gz", "human_size" => "22kb",
           "size" => 333, "state" => "in_progress"}])
+      $stdout.should_not_receive(:puts).with("Limiting the number of backups to 1.")
       $stdout.should_receive(:puts).with(green "Available backups:")
       $stdout.should_receive(:puts).with("\n")
       $stdout.should_receive(:puts).with("  Filename               |  Size  |  State")
       $stdout.should_receive(:puts).with("  backup.postgre.tar.gz  |  10kb  |  completed")
       $stdout.should_receive(:puts).with("  backup.mongo.tar.gz    |  22kb  |  in progress")
-      @backup.options = {:cloud => "foo-staging"}
+      @backup.options = {:cloud => "foo-staging", :all => true}
+      invoke(@backup, :list)
+    end
+
+    it "should show --all option if not present" do
+      stub_const("Shelly::Backup::LIMIT", 1)
+      $stdout.should_receive(:puts).with("Limiting the number of backups to 1.")
+      $stdout.should_receive(:puts).with("Use --all or -a option to list all backups.")
+      @client.should_receive(:database_backups).with("foo-staging").and_return(
+          [{"filename" => "backup.postgre.tar.gz", "human_size" => "10kb",
+            "size" => 12345, "state" => "completed"},
+           {"filename" => "backup.mongo.tar.gz", "human_size" => "22kb",
+            "size" => 333, "state" => "in_progress"}])
       invoke(@backup, :list)
     end
 

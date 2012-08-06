@@ -12,13 +12,21 @@ module Shelly
 
       class_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
 
+      method_option :all, :type => :boolean, :aliases => "-a",
+        :desc => "Show all backups"
       desc "list", "List available database backups"
       def list
         app = multiple_clouds(options[:cloud], "backup list")
         backups = app.database_backups
         if backups.present?
+          limit = -1
+          unless options[:all] || backups.count < (Shelly::Backup::LIMIT + 1)
+            limit = Shelly::Backup::LIMIT - 1
+            say "Limiting the number of backups to #{Shelly::Backup::LIMIT}."
+            say "Use --all or -a option to list all backups."
+          end
           to_display = [["Filename", "|  Size", "|  State"]]
-          backups.each do |backup|
+          backups[0..limit].each do |backup|
             to_display << [backup.filename, "|  #{backup.human_size}", "|  #{backup.state.humanize}"]
           end
 
