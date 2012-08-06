@@ -320,8 +320,17 @@ describe Shelly::App do
     it "should return result of rake task" do
       @client.stub(:console).and_return(
         {"host" => "console.example.com", "port" => "40010", "user" => "foo"})
-      @app.should_receive(:exec).with("ssh -o StrictHostKeyChecking=no -p 40010 -l foo console.example.com rake_runner \"test\"")
+      @app.should_receive(:exec).with("ssh -o StrictHostKeyChecking=no -p 40010 -l foo -t console.example.com rake_runner \"test\"")
       @app.rake("test")
+    end
+  end
+
+  describe "#dbconsole" do
+    it "should return result of dbconsole" do
+      @client.stub(:console).and_return(
+        {"host" => "console.example.com", "port" => "40010", "user" => "foo"})
+      @app.should_receive(:exec).with("ssh -o StrictHostKeyChecking=no -p 40010 -l foo -t console.example.com dbconsole")
+      @app.dbconsole
     end
   end
 
@@ -350,7 +359,7 @@ describe Shelly::App do
     it "should run ssh with all parameters" do
       @client.stub(:console).and_return(
         {"host" => "console.example.com", "port" => "40010", "user" => "foo"})
-      @app.should_receive(:exec).with("ssh -o StrictHostKeyChecking=no -p 40010 -l foo console.example.com ")
+      @app.should_receive(:exec).with("ssh -o StrictHostKeyChecking=no -p 40010 -l foo -t console.example.com ")
       @app.console
     end
   end
