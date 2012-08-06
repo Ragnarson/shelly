@@ -147,9 +147,7 @@ module Shelly
     end
 
     def application_logs(cloud, options = {})
-      query = "?" + options.map { |k, v|
-        URI.escape(k.to_s) + "=" + URI.escape(v.to_s) }.join("&")
-      get("/apps/#{cloud}/application_logs#{query}")
+      get("/apps/#{cloud}/application_logs#{query(options)}")
     end
 
     def database_backups(code_name)
@@ -174,6 +172,11 @@ module Shelly
 
     def redeploy(cloud)
       post("/apps/#{cloud}/deploys")
+    end
+
+    def query(options = {})
+      "?" + options.map { |k, v|
+        URI.escape(k.to_s) + "=" + URI.escape(v.to_s) }.join("&")
     end
 
     def post(path, params = {})

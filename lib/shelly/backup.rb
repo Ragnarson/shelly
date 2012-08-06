@@ -1,5 +1,6 @@
 module Shelly
   class Backup < Model
+    LIMIT = 10
     attr_reader :filename, :size, :human_size, :code_name, :kind, :state
 
     def initialize(attributes = {})
