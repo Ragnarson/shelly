@@ -20,7 +20,7 @@ module Shelly
       check_unknown_options!(:except => :rake)
 
       # FIXME: it should be possible to pass single symbol, instead of one element array
-      before_hook :logged_in?, :only => [:add, :status, :list, :start, :stop, :logs, :delete, :info, :ip, :logout, :execute, :rake, :setup, :console]
+      before_hook :logged_in?, :only => [:add, :status, :list, :start, :stop, :logs, :delete, :info, :ip, :logout, :execute, :rake, :setup, :console, :dbconsole]
       before_hook :inside_git_repository?, :only => [:add, :setup, :check]
 
       map %w(-v --version) => :version
@@ -316,6 +316,15 @@ We have been notified about it. We will be adding new resources shortly}
         app.rake(task)
       rescue Client::ConflictException
         say_error "Cloud #{app} is not running. Cannot run rake task."
+      end
+
+      desc "dbconsole", "Run rails dbconsole"
+      method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
+      def dbconsole(task = nil)
+        app = multiple_clouds(options[:cloud], "dbconsole")
+        app.dbconsole
+      rescue Client::ConflictException
+        say_error "Cloud #{app} is not running. Cannot run dbconsole."
       end
 
       desc "redeploy", "Redeploy application"

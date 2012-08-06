@@ -32,6 +32,7 @@ Tasks:
   shelly check              # Check if application fulfills Shelly Cloud requirements
   shelly config <command>   # Manage application configuration files
   shelly console            # Open application console
+  shelly dbconsole          # Run rails dbconsole
   shelly delete             # Delete the cloud
   shelly deploys <command>  # View deploy logs
   shelly execute CODE       # Run code on one of application servers
@@ -1239,6 +1240,31 @@ We have been notified about it. We will be adding new resources shortly")
         $stdout.should_receive(:puts).with(red "Cloud foo-production is not running. Cannot run console.")
         lambda {
           invoke(@main, :console)
+        }.should raise_error(SystemExit)
+      end
+    end
+  end
+
+  describe "#dbconsole" do
+    before do
+      setup_project
+    end
+
+    it "should ensure user has logged in" do
+      hooks(@main, :dbconsole).should include(:logged_in?)
+    end
+
+    it "should execute ssh command" do
+      @app.should_receive(:dbconsole)
+      invoke(@main, :dbconsole)
+    end
+
+    context "Instances are not running" do
+      it "should display error" do
+        @client.stub(:console).and_raise(Shelly::Client::ConflictException)
+        $stdout.should_receive(:puts).with(red "Cloud foo-production is not running. Cannot run dbconsole.")
+        lambda {
+          invoke(@main, :dbconsole)
         }.should raise_error(SystemExit)
       end
     end
