@@ -229,22 +229,22 @@ module Shelly
     end
 
     def upload(source)
-      rsync(source, "#{ssh['node_ip']}:/srv/glusterfs/disk")
+      rsync(source, "#{ssh['host']}:/srv/glusterfs/disk")
     end
 
     def download(relative_source, destination)
-      source = File.join("#{ssh['node_ip']}:/srv/glusterfs/disk", relative_source)
+      source = File.join("#{ssh['host']}:/srv/glusterfs/disk", relative_source)
       rsync(source, destination)
     end
 
     private
 
     def ssh
-      @ssh ||= shelly.node_and_port(code_name)
+      @ssh ||= shelly.console(code_name)
     end
 
     def ssh_command(command = "")
-      exec "ssh #{ssh_options} #{ssh['node_ip']} #{command}"
+      exec "ssh #{ssh_options} #{ssh['host']} #{command}"
     end
 
     def ssh_options

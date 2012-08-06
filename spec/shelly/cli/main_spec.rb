@@ -1267,15 +1267,13 @@ We have been notified about it. We will be adding new resources shortly")
     end
 
     it "execute ssh command" do
-      expected = {"port" => "40010", "node_ip" => "10.0.0.10", "user"=>"foo-production"}
-      @client.stub(:node_and_port).and_return(expected)
       @app.should_receive(:console)
       invoke(@main, :console)
     end
 
     context "Instances are not running" do
       it "should display error" do
-        @client.stub(:node_and_port).and_raise(Shelly::Client::ConflictException)
+        @client.stub(:console).and_raise(Shelly::Client::ConflictException)
         $stdout.should_receive(:puts).with(red "Cloud foo-production is not running. Cannot run console.")
         lambda {
           invoke(@main, :console)

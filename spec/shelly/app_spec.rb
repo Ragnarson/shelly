@@ -310,9 +310,9 @@ describe Shelly::App do
 
   describe "#rake" do
     it "should return result of rake task" do
-      @client.stub(:node_and_port).and_return(
-        {"node_ip" => "10.0.0.1", "port" => "40010", "user" => "foo"})
-      @app.should_receive(:exec).with("ssh -o StrictHostKeyChecking=no -p 40010 -l foo 10.0.0.1 rake_runner \"test\"")
+      @client.stub(:console).and_return(
+        {"host" => "console.example.com", "port" => "40010", "user" => "foo"})
+      @app.should_receive(:exec).with("ssh -o StrictHostKeyChecking=no -p 40010 -l foo console.example.com rake_runner \"test\"")
       @app.rake("test")
     end
   end
@@ -340,27 +340,27 @@ describe Shelly::App do
 
   describe "#console" do
     it "should run ssh with all parameters" do
-      @client.stub(:node_and_port).and_return(
-        {"node_ip" => "10.0.0.1", "port" => "40010", "user" => "foo"})
-      @app.should_receive(:exec).with("ssh -o StrictHostKeyChecking=no -p 40010 -l foo 10.0.0.1 ")
+      @client.stub(:console).and_return(
+        {"host" => "console.example.com", "port" => "40010", "user" => "foo"})
+      @app.should_receive(:exec).with("ssh -o StrictHostKeyChecking=no -p 40010 -l foo console.example.com ")
       @app.console
     end
   end
 
   describe "#upload" do
     it "should run rsync with proper parameters" do
-      @client.stub(:node_and_port).and_return(
-        {"node_ip" => "10.0.0.1", "port" => "40010", "user" => "foo"})
-      @app.should_receive(:exec).with("rsync -avz -e 'ssh -o StrictHostKeyChecking=no -p 40010 -l foo' --progress /path 10.0.0.1:/srv/glusterfs/disk")
+      @client.stub(:console).and_return(
+        {"host" => "console.example.com", "port" => "40010", "user" => "foo"})
+      @app.should_receive(:exec).with("rsync -avz -e 'ssh -o StrictHostKeyChecking=no -p 40010 -l foo' --progress /path console.example.com:/srv/glusterfs/disk")
       @app.upload("/path")
     end
   end
 
   describe "#download" do
     it "should run rsync with proper parameters" do
-      @client.stub(:node_and_port).and_return(
-        {"node_ip" => "10.0.0.1", "port" => "40010", "user" => "foo"})
-      @app.should_receive(:exec).with("rsync -avz -e 'ssh -o StrictHostKeyChecking=no -p 40010 -l foo' --progress 10.0.0.1:/srv/glusterfs/disk/. /tmp")
+      @client.stub(:console).and_return(
+        {"host" => "console.example.com", "port" => "40010", "user" => "foo"})
+      @app.should_receive(:exec).with("rsync -avz -e 'ssh -o StrictHostKeyChecking=no -p 40010 -l foo' --progress console.example.com:/srv/glusterfs/disk/. /tmp")
       @app.download(".", "/tmp")
     end
   end
@@ -383,5 +383,5 @@ describe Shelly::App do
       Shelly::Cloudfile.should_receive(:new).and_return(cloudfile)
       @app.create_cloudfile
     end
-  end  
+  end
 end
