@@ -21,8 +21,8 @@ describe Shelly::CLI::Files do
     end
 
     it "should upload files" do
-      expected = {"port" => "40010", "node_ip" => "10.0.0.10", "user"=>"foo-production"}
-      @client.stub(:node_and_port).and_return(expected)
+      expected = {"host" => "console.example.com", "port" => "40010", "user" => "foo"}
+      @client.stub(:console).and_return(expected)
       @app.should_receive(:upload).with("some/path")
       invoke(@cli_files, :upload, "some/path")
     end
@@ -36,7 +36,7 @@ describe Shelly::CLI::Files do
 
     context "cloud is not running" do
       it "should display error" do
-        @client.stub(:node_and_port).and_raise(Shelly::Client::ConflictException)
+        @client.stub(:console).and_raise(Shelly::Client::ConflictException)
         $stdout.should_receive(:puts).with(red "Cloud foo-production is not running. Cannot upload files.")
         lambda {
           invoke(@cli_files, :upload, "some/path")
@@ -57,8 +57,8 @@ describe Shelly::CLI::Files do
     end
 
     it "should download files" do
-      expected = {"port" => "40010", "node_ip" => "10.0.0.10", "user"=>"foo-production"}
-      @client.stub(:node_and_port).and_return(expected)
+      expected = {"host" => "console.example.com", "port" => "40010", "user" => "foo"}
+      @client.stub(:console).and_return(expected)
       @app.should_receive(:download).with("some/path", "/destination")
       invoke(@cli_files, :download, "some/path", "/destination")
     end
