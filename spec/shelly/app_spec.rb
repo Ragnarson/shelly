@@ -140,7 +140,6 @@ describe Shelly::App do
   describe "#attributes" do
     before do
       @response = {"web_server_ip" => "192.0.2.1",
-                   "mail_server_ip" => "192.0.2.3",
                    "state" => "running",
                    "trial" => true,
                    "credit" => 23.0,
@@ -177,12 +176,6 @@ describe Shelly::App do
     describe "#web_server_ip" do
       it "should return web server ip address" do
         @app.web_server_ip.should == "192.0.2.1"
-      end
-    end
-
-    describe "#mail_server_ip" do
-      it "should return mail server ip address" do
-        @app.mail_server_ip.should == "192.0.2.3"
       end
     end
 

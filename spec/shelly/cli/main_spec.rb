@@ -776,7 +776,6 @@ We have been notified about it. We will be adding new resources shortly")
         $stdout.should_receive(:puts).with("  Deployed by: megan@example.com")
         $stdout.should_receive(:puts).with("  Repository URL: git@winniecloud.net:example-cloud")
         $stdout.should_receive(:puts).with("  Web server IP: 22.22.22.22")
-        $stdout.should_receive(:puts).with("  Mail server IP: 11.11.11.11")
         $stdout.should_receive(:puts).with("  Statistics:")
         $stdout.should_receive(:puts).with("    app1:")
         $stdout.should_receive(:puts).with("      Load average: 1m: 0.04, 5m: 0.15, 15m: 0.13")
@@ -795,7 +794,6 @@ We have been notified about it. We will be adding new resources shortly")
           $stdout.should_receive(:puts).with("  Deployed by: megan@example.com")
           $stdout.should_receive(:puts).with("  Repository URL: git@winniecloud.net:example-cloud")
           $stdout.should_receive(:puts).with("  Web server IP: 22.22.22.22")
-          $stdout.should_receive(:puts).with("  Mail server IP: 11.11.11.11")
           $stdout.should_receive(:puts).with("  Statistics:")
           $stdout.should_receive(:puts).with("    app1:")
           $stdout.should_receive(:puts).with("      Load average: 1m: 0.04, 5m: 0.15, 15m: 0.13")
@@ -813,7 +811,6 @@ We have been notified about it. We will be adding new resources shortly")
           $stdout.should_receive(:puts).with("  Deployed by: megan@example.com")
           $stdout.should_receive(:puts).with("  Repository URL: git@winniecloud.net:example-cloud")
           $stdout.should_receive(:puts).with("  Web server IP: 22.22.22.22")
-          $stdout.should_receive(:puts).with("  Mail server IP: 11.11.11.11")
           $stdout.should_receive(:puts).with("  Statistics:")
           $stdout.should_receive(:puts).with("    app1:")
           $stdout.should_receive(:puts).with("      Load average: 1m: 0.04, 5m: 0.15, 15m: 0.13")
@@ -851,7 +848,6 @@ We have been notified about it. We will be adding new resources shortly")
           "repository_url" => "git@winniecloud.net:example-cloud",
           "deployed_push_author" => "megan@example.com"
         },
-        "mail_server_ip" => "11.11.11.11",
         "web_server_ip" => "22.22.22.22" }.merge(options)
     end
   end

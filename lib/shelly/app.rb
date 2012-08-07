@@ -192,10 +192,6 @@ module Shelly
       attributes["web_server_ip"]
     end
 
-    def mail_server_ip
-      attributes["mail_server_ip"]
-    end
-
     def git_info
       attributes["git_info"]
     end

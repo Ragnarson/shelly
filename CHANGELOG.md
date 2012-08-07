@@ -1,3 +1,7 @@
+* Don't display mail server IP address in shelly info
+
+  Set SPF records with https://shellycloud.com/documentation/features#sending_emails
+
 * Removed deprecated shelly execute
 
 ## 0.1.22 / 2012-08-06
