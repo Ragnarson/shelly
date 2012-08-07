@@ -353,12 +353,6 @@ We have been notified about it. We will be adding new resources shortly}
         app.open
       end
 
-      desc "execute CODE", "Run code on one of application servers"
-      method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
-      def execute(file)
-        say_error "`shelly execute` is deprecated and will be removed in a future release of shelly gem, please use `shelly console`"
-      end
-
       desc "console", "Open application console"
       method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
       def console

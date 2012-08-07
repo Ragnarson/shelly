@@ -35,7 +35,6 @@ Tasks:
   shelly dbconsole          # Run rails dbconsole
   shelly delete             # Delete the cloud
   shelly deploys <command>  # View deploy logs
-  shelly execute CODE       # Run code on one of application servers
   shelly files <command>    # Upload and download files to and from persistent storage
   shelly help [TASK]        # Describe available tasks or one specific task
   shelly info               # Show basic information about cloud

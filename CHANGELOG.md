@@ -1,3 +1,5 @@
+* Removed deprecated shelly execute
+
 ## 0.1.22 / 2012-08-06
 
 * [feature] Add dbconsole to access 'rails dbconsole' on Shelly Cloud.
