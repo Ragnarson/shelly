@@ -1,3 +1,5 @@
+## 0.1.23 / 2012-08-08
+
 * Don't display mail server IP address in shelly info
 
   Set SPF records with https://shellycloud.com/documentation/features#sending_emails
