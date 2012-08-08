@@ -14,8 +14,6 @@ Gem::Specification.new do |s|
   s.rubyforge_project = "shelly"
   s.add_development_dependency "rspec", "~> 2.11.0"
   s.add_development_dependency "rake"
-  s.add_development_dependency "guard"
-  s.add_development_dependency "guard-rspec"
   s.add_development_dependency "simplecov"
   if RUBY_PLATFORM =~ /darwin/
     s.add_development_dependency "ruby_gntp"
@@ -23,7 +21,7 @@ Gem::Specification.new do |s|
   end
   s.add_development_dependency "fakefs"
   s.add_development_dependency "fakeweb"
-  s.add_runtime_dependency "wijet-thor", "~> 0.14.7"
+  s.add_runtime_dependency "thor", "~> 0.15.4"
   s.add_runtime_dependency "rest-client"
   s.add_runtime_dependency "json"
   s.add_runtime_dependency "progressbar"
