@@ -1,3 +1,5 @@
+* [feature] Option --help [-h] added to all tasks
+
 ## 0.1.23 / 2012-08-08
 
 * Don't display mail server IP address in shelly info

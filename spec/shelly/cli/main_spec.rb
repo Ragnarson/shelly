@@ -25,38 +25,34 @@ describe Shelly::CLI::Main do
 
   describe "#help" do
     it "should display available commands" do
-      expected = <<-OUT
-Tasks:
-  shelly add                # Add a new cloud
-  shelly backup <command>   # Manage database backups
-  shelly check              # Check if application fulfills Shelly Cloud requirements
-  shelly config <command>   # Manage application configuration files
-  shelly console            # Open application console
-  shelly dbconsole          # Run rails dbconsole
-  shelly delete             # Delete the cloud
-  shelly deploys <command>  # View deploy logs
-  shelly files <command>    # Upload and download files to and from persistent storage
-  shelly help [TASK]        # Describe available tasks or one specific task
-  shelly info               # Show basic information about cloud
-  shelly list               # List available clouds
-  shelly login [EMAIL]      # Log into Shelly Cloud
-  shelly logout             # Logout from Shelly Cloud
-  shelly logs               # Show latest application logs
-  shelly open               # Open application page in browser
-  shelly rake TASK          # Run rake task
-  shelly redeploy           # Redeploy application
-  shelly register [EMAIL]   # Register new account
-  shelly setup              # Set up git remotes for deployment on Shelly Cloud
-  shelly start              # Start the cloud
-  shelly stop               # Shutdown the cloud
-  shelly user <command>     # Manage collaborators
-  shelly version            # Display shelly version
-
-Options:
-  [--debug]  # Show debug information
-OUT
       out = IO.popen("bin/shelly --debug").read.strip
-      out.should == expected.strip
+      out.should include("Tasks:")
+      out.should include("shelly add                # Add a new cloud")
+      out.should include("shelly backup <command>   # Manage database backups")
+      out.should include("shelly check              # Check if application fulfills Shelly Cloud requirements")
+      out.should include("shelly config <command>   # Manage application configuration files")
+      out.should include("shelly console            # Open application console")
+      out.should include("shelly dbconsole          # Run rails dbconsole")
+      out.should include("shelly delete             # Delete the cloud")
+      out.should include("shelly deploys <command>  # View deploy logs")
+      out.should include("shelly files <command>    # Upload and download files to and from persistent storage")
+      out.should include("shelly help [TASK]        # Describe available tasks or one specific task")
+      out.should include("shelly info               # Show basic information about cloud")
+      out.should include("shelly list               # List available clouds")
+      out.should include("shelly login [EMAIL]      # Log into Shelly Cloud")
+      out.should include("shelly logout             # Logout from Shelly Cloud")
+      out.should include("shelly logs               # Show latest application logs")
+      out.should include("shelly open               # Open application page in browser")
+      out.should include("shelly rake TASK          # Run rake task")
+      out.should include("shelly redeploy           # Redeploy application")
+      out.should include("shelly register [EMAIL]   # Register new account")
+      out.should include("shelly setup              # Set up git remotes for deployment on Shelly Cloud")
+      out.should include("shelly start              # Start the cloud")
+      out.should include("shelly stop               # Shutdown the cloud")
+      out.should include("shelly user <command>     # Manage collaborators")
+      out.should include("Options")
+      out.should include("[--debug]  # Show debug information")
+      out.should include("-h, [--help]   # Describe available tasks or one specific task")
     end
 
     it "should display options in help for logs" do
