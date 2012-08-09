@@ -852,7 +852,7 @@ We have been notified about it. We will be adding new resources shortly")
           "repository_url" => "git@winniecloud.net:example-cloud",
           "deployed_push_author" => "megan@example.com"
         },
-        "web_server_ip" => "22.22.22.22" }.merge(options)
+        "web_server_ip" => "22.22.22.22"}.merge(options)
     end
   end
 

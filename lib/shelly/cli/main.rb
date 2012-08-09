@@ -157,7 +157,6 @@ module Shelly
         say_new_line
         print_wrapped "Repository URL: #{app.git_info["repository_url"]}", :ident => 2
         print_wrapped "Web server IP: #{app.web_server_ip}", :ident => 2
-        print_wrapped "Mail server IP: #{app.mail_server_ip}", :ident => 2
         say_new_line
         if app.statistics.present?
           print_wrapped "Statistics:", :ident => 2

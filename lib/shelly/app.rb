@@ -9,8 +9,7 @@ module Shelly
     SERVER_SIZES = %w(small large)
 
     attr_accessor :code_name, :databases, :ruby_version, :environment,
-      :git_url, :domains, :web_server_ip, :mail_server_ip, :size, :thin,
-      :redeem_code
+      :git_url, :domains, :web_server_ip, :size, :thin, :redeem_code
 
     def initialize(code_name = nil)
       self.code_name = code_name
