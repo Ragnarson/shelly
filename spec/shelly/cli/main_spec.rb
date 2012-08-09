@@ -64,6 +64,14 @@ describe Shelly::CLI::Main do
       out.should include("[--from=FROM]      # Time from which to find the logs")
       out.should include("[--debug]          # Show debug information")
     end
+
+    it "should display help when user is not logged in" do
+      out = IO.popen("bin/shelly list --help").read.strip
+      out.should include("Usage:")
+      out.should include("shelly list")
+      out.should include("List available clouds")
+      out.should_not include("You are not logged in. To log in use: `shelly login`")
+    end
   end
 
   describe "#register" do
