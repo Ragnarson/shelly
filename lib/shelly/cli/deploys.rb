@@ -17,7 +17,9 @@ module Shelly
         unless logs.empty?
           say "Available deploy logs", :green
           logs.each do |log|
-            log["failed"] ? say(" * #{log["created_at"]} (failed)") : say(" * #{log["created_at"]}")
+            log_line = " * #{log['created_at']} #{log['commit_sha']} by #{log['author']}"
+            message = log["failed"] ? "#{log_line} (failed)" :log_line
+            say(message, nil, true)
           end
         else
           say "No deploy logs available"

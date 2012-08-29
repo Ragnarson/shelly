@@ -35,11 +35,11 @@ describe Shelly::CLI::Deploys do
 
     it "should display available logs" do
       @client.should_receive(:deploy_logs).with("foo-staging").and_return([
-        {"failed" => false, "created_at" => "2011-12-12-14-14-59"},
-        {"failed" => true, "created_at" => "2011-12-12-15-14-59"}])
+        {"failed" => false, "created_at" => "2011-12-12-14-14-59", "author" => "wijet", "commit_sha" => "69fb7a9b5101969f284db15b937ea23e579b3d4d"},
+        {"failed" => true, "created_at" => "2011-12-12-15-14-59", "author" => "sabcio", "commit_sha" => "ac37e1993fea54ddbadaf7654b7ab0fa381d202b"}])
       $stdout.should_receive(:puts).with(green "Available deploy logs")
-      $stdout.should_receive(:puts).with(" * 2011-12-12-14-14-59")
-      $stdout.should_receive(:puts).with(" * 2011-12-12-15-14-59 (failed)")
+      $stdout.should_receive(:puts).with(" * 2011-12-12-14-14-59 69fb7a9b5101969f284db15b937ea23e579b3d4d by wijet")
+      $stdout.should_receive(:puts).with(" * 2011-12-12-15-14-59 ac37e1993fea54ddbadaf7654b7ab0fa381d202b by sabcio (failed)")
       invoke(@deploys, :list)
     end
   end
