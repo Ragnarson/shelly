@@ -61,7 +61,11 @@ module Shelly
     end
 
     def inside_git_repository?
-      say_error "Must be run inside your project git repository" unless App.inside_git_repository?
+      unless App.inside_git_repository?
+        say_error %q{Current directory is not a git repository.
+You need to initialize repository with `git init`.
+More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository}
+      end
     end
 
     def cloudfile_present?

@@ -299,7 +299,9 @@ describe Shelly::CLI::Main do
     # This spec tests inside_git_repository? hook
     it "should exit with message if command run outside git repository" do
       Shelly::App.stub(:inside_git_repository?).and_return(false)
-      $stdout.should_receive(:puts).with("\e[31mMust be run inside your project git repository\e[0m")
+      $stdout.should_receive(:puts).with("\e[31mCurrent directory is not a git repository.
+You need to initialize repository with `git init`.
+More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m")
       lambda {
         fake_stdin(["", ""]) do
           invoke(@main, :add)
