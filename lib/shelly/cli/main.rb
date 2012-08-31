@@ -19,7 +19,6 @@ module Shelly
 
       check_unknown_options!(:except => :rake)
 
-      # FIXME: it should be possible to pass single symbol, instead of one element array
       before_hook :logged_in?, :only => [:add, :status, :list, :start, :stop, :logs, :delete, :info, :ip, :logout, :execute, :rake, :setup, :console, :dbconsole]
       before_hook :inside_git_repository?, :only => [:add, :setup, :check]
 
@@ -134,7 +133,7 @@ module Shelly
             end
             [app["code_name"], "|  #{state.humanize}#{msg}"]
           end
-          print_table(apps_table, :ident => 2)
+          print_table(apps_table, :indent => 2)
         else
           say "You have no clouds yet", :green
         end
@@ -149,21 +148,21 @@ module Shelly
           " (deployment log: `shelly deploys show last -c #{app}`)"
         end
         say "Cloud #{app}:", msg.present? ? :red : :green
-        print_wrapped "State: #{app.state}#{msg}", :ident => 2
+        print_wrapped "State: #{app.state}#{msg}", :indent => 2
         say_new_line
-        print_wrapped "Deployed commit sha: #{app.git_info["deployed_commit_sha"]}", :ident => 2
-        print_wrapped "Deployed commit message: #{app.git_info["deployed_commit_message"]}", :ident => 2
-        print_wrapped "Deployed by: #{app.git_info["deployed_push_author"]}", :ident => 2
+        print_wrapped "Deployed commit sha: #{app.git_info["deployed_commit_sha"]}", :indent => 2
+        print_wrapped "Deployed commit message: #{app.git_info["deployed_commit_message"]}", :indent => 2
+        print_wrapped "Deployed by: #{app.git_info["deployed_push_author"]}", :indent => 2
         say_new_line
-        print_wrapped "Repository URL: #{app.git_info["repository_url"]}", :ident => 2
-        print_wrapped "Web server IP: #{app.web_server_ip}", :ident => 2
+        print_wrapped "Repository URL: #{app.git_info["repository_url"]}", :indent => 2
+        print_wrapped "Web server IP: #{app.web_server_ip}", :indent => 2
         say_new_line
         if app.statistics.present?
-          print_wrapped "Statistics:", :ident => 2
+          print_wrapped "Statistics:", :indent => 2
           app.statistics.each do |stat|
-            print_wrapped "#{stat['name']}:", :ident => 4
-            print_wrapped "Load average: 1m: #{stat['load']['avg01']}, 5m: #{stat['load']['avg05']}, 15m: #{stat['load']['avg15']}", :ident => 6
-            print_wrapped "CPU: #{stat['cpu']['wait']}%, MEM: #{stat['memory']['percent']}%, SWAP: #{stat['swap']['percent']}%", :ident => 6
+            print_wrapped "#{stat['name']}:", :indent => 4
+            print_wrapped "Load average: 1m: #{stat['load']['avg01']}, 5m: #{stat['load']['avg05']}, 15m: #{stat['load']['avg15']}", :indent => 6
+            print_wrapped "CPU: #{stat['cpu']['wait']}%, MEM: #{stat['memory']['percent']}%, SWAP: #{stat['swap']['percent']}%", :indent => 6
           end
         end
       rescue Client::GatewayTimeoutException

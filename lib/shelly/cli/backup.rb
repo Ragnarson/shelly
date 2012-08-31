@@ -32,7 +32,7 @@ module Shelly
 
           say "Available backups:", :green
           say_new_line
-          print_table(to_display, :ident => 2)
+          print_table(to_display, :indent => 2)
         else
           say "No database backups available"
         end
