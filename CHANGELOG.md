@@ -1,3 +1,4 @@
+* [feature] `shelly check` checks gems based on Cloudfile
 * [bug] Show 10 recent backups in `backup list` command, instead of the oldest
 
 ## 0.1.24 / 2012-09-10

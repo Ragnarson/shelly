@@ -9,10 +9,12 @@ module Shelly
     SERVER_SIZES = %w(small large)
 
     attr_accessor :code_name, :databases, :ruby_version, :environment,
-      :git_url, :domains, :web_server_ip, :size, :thin, :redeem_code
+      :git_url, :domains, :web_server_ip, :size, :thin, :redeem_code,
+      :content
 
-    def initialize(code_name = nil)
+    def initialize(code_name = nil, content = nil)
       self.code_name = code_name
+      self.content = content
     end
 
     def databases=(dbs)
@@ -117,7 +119,7 @@ module Shelly
       guessed = nil
       cloudfile = Cloudfile.new
       if cloudfile.present?
-        clouds = cloudfile.clouds
+        clouds = cloudfile.clouds.map(&:code_name)
         if clouds.grep(/staging/).present?
           guessed = "production"
           production_clouds = clouds.grep(/production/)
@@ -236,7 +238,38 @@ module Shelly
       rsync(source, destination)
     end
 
+    # Public: Return databases for given Cloud in Cloudfile
+    # Returns Array of databases
+    def cloud_databases
+      content["servers"].map do |server, settings|
+        settings["databases"]
+      end.flatten.uniq
+    end
+
+    # Public: Delayed job enabled?
+    # Returns true if delayed job is present
+    def delayed_job?
+      option?("delayed_job")
+    end
+
+    # Public: Whenever enabled?
+    # Returns true if whenever is present
+    def whenever?
+      option?("whenever")
+    end
+
+    # Public: Return databases to backup for given Cloud in Cloudfile
+    # Returns Array of databases, except redis db
+    def backup_databases
+      cloud_databases - ['redis']
+    end
+
     private
+
+    # Internal: Checks if specified option is present in Cloudfile
+    def option?(option)
+      content["servers"].any? {|_, settings| settings.has_key?(option)}
+    end
 
     def ssh
       @ssh ||= shelly.console(code_name)

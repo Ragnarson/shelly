@@ -115,9 +115,7 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository}
         exit 1
       end
 
-      app = Shelly::App.new
-      app.code_name = cloud || clouds.first
-      app
+      cloud ? Shelly::App.new(cloud) : clouds.first
     end
 
     def print_logs(logs)
