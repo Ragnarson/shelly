@@ -385,6 +385,10 @@ We have been notified about it. We will be adding new resources shortly}
           "Gemfile.lock is missing in git repository",
           :show_fulfilled => verbose)
 
+        print_check(structure.config_ru?, "File config.ru is present",
+          "File config.ru is missing",
+          :show_fulfilled => verbose)
+
         print_check(structure.gem?("shelly-dependencies"),
           "Gem 'shelly-dependencies' is present",
           "Gem 'shelly-dependencies' is missing, we recommend to install it\n    See more at https://shellycloud.com/documentation/requirements#shelly-dependencies",
@@ -396,9 +400,35 @@ We have been notified about it. We will be adding new resources shortly}
         print_check(structure.gem?("rake"), "Gem 'rake' is present",
           "Gem 'rake' is missing in the Gemfile", :show_fulfilled => verbose)
 
-        print_check(structure.config_ru?, "File config.ru is present",
-          "File config.ru is missing",
-          :show_fulfilled => verbose)
+
+        print_check(structure.gem?("rake"), "Gem 'rake' is present",
+          "Gem 'rake' is missing in the Gemfile", :show_fulfilled => verbose)
+
+        cloudfile = Cloudfile.new
+        if cloudfile.present?
+          cloudfile.clouds.each do |cloud|
+            if cloud.databases.include?('postgresql')
+              print_check(structure.gem?("pg") || structure.gem?("postgres"),
+                "Postgresql driver is present for '#{cloud}' cloud",
+                "Postgresql driver is missing in the Gemfile for '#{cloud}' cloud,\n    we recommend adding 'pg' gem to Gemfile",
+                :show_fulfilled => verbose)
+            end
+
+            if cloud.delayed_job?
+              print_check(structure.gem?("delayed_job"),
+                "Gem 'delayed_job' is present for '#{cloud}' cloud",
+                "Gem 'delayed_job' is missing in the Gemfile for '#{cloud}' cloud",
+                :show_fulfilled => verbose)
+            end
+
+            if cloud.whenever?
+              print_check(structure.gem?("whenever"),
+                "Gem 'whenever' is present for '#{cloud}' cloud",
+                "Gem 'whenever' is missing in the Gemfile for '#{cloud}' cloud",
+                :show_fulfilled => verbose)
+            end
+          end
+        end
 
         print_check(!structure.gem?("mysql") && !structure.gem?("mysql2"),"",
           "mysql driver present in the Gemfile (not supported on Shelly Cloud)",

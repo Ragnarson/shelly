@@ -8,7 +8,6 @@ describe Shelly::CLI::User do
     Shelly::CLI::User.stub(:new).and_return(@cli_user)
     @client = mock
     Shelly::Client.stub(:new).and_return(@client)
-    Shelly::User.stub(:guess_email).and_return("")
     $stdout.stub(:puts)
     $stdout.stub(:print)
     @client.stub(:token).and_return("abc")
@@ -16,6 +15,8 @@ describe Shelly::CLI::User do
     Dir.chdir("/projects/foo")
     @app = Shelly::App.new("foo-staging")
     File.open("Cloudfile", 'w') {|f| f.write("foo-staging:\n") }
+    @cloud = Shelly::Cloud.new("code_name" => 'foo-staging')
+    Shelly::Cloud.stub(:new).and_return(@cloud)
   end
 
   describe "#help" do
@@ -47,7 +48,7 @@ describe Shelly::CLI::User do
     context "on success" do
       it "should display clouds and users" do
         @client.stub(:collaborations).and_return(response)
-        $stdout.should_receive(:puts).with("Cloud foo-staging:")
+        $stdout.should_receive(:puts).with("Cloud #{@cloud}:")
         $stdout.should_receive(:puts).with("  user@example.com")
         $stdout.should_receive(:puts).with("  auser2@example2.com (invited)")
         invoke(@cli_user, :list)

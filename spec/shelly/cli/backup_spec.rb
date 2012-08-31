@@ -135,7 +135,9 @@ describe Shelly::CLI::Backup do
       FileUtils.mkdir_p("/projects/foo")
       Dir.chdir("/projects/foo")
       $stdout.stub(:puts)
-      @cloudfile = mock(:backup_databases => ['postgresql', 'mongodb'], :clouds => ['foo-staging'])
+      @cloud = mock(:backup_databases => ['postgresql', 'mongodb'], :code_name => "foo-staging")
+      Shelly::Cloud.stub(:new).and_return(@cloud)
+      @cloudfile = mock(:present? => true, :clouds => [@cloud])
       Shelly::Cloudfile.stub(:new).and_return(@cloudfile)
     end
 

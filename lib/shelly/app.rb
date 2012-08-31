@@ -117,7 +117,7 @@ module Shelly
       guessed = nil
       cloudfile = Cloudfile.new
       if cloudfile.present?
-        clouds = cloudfile.clouds
+        clouds = cloudfile.clouds.map(&:code_name)
         if clouds.grep(/staging/).present?
           guessed = "production"
           production_clouds = clouds.grep(/production/)

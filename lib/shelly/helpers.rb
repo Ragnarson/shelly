@@ -116,7 +116,7 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository}
       end
 
       app = Shelly::App.new
-      app.code_name = cloud || clouds.first
+      app.code_name = cloud || clouds.first.code_name
       app
     end
 

@@ -16,7 +16,10 @@ module Shelly
     # Returns Array of clouds names from Cloudfile
     # nil if there is no cloudfile
     def clouds
-      content.keys.sort if content
+      content.keys.sort.map do |code_name|
+        Shelly::Cloud.new("code_name" => code_name,
+                          "content" => content[code_name.to_s])
+      end if content
     end
 
     # Public: Generate example Cloudfile based on object attributes
@@ -34,22 +37,6 @@ module Shelly
     def create
       File.open(path, "a+") { |f| f << generate }
     end
-
-    # Public: Return databases for given Cloud in Cloudfile
-    # Returns Array of databases
-    def databases(cloud)
-      content[cloud.to_s]["servers"].map do |server, settings|
-        settings["databases"]
-      end.flatten.uniq
-    end
-
-    # Public: Return databases to backup for given Cloud in Cloudfile
-    # Returns Array of databases, except redis db
-    def backup_databases(cloud)
-      databases(cloud) - ['redis']
-    end
-
-    private
 
     # Internal: Load and parse Cloudfile
     def content

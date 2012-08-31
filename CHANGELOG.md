@@ -1,3 +1,4 @@
+* [feature] `shelly check` checks gems based on Cloudfile
 * [feature] Option --help [-h] added to all tasks
 
 ## 0.1.23 / 2012-08-08

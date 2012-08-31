@@ -9,6 +9,7 @@ require "helpers"
 require "input_faker"
 require "fakefs/spec_helpers"
 require "fakeweb"
+require "launchy"
 
 ENV['THOR_COLUMNS'] = "180"
 FakeWeb.allow_net_connect = false

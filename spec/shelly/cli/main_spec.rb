@@ -1275,7 +1275,7 @@ We have been notified about it. We will be adding new resources shortly")
     before do
       Shelly::App.stub(:inside_git_repository?).and_return(true)
       Bundler::Definition.stub_chain(:build, :specs, :map) \
-        .and_return(["thin"])
+        .and_return(["thin", "pg", "delayed_job", "whenever"])
       Shelly::StructureValidator.any_instance.stub(:repo_paths) \
         .and_return(["config.ru", "Gemfile", "Gemfile.lock"])
     end
@@ -1341,6 +1341,62 @@ We have been notified about it. We will be adding new resources shortly")
         Shelly::StructureValidator.any_instance.stub(:repo_paths).and_return([])
         $stdout.should_receive(:puts).with("  #{red("✗")} File config.ru is missing")
         invoke(@main, :check)
+      end
+    end
+
+    context "cloudfile" do
+      before do
+        cloud = mock(:code_name => "foo-staging", :databases => ["postgresql"],
+          :whenever? => true, :delayed_job? => true, :to_s => "foo-staging")
+        cloudfile = mock(:clouds => [cloud])
+
+        Shelly::Cloudfile.stub(:new).and_return(cloudfile)
+      end
+
+      context "whenever is enabled" do
+        it "should show that necessary gem doesn't exist" do
+          Bundler::Definition.stub_chain(:build, :specs, :map).and_return([])
+          $stdout.should_receive(:puts).with("  #{red("✗")} Gem 'whenever' is missing in the Gemfile for 'foo-staging' cloud")
+          invoke(@main, :check)
+        end
+
+        it "should show that necessary gem exists" do
+          $stdout.should_receive(:puts).with("  #{green("✓")} Gem 'whenever' is present for 'foo-staging' cloud")
+          invoke(@main, :check)
+        end
+      end
+
+      context "delayed_job is enabled" do
+        it "should show that necessary gem doesn't exist" do
+          Bundler::Definition.stub_chain(:build, :specs, :map).and_return([])
+          $stdout.should_receive(:puts).with("  #{red("✗")} Gem 'delayed_job' is missing in the Gemfile for 'foo-staging' cloud")
+          invoke(@main, :check)
+        end
+
+        it "should show that necessary gem exists" do
+          $stdout.should_receive(:puts).with("  #{green("✓")} Gem 'delayed_job' is present for 'foo-staging' cloud")
+          invoke(@main, :check)
+        end
+      end
+
+      context "postgresql is enabled" do
+        it "should show that necessary gem doesn't exist" do
+          Bundler::Definition.stub_chain(:build, :specs, :map).and_return([])
+          $stdout.should_receive(:puts).with("  #{red("✗")} Postgresql driver is missing in the Gemfile for 'foo-staging' cloud,\n    we recommend adding 'pg' gem to Gemfile")
+          invoke(@main, :check)
+        end
+
+        it "should show that necessary gem exists - postgres" do
+          Bundler::Definition.stub_chain(:build, :specs, :map).and_return(["postgres"])
+          $stdout.should_receive(:puts).with("  #{green("✓")} Postgresql driver is present for 'foo-staging' cloud")
+          invoke(@main, :check)
+        end
+
+        it "should show that necessary gem exists - pg" do
+          Bundler::Definition.stub_chain(:build, :specs, :map).and_return(["pg"])
+          $stdout.should_receive(:puts).with("  #{green("✓")} Postgresql driver is present for 'foo-staging' cloud")
+          invoke(@main, :check)
+        end
       end
     end
 
