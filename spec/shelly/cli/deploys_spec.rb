@@ -40,8 +40,8 @@ describe Shelly::CLI::Deploys do
           {"failed" => false, "created_at" => "2011-12-12-16-14-59", "author" => nil, "commit_sha" => nil},
           {"failed" => true, "created_at" => "2011-12-12-17-14-59", "author" => nil, "commit_sha" => nil}])
       $stdout.should_receive(:puts).with(green "Available deploy logs")
-      $stdout.should_receive(:puts).with(" * 2011-12-12-14-14-59 69fb7a9b5101969f284db15b937ea23e579b3d4d by wijet")
-      $stdout.should_receive(:puts).with(" * 2011-12-12-15-14-59 ac37e1993fea54ddbadaf7654b7ab0fa381d202b by sabcio (failed)")
+      $stdout.should_receive(:puts).with(" * 2011-12-12-14-14-59 69fb7a9 by wijet")
+      $stdout.should_receive(:puts).with(" * 2011-12-12-15-14-59 ac37e19 by sabcio (failed)")
       $stdout.should_receive(:puts).with(" * 2011-12-12-16-14-59")
       $stdout.should_receive(:puts).with(" * 2011-12-12-17-14-59 (failed)")
       invoke(@deploys, :list)

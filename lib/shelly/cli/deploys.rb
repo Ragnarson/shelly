@@ -18,7 +18,7 @@ module Shelly
           say "Available deploy logs", :green
           logs.each do |log|
             if log['author'].present? && log['commit_sha'].present?
-              log_line = " * #{log['created_at']} #{log['commit_sha']} by #{log['author']}"
+              log_line = " * #{log['created_at']} #{log['commit_sha'][0..6]} by #{log['author']}"
             else
               log_line = " * #{log['created_at']}"
             end
