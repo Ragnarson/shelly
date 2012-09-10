@@ -1,3 +1,6 @@
+## 0.1.24 / 2012-09-10
+
+* [feature] Support for the extended deploys API
 * [feature] Option --help [-h] added to all tasks
 
 ## 0.1.23 / 2012-08-08
