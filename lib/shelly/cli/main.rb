@@ -430,10 +430,6 @@ We have been notified about it. We will be adding new resources shortly}
           end
         end
 
-        print_check(!structure.gem?("mysql") && !structure.gem?("mysql2"),"",
-          "mysql driver present in the Gemfile (not supported on Shelly Cloud)",
-          :show_fulfilled => false)
-
         if structure.valid?
           if verbose
             say "\nGreat! Your application is ready to run on Shelly Cloud"

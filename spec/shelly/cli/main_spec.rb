@@ -1402,20 +1402,6 @@ We have been notified about it. We will be adding new resources shortly")
       end
     end
 
-    context "when mysql gem exists" do
-      it "should show that mysql gem is not supported by Shelly Cloud" do
-        Bundler::Definition.stub_chain(:build, :specs, :map).and_return(["mysql"])
-        $stdout.should_receive(:puts).with("  #{red("✗")} mysql driver present in the Gemfile (not supported on Shelly Cloud)")
-        invoke(@main, :check)
-      end
-
-      it "should show that mysql2 gem is not supported by Shelly Cloud" do
-        Bundler::Definition.stub_chain(:build, :specs, :map).and_return(["mysql2"])
-        $stdout.should_receive(:puts).with("  #{red("✗")} mysql driver present in the Gemfile (not supported on Shelly Cloud)")
-        invoke(@main, :check)
-      end
-    end
-
     context "when bundler raise error" do
       it "should display error message" do
         exception = Bundler::BundlerError.new('Bundler error')
