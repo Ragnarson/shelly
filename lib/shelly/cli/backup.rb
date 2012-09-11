@@ -1,6 +1,7 @@
 require "shelly/cli/command"
 require "shelly/backup"
 require "shelly/download_progress_bar"
+require 'launchy'
 
 module Shelly
   module CLI
@@ -19,14 +20,14 @@ module Shelly
         app = multiple_clouds(options[:cloud], "backup list")
         backups = app.database_backups
         if backups.present?
-          limit = -1
+          limit = 0
           unless options[:all] || backups.count < (Shelly::Backup::LIMIT + 1)
             limit = Shelly::Backup::LIMIT - 1
             say "Limiting the number of backups to #{Shelly::Backup::LIMIT}."
             say "Use --all or -a option to list all backups."
           end
           to_display = [["Filename", "|  Size", "|  State"]]
-          backups[0..limit].each do |backup|
+          backups[-limit..-1].each do |backup|
             to_display << [backup.filename, "|  #{backup.human_size}", "|  #{backup.state.humanize}"]
           end
 

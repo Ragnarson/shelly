@@ -1,3 +1,5 @@
+* [bug] Show 10 recent backups in `backup list` command, instead of the oldest
+
 ## 0.1.24 / 2012-09-10
 
 * [feature] Support for the extended deploys API
