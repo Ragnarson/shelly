@@ -10,7 +10,7 @@ describe Shelly::CLI::Files do
     @client.stub(:token).and_return("abc")
     FileUtils.mkdir_p("/projects/foo")
     Dir.chdir("/projects/foo")
-    @app = Shelly::App.new("foo-staging")
+    @app = Shelly::App.new("foo-production")
     Shelly::App.stub(:new).and_return(@app)
     File.open("Cloudfile", 'w') { |f| f.write("foo-production:\n") }
   end
