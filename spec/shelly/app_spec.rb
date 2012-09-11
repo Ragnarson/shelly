@@ -7,8 +7,7 @@ describe Shelly::App do
     Dir.chdir("/projects/foo")
     @client = mock(:api_url => "https://api.example.com", :shellyapp_url => "http://shellyapp.example.com")
     Shelly::Client.stub(:new).and_return(@client)
-    @app = Shelly::App.new
-    @app.code_name = "foo-staging"
+    @app = Shelly::App.new('foo-staging')
   end
 
   describe ".guess_code_name" do
@@ -392,6 +391,50 @@ describe Shelly::App do
       cloudfile.should_receive(:create)
       Shelly::Cloudfile.should_receive(:new).and_return(cloudfile)
       @app.create_cloudfile
+    end
+  end
+
+  describe "#databases" do
+    before do
+      content = {"servers" => {"app1" => {"databases" => ["postgresql", "redis"]},
+                               "app2" => {"databases" => ["mongodb"]}}}
+      @app.stub(:content).and_return(content)
+    end
+
+    it "should return databases in cloudfile" do
+      @app.cloud_databases.should =~ ['redis', 'mongodb', 'postgresql']
+    end
+
+    it "should return databases except for redis" do
+      @app.backup_databases.should =~ ['postgresql', 'mongodb']
+    end
+  end
+
+  describe "#delayed_job?" do
+    it "should return true if present" do
+      content = {"servers" => {"app1" => {"delayed_job" => 1}}}
+      @app.stub(:content).and_return(content)
+      @app.delayed_job?.should be_true
+    end
+
+    it "should retrun false if not present" do
+      content = {"servers" => {"app1" => {"size" => "small"}}}
+      @app.stub(:content).and_return(content)
+      @app.delayed_job?.should be_false
+    end
+  end
+
+  describe "#whenever?" do
+    it "should return true if present" do
+      content = {"servers" => {"app1" => {"whenever" => true}}}
+      @app.stub(:content).and_return(content)
+      @app.whenever?.should be_true
+    end
+
+    it "should return false if not present" do
+      content = {"servers" => {"app1" => {"size" => "small"}}}
+      @app.stub(:content).and_return(content)
+      @app.whenever?.should be_false
     end
   end
 end

@@ -5,7 +5,6 @@ describe Shelly::Cloudfile do
   before do
     FileUtils.mkdir_p("/projects/foo")
     Dir.chdir("/projects/foo")
-    @hash = {:code_name => {:code => "test"}}
     @client = mock
     Shelly::Client.stub(:new).and_return(@client)
     @cloudfile = Shelly::Cloudfile.new
@@ -20,6 +19,68 @@ describe Shelly::Cloudfile do
       yaml = YAML.load(yaml)
     }.to_not raise_error
     yaml.should == {"domains" => ["*.example.com", "example.com"]}
+  end
+
+  describe "#content" do
+    it "should fetch and parse file content" do
+      content = <<-config
+foo-staging:
+  ruby_version: 1.9.3
+  environment: production
+  monitoring_email: bob@example.com
+  domains:
+    - foo-staging.winniecloud.com
+  servers:
+    app1:
+      size: small
+      thin: 2
+      whenever: on
+      delayed_job: 1
+      databases:
+        - postgresql
+config
+      File.open("/projects/foo/Cloudfile", "w") { |f| f << content }
+      @cloudfile.content.should == {"foo-staging" => {
+        "ruby_version" => "1.9.3",
+        "environment" => "production",
+        "monitoring_email" => "bob@example.com",
+        "domains" => ["foo-staging.winniecloud.com"],
+        "servers" => { "app1" =>
+            {"size" => "small",
+             "thin" => 2,
+             "whenever" => true,
+             "delayed_job" => 1,
+             "databases" => ["postgresql"]}
+             }
+           }
+         }
+    end
+  end
+
+  describe "#clouds" do
+    it "should create Cloud objects" do
+      content = <<-config
+foo-staging:
+  ruby_version: 1.9.3
+  servers:
+    app1:
+      size: small
+foo-production:
+  environment: production
+  servers:
+    app1:
+      thin: 2
+config
+      File.open("/projects/foo/Cloudfile", "w") { |f| f << content }
+      cloud1 = Shelly::App.should_receive(:new).with("foo-staging",
+         {"ruby_version"=>"1.9.3",
+           "servers"=>{"app1"=>{"size"=>"small"}}})
+      cloud2 = Shelly::App.should_receive(:new).with("foo-production",
+         {"environment"=>"production",
+           "servers"=>{"app1"=>{"thin"=>2}}})
+
+      @cloudfile.clouds
+    end
   end
 
   describe "#generate" do
@@ -85,31 +146,6 @@ foo-staging:
 config
         @cloudfile.generate.should == expected
       end
-    end
-  end
-
-  describe "#databases" do
-    before do
-      content = <<-config
-foo-staging:
-  servers:
-    app1:
-      databases:
-        - postgresql
-        - redis
-    app2:
-      databases:
-        - mongodb
-config
-      File.open("Cloudfile", 'w') {|f| f.write(content) }
-    end
-
-    it "should return databases in cloudfile" do
-      @cloudfile.databases("foo-staging").should =~ ['redis', 'mongodb', 'postgresql']
-    end
-
-    it "should return databases except for redis" do
-      @cloudfile.backup_databases("foo-staging").should =~ ['postgresql', 'mongodb']
     end
   end
 

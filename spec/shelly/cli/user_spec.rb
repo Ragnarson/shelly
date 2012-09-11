@@ -8,7 +8,6 @@ describe Shelly::CLI::User do
     Shelly::CLI::User.stub(:new).and_return(@cli_user)
     @client = mock
     Shelly::Client.stub(:new).and_return(@client)
-    Shelly::User.stub(:guess_email).and_return("")
     $stdout.stub(:puts)
     $stdout.stub(:print)
     @client.stub(:token).and_return("abc")

@@ -135,7 +135,9 @@ describe Shelly::CLI::Backup do
       FileUtils.mkdir_p("/projects/foo")
       Dir.chdir("/projects/foo")
       $stdout.stub(:puts)
-      @cloudfile = mock(:backup_databases => ['postgresql', 'mongodb'], :clouds => ['foo-staging'])
+      @app = mock(:backup_databases => ['postgresql', 'mongodb'], :code_name => "foo-staging")
+      Shelly::App.stub(:new).and_return(@app)
+      @cloudfile = mock(:present? => true, :clouds => [@app])
       Shelly::Cloudfile.stub(:new).and_return(@cloudfile)
     end
 
@@ -145,7 +147,7 @@ describe Shelly::CLI::Backup do
 
     # multiple_clouds is tested in main_spec.rb in describe "#start" block
     it "should ensure multiple_clouds check" do
-      @client.stub(:request_backup)
+      @app.stub(:request_backup)
       @backup.should_receive(:multiple_clouds).and_return(@app)
       invoke(@backup, :create)
     end
@@ -153,7 +155,7 @@ describe Shelly::CLI::Backup do
     it "should display errors and exit 1 when kind is not valid" do
       response = {"errors" => [["kind", "is invalid"]]}
       exception = Shelly::Client::ValidationException.new(response)
-      @client.should_receive(:request_backup).and_raise(exception)
+      @app.should_receive(:request_backup).and_raise(exception)
       $stdout.should_receive(:puts).with(red "Kind is invalid")
       lambda { invoke(@backup, :create) }.should raise_error(SystemExit)
     end
@@ -169,7 +171,7 @@ describe Shelly::CLI::Backup do
     end
 
     it "should display information about request backup" do
-      @client.stub(:request_backup)
+      @app.stub(:request_backup)
       $stdout.should_receive(:puts).with(green "Backup requested. It can take up to several minutes for " +
           "the backup process to finish.")
       invoke(@backup, :create)
