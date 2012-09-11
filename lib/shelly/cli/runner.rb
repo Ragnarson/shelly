@@ -23,7 +23,7 @@ module Shelly
         say_error "You are not logged in. To log in use: `shelly login`"
       rescue Client::NotFoundException => e
         raise if debug? or e.resource != :cloud
-        say_error "You have no access to '#{e.id}' cloud defined in Cloudfile"
+        say_error "You have no access to '#{e.id}' cloud"
       rescue Client::GemVersionException => e
         raise if debug?
         say "Required shelly gem version: #{e.body["required_version"]}"

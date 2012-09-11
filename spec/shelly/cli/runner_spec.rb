@@ -84,7 +84,7 @@ describe Shelly::CLI::Runner do
       it "should rescue not found exception for cloud" do
         exception = Shelly::Client::NotFoundException.new({"resource" => "cloud", "id" => "foooo"}, 404)
         @client.stub(:apps).and_raise(exception)
-        $stdout.should_receive(:puts).with("You have no access to 'foooo' cloud defined in Cloudfile")
+        $stdout.should_receive(:puts).with("You have no access to 'foooo' cloud")
         lambda {
           @runner.start
         }.should raise_error(SystemExit)
