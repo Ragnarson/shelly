@@ -29,6 +29,7 @@ describe Shelly::CLI::Files do
 
     it "should exit if rsync isn't installed" do
       FakeFS::File.stub(:executable?).and_return(false)
+
       $stdout.should_receive(:puts).with(red "You need to install rsync in order to upload and download files")
       lambda { invoke(@cli_files, :upload, "some/path") }.should raise_error(SystemExit)
     end

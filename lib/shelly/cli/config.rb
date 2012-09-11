@@ -79,7 +79,8 @@ module Shelly
       end
 
       desc "delete PATH", "Delete configuration file"
-      def delete(path)
+      def delete(path = nil)
+        say_error "No configuration file specified" unless path
         app = multiple_clouds(options[:cloud], "delete #{path}")
         answer = yes?("Are you sure you want to delete 'path' (yes/no): ")
         if answer
