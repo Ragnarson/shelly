@@ -1,3 +1,5 @@
+* [bug] shelly check - wrong method for retrieving databases from Cloudfile
+
 ## 0.1.26 / 2012-09-11
 
 * [bug] Fixes -c/--cloud option bug in previous version

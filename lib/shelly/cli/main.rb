@@ -406,25 +406,25 @@ We have been notified about it. We will be adding new resources shortly}
 
         cloudfile = Cloudfile.new
         if cloudfile.present?
-          cloudfile.clouds.each do |cloud|
-            if cloud.databases.include?('postgresql')
+          cloudfile.clouds.each do |app|
+            if app.cloud_databases.include?('postgresql')
               print_check(structure.gem?("pg") || structure.gem?("postgres"),
-                "Postgresql driver is present for '#{cloud}' cloud",
-                "Postgresql driver is missing in the Gemfile for '#{cloud}' cloud,\n    we recommend adding 'pg' gem to Gemfile",
+                "Postgresql driver is present for '#{app}' cloud",
+                "Postgresql driver is missing in the Gemfile for '#{app}' cloud,\n    we recommend adding 'pg' gem to Gemfile",
                 :show_fulfilled => verbose)
             end
 
-            if cloud.delayed_job?
+            if app.delayed_job?
               print_check(structure.gem?("delayed_job"),
-                "Gem 'delayed_job' is present for '#{cloud}' cloud",
-                "Gem 'delayed_job' is missing in the Gemfile for '#{cloud}' cloud",
+                "Gem 'delayed_job' is present for '#{app}' cloud",
+                "Gem 'delayed_job' is missing in the Gemfile for '#{app}' cloud",
                 :show_fulfilled => verbose)
             end
 
-            if cloud.whenever?
+            if app.whenever?
               print_check(structure.gem?("whenever"),
-                "Gem 'whenever' is present for '#{cloud}' cloud",
-                "Gem 'whenever' is missing in the Gemfile for '#{cloud}' cloud",
+                "Gem 'whenever' is present for '#{app}' cloud",
+                "Gem 'whenever' is missing in the Gemfile for '#{app}' cloud",
                 :show_fulfilled => verbose)
             end
           end

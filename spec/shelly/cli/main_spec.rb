@@ -1348,7 +1348,7 @@ We have been notified about it. We will be adding new resources shortly")
 
     context "cloudfile" do
       before do
-        cloud = mock(:code_name => "foo-staging", :databases => ["postgresql"],
+        cloud = mock(:code_name => "foo-staging", :cloud_databases => ["postgresql"],
           :whenever? => true, :delayed_job? => true, :to_s => "foo-staging")
         cloudfile = mock(:clouds => [cloud])
 
