@@ -1,3 +1,5 @@
+## 0.1.27 / 2012-09-12
+
 * [bug] shelly check - wrong method for retrieving databases from Cloudfile
 
 ## 0.1.26 / 2012-09-11
