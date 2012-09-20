@@ -11,7 +11,7 @@ module Shelly
 
       desc "list", "List users with access to clouds defined in Cloudfile"
       def list
-        app = multiple_clouds(options[:cloud], "list")
+        app = multiple_clouds(options[:cloud], "user list")
         say "Cloud #{app}:"
         app.active_collaborations.each { |c| say "  #{c["email"]}" }
         app.inactive_collaborations.each { |c|
@@ -21,7 +21,7 @@ module Shelly
       desc "add [EMAIL]", "Add new developer to clouds defined in Cloudfile"
       def add(email = nil)
         user = Shelly::User.new
-        app = multiple_clouds(options[:cloud], "add")
+        app = multiple_clouds(options[:cloud], "user add")
         user_email = email || ask_for_email({:guess_email => false})
         user.send_invitation(app.to_s, user_email)
         say "Sending invitation to #{user_email} to work on #{app}", :green
@@ -37,7 +37,7 @@ module Shelly
       desc "delete [EMAIL]", "Remove developer from clouds defined in Cloudfile"
       def delete(email = nil)
         user = Shelly::User.new
-        app = multiple_clouds(options[:cloud], "delete")
+        app = multiple_clouds(options[:cloud], "user delete")
         user_email = email || ask_for_email({:guess_email => false})
         user.delete_collaboration(app.to_s, user_email)
         say "User #{user_email} deleted from cloud #{app}"

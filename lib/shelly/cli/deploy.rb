@@ -3,8 +3,8 @@ require "time"
 
 module Shelly
   module CLI
-    class Deploys < Command
-      namespace :deploys
+    class Deploy < Command
+      namespace :deploy
       include Helpers
 
       before_hook :logged_in?, :only => [:list, :show]
@@ -12,7 +12,7 @@ module Shelly
 
       desc "list", "Lists deploy logs"
       def list
-        app = multiple_clouds(options[:cloud], "deploys list")
+        app = multiple_clouds(options[:cloud], "deploy list")
         logs = app.deploy_logs
         unless logs.empty?
           say "Available deploy logs", :green
@@ -33,7 +33,7 @@ module Shelly
       desc "show LOG", "Show specific deploy log"
       def show(log = nil)
         specify_log(log)
-        app = multiple_clouds(options[:cloud], "deploys show #{log}")
+        app = multiple_clouds(options[:cloud], "deploy show #{log}")
         content = app.deploy_log(log)
         say "Log for deploy done on #{content["created_at"]}", :green
         if content["bundle_install"]

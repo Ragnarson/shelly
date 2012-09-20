@@ -1,11 +1,11 @@
 require "spec_helper"
-require "shelly/cli/deploys"
+require "shelly/cli/deploy"
 
-describe Shelly::CLI::Deploys do
+describe Shelly::CLI::Deploy do
   before do
     FileUtils.stub(:chmod)
-    @deploys = Shelly::CLI::Deploys.new
-    Shelly::CLI::Deploys.stub(:new).and_return(@deploys)
+    @deploys = Shelly::CLI::Deploy.new
+    Shelly::CLI::Deploy.stub(:new).and_return(@deploys)
     @client = mock
     Shelly::Client.stub(:new).and_return(@client)
     $stdout.stub(:puts)
