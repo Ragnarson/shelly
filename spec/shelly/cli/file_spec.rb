@@ -1,10 +1,10 @@
 require "spec_helper"
-require "shelly/cli/files"
+require "shelly/cli/file"
 
-describe Shelly::CLI::Files do
+describe Shelly::CLI::File do
   before do
     FileUtils.stub(:chmod)
-    @cli_files = Shelly::CLI::Files.new
+    @cli_files = Shelly::CLI::File.new
     @client = mock
     Shelly::Client.stub(:new).and_return(@client)
     @client.stub(:token).and_return("abc")

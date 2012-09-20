@@ -1,5 +1,11 @@
 class Thor
   class << self
+    def register_subcommand(klass, subcommand, usage, description, options = {})
+      register(klass, subcommand, usage, description, options)
+      # This could be done with ActiveSupport::Inflector module but is this necessary?
+      register(klass, subcommand + "s", usage, description, :hide => true)
+    end
+
     def before_hook(method, options = {})
       @hook = {} unless @hook
       @hook[method] = options

@@ -3,7 +3,7 @@ require "shelly/cli/command"
 module Shelly
   module CLI
     class Config < Command
-      include Thor::Actions
+      namespace :config
       include Helpers
 
       before_hook :logged_in?, :only => [:list, :show, :create, :new, :edit, :update, :delete]
@@ -11,7 +11,7 @@ module Shelly
 
       desc "list", "List configuration files"
       def list
-        app = multiple_clouds(options[:cloud], "list")
+        app = multiple_clouds(options[:cloud], "config list")
         configs = app.configs
         unless configs.empty?
           say "Configuration files for #{app}", :green
@@ -34,7 +34,7 @@ module Shelly
 
       desc "show PATH", "View configuration file"
       def show(path)
-        app = multiple_clouds(options[:cloud], "show #{path}")
+        app = multiple_clouds(options[:cloud], "config show #{path}")
         config = app.config(path)
         say "Content of #{config["path"]}:", :green
         say config["content"]
@@ -62,7 +62,7 @@ module Shelly
       desc "edit PATH", "Edit configuration file"
       def edit(path = nil)
         say_error "No configuration file specified" unless path
-        app = multiple_clouds(options[:cloud], "edit #{path}")
+        app = multiple_clouds(options[:cloud], "config edit #{path}")
         config = app.config(path)
         content = open_editor(config["path"], config["content"])
         app.update_config(path, content)
@@ -80,7 +80,7 @@ module Shelly
 
       desc "delete PATH", "Delete configuration file"
       def delete(path)
-        app = multiple_clouds(options[:cloud], "delete #{path}")
+        app = multiple_clouds(options[:cloud], "config delete #{path}")
         answer = yes?("Are you sure you want to delete 'path' (yes/no): ")
         if answer
           app.delete_config(path)
@@ -105,17 +105,17 @@ module Shelly
         def open_editor(path, output = "")
           filename = "shelly-edit-"
           0.upto(20) { filename += rand(9).to_s }
-          filename << File.extname(path)
-          filename = File.join(Dir.tmpdir, filename)
-          tf = File.open(filename, "w")
+          filename << ::File.extname(path)
+          filename = ::File.join(Dir.tmpdir, filename)
+          tf = ::File.open(filename, "w")
           tf.sync = true
           tf.puts output
           tf.close
           no_editor unless system("#{ENV['EDITOR']} #{tf.path}")
-          tf = File.open(filename, "r")
+          tf = ::File.open(filename, "r")
           output = tf.gets(nil)
           tf.close
-          File.unlink(filename)
+          ::File.unlink(filename)
           output
         end
 

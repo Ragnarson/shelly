@@ -2,8 +2,8 @@ require "shelly/cli/command"
 
 module Shelly
   module CLI
-    class Files < Command
-      namespace :files
+    class File < Command
+      namespace :file
       include Helpers
 
       before_hook :logged_in?, :only => [:upload, :download]
@@ -12,7 +12,7 @@ module Shelly
 
       desc "upload PATH", "Upload files to persistent data storage"
       def upload(path)
-        app = multiple_clouds(options[:cloud], "upload #{path}")
+        app = multiple_clouds(options[:cloud], "file upload #{path}")
         app.upload(path)
       rescue Client::ConflictException
         say_error "Cloud #{app} is not running. Cannot upload files."
@@ -25,7 +25,7 @@ module Shelly
         DEST_PATH - optional destination where files should be saved. By default is current working directory.
       }
       def download(relative_source = ".", destination = ".")
-        app = multiple_clouds(options[:cloud], "download #{relative_source} #{destination}")
+        app = multiple_clouds(options[:cloud], "file download #{relative_source} #{destination}")
         app.download(relative_source, destination)
       rescue Client::ConflictException
         say_error "Cloud #{app} is not running. Cannot download files."
