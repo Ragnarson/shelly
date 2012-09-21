@@ -1,3 +1,7 @@
+* [feature] Singular form of all subcommands with possibility to invoke them with plural form
+
+  ```shelly user list``` and ```shelly users list``` works the same
+
 ## 0.1.27 / 2012-09-12
 
 * [bug] shelly check - wrong method for retrieving databases from Cloudfile

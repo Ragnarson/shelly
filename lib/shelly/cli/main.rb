@@ -2,20 +2,18 @@
 require "shelly/cli/command"
 require "shelly/cli/user"
 require "shelly/cli/backup"
-require "shelly/cli/deploys"
+require "shelly/cli/deploy"
 require "shelly/cli/config"
-require "shelly/cli/files"
+require "shelly/cli/file"
 
 module Shelly
   module CLI
     class Main < Command
-      include Thor::Actions
-
-      register(User, "user", "user <command>", "Manage collaborators")
-      register(Backup, "backup", "backup <command>", "Manage database backups")
-      register(Deploys, "deploys", "deploys <command>", "View deploy logs")
-      register(Config, "config", "config <command>", "Manage application configuration files")
-      register(Files, "files", "files <command>", "Upload and download files to and from persistent storage")
+      register_subcommand(User, "user", "user <command>", "Manage collaborators")
+      register_subcommand(Backup, "backup", "backup <command>", "Manage database backups")
+      register_subcommand(Deploy, "deploy", "deploy <command>", "View deploy logs")
+      register_subcommand(Config, "config", "config <command>", "Manage application configuration files")
+      register_subcommand(File, "file", "file <command>", "Upload and download files to and from persistent storage")
 
       check_unknown_options!(:except => :rake)
 
