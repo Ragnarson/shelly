@@ -79,10 +79,14 @@ module Shelly
         :desc => "Server size [large, small]"
       method_option "redeem-code", :type => :string, :aliases => "-r",
         :desc => "Redeem code for free credits"
+      method_option "skip-requirements-check", :type => :boolean,
+        :desc => "Skip Shelly Cloud requirements check"
       desc "add", "Add a new cloud"
       def add
         check_options(options)
-        return unless check(verbose = false)
+        unless options["skip-requirements-check"]
+          return unless check(verbose = false)
+        end
         app = Shelly::App.new
         app.code_name = options["code-name"] || ask_for_code_name
         app.databases = options["databases"] || ask_for_databases

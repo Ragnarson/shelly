@@ -523,6 +523,14 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
         invoke(@main, :add)
       end
     end
+
+    it "should skip checking shelly requirements if --skip-requirements-check provided" do
+      @main.options = {"skip-requirements-check" => true}
+      @main.should_not_receive(:check)
+      fake_stdin(["foooo", "none"]) do
+        invoke(@main, :add)
+      end
+    end
   end
 
   describe "#list" do
