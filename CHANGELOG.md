@@ -1,3 +1,5 @@
+## 0.1.30 / 2012-10-05
+
 * [refactoring] Improved output message in ```backup list```
 
 ## 0.1.28 / 2012-09-21
