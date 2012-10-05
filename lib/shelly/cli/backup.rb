@@ -23,7 +23,7 @@ module Shelly
           limit = 0
           unless options[:all] || backups.count < (Shelly::Backup::LIMIT + 1)
             limit = Shelly::Backup::LIMIT - 1
-            say "Limiting the number of backups to #{Shelly::Backup::LIMIT}."
+            say "Showing only #{Shelly::Backup::LIMIT} backups."
             say "Use --all or -a option to list all backups."
           end
           to_display = [["Filename", "|  Size", "|  State"]]
