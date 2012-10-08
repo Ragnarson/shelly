@@ -196,7 +196,7 @@ module Shelly
     end
 
     def download_backup(cloud, filename, progress_callback = nil)
-      File.open(filename, "w") do |out|
+      File.open(filename, "wb") do |out|
         process_response = lambda do |response|
           response.read_body do |chunk|
             out.write(chunk)
