@@ -1,3 +1,5 @@
+## 0.1.31 / 2012-10-10
+
 * [bug] Writing backups to disk in binary mode to avoid ascii/utf8 conversion errors.
 
 ## 0.1.30 / 2012-10-05
