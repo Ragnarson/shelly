@@ -1,4 +1,4 @@
-# Shelly Cloud command line tool [![Build Status](https://secure.travis-ci.org/Ragnarson/shelly.png?branch=master)](http://travis-ci.org/Ragnarson/shelly)
+# Shelly Cloud command line tool [![Build Status](https://secure.travis-ci.org/shellycloud/shelly.png?branch=master)](http://travis-ci.org/Ragnarson/shelly)
 
 ## Installation
 
