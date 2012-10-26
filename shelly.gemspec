@@ -6,7 +6,7 @@ Gem::Specification.new do |s|
   s.name        = "shelly"
   s.version     = Shelly::VERSION
   s.authors     = ["Shelly Cloud team"]
-  s.email       = ["support@shellycloud.com"]
+  s.email       = ["devs@shellycloud.com"]
   s.homepage    = "http://shellycloud.com"
   s.summary     = %q{Shelly Cloud command line tool}
   s.description = %q{Tool for managing applications and clouds at shellycloud.com}
