@@ -5,6 +5,7 @@ require "shelly/cli/backup"
 require "shelly/cli/deploy"
 require "shelly/cli/config"
 require "shelly/cli/file"
+require "shelly/cli/organization"
 
 module Shelly
   module CLI
@@ -14,6 +15,7 @@ module Shelly
       register_subcommand(Deploy, "deploy", "deploy <command>", "View deploy logs")
       register_subcommand(Config, "config", "config <command>", "Manage application configuration files")
       register_subcommand(File, "file", "file <command>", "Upload and download files to and from persistent storage")
+      register_subcommand(Organization, "organization", "organization <command>", "View organizations")
 
       check_unknown_options!(:except => :rake)
 

@@ -195,5 +195,13 @@ describe Shelly::User do
       @user.apps
     end
   end
-end
 
+  describe "#organizations" do
+    it "should initialaize organizations objects" do
+      organizations = [{"name" => "org1"}]
+      @client.should_receive(:organizations).and_return(organizations)
+      Shelly::Organization.should_receive(:new).with({"name" => "org1"})
+      @user.organizations
+    end
+  end
+end

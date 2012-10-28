@@ -170,12 +170,32 @@ describe Shelly::Client do
     end
   end
 
-  describe "#collaborations" do
+  describe "#organizations" do
+    it "should fetch organizations from API" do
+      FakeWeb.register_uri(:get, api_url("organizations"),
+       :body => [{:name => "org1", :app_code_names => ["app1"]},
+                 {:name => "org2", :app_code_names => ["app2"]}].to_json)
+      response = @client.organizations
+      response.should == [{"name" => "org1", "app_code_names" => ["app1"]},
+                          {"name" => "org2", "app_code_names" => ["app2"]}]
+    end
+  end
+
+  describe "#organization" do
+    it "should fetch organization from API" do
+      FakeWeb.register_uri(:get, api_url("organizations/foo-org"),
+        :body => {:name => "org1", :app_code_names => ["app1"]}.to_json)
+      response = @client.organization("foo-org")
+      response.should == {"name" => "org1", "app_code_names" => ["app1"]}
+    end
+  end
+
+  describe "#members" do
     it "should send get request with app code_names" do
-      FakeWeb.register_uri(:get, api_url("apps/staging-foo/collaborations"),
+      FakeWeb.register_uri(:get, api_url("organizations/staging-foo/memberships"),
         :body => [{:email => "test@example.com", :active => true},
                   {:email => "test2@example.com", :active => false}].to_json)
-      response = @client.collaborations("staging-foo")
+      response = @client.members("staging-foo")
       response.should == [{"email" => "test@example.com", 'active' => true},
                           {"email" => "test2@example.com", 'active' => false}]
     end

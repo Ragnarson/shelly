@@ -127,6 +127,14 @@ module Shelly
       get("/apps/#{code_name}")
     end
 
+    def organizations
+      get("/organizations")
+    end
+
+    def organization(name)
+      get("/organizations/#{name}")
+    end
+
     def statistics(code_name)
       get("/apps/#{code_name}/statistics")
     end
@@ -167,8 +175,8 @@ module Shelly
       post("/apps/#{code_name}/database_backups", :kind => kind)
     end
 
-    def collaborations(cloud)
-      get("/apps/#{cloud}/collaborations")
+    def members(name)
+      get("/organizations/#{name}/memberships")
     end
 
     def redeploy(cloud)

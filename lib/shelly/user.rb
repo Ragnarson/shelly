@@ -1,3 +1,5 @@
+require 'shelly/organization'
+
 module Shelly
   class User < Model
     attr_accessor :email, :password
@@ -9,6 +11,12 @@ module Shelly
 
     def apps
       shelly.apps
+    end
+
+    def organizations
+      shelly.organizations.map do |attributes|
+        Shelly::Organization.new(attributes)
+      end
     end
 
     def register
