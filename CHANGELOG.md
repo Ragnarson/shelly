@@ -1,5 +1,11 @@
 * [feature] Support for organizations
 
+* Manage users within organization
+
+All ```shelly user``` commands affected
+
+* [feature] Show organizations with associated clouds
+
 ## 0.1.34 / 2012-11-11
 
 * [feature] Accept DSA keys when logging in or registering

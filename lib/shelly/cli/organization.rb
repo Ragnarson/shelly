@@ -12,7 +12,7 @@ module Shelly
       def list
         user = Shelly::User.new
         organizations = user.organizations
-        say "Your organizations", :green
+        say "You have access to the following organizations and clouds:", :green
         say_new_line
         organizations.each do |organization|
           say organization.name, :green

@@ -13,6 +13,7 @@ require "shelly/model"
 
 module Shelly
   autoload :App, "shelly/app"
+  autoload :Organization, "shelly/organization"
   autoload :Cloudfile, "shelly/cloudfile"
   autoload :Client, "shelly/client"
   autoload :StructureValidator, "shelly/structure_validator"

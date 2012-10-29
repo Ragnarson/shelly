@@ -1,4 +1,5 @@
 require "shelly/cli/command"
+require "shelly/cli/organization"
 
 module Shelly
   module CLI
@@ -7,46 +8,93 @@ module Shelly
       include Helpers
 
       before_hook :logged_in?, :only => [:list, :add, :delete]
-      class_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
 
-      desc "list", "List users with access to clouds defined in Cloudfile"
+      desc "list", "List users with access to organizations"
       def list
-        app = multiple_clouds(options[:cloud], "user list")
-        say "Cloud #{app}:"
-        app.active_collaborations.each { |c| say "  #{c["email"]}" }
-        app.inactive_collaborations.each { |c|
-          say "  #{c["email"]} (invited)" }
+        user = Shelly::User.new
+        organizations = user.organizations
+
+        say "Organizations with users:"
+
+        organizations.each do |organization|
+          say "  #{organization.name}", :green
+          if organization.memberships.present?
+            members_table = organization.owners.map { |owner| [owner["email"], "  | owner"] }
+            members_table += organization.members.map { |member| [member["email"], "  | member"] }
+            members_table += organization.inactive_members.map { |inactive| [inactive["email"] + " (invited)", "  | #{humman_owner(inactive["owner"])}"] }
+            print_table(members_table, :ident => 4, :colwidth => 45)
+            say_new_line
+          end
+        end
       end
 
-      desc "add [EMAIL]", "Add new developer to clouds defined in Cloudfile"
+      method_option :organization, :type => :string, :aliases => "-o", :desc => "Specify organization"
+      desc "add [EMAIL]", "Add new developer to organization"
       def add(email = nil)
-        user = Shelly::User.new
-        app = multiple_clouds(options[:cloud], "user add")
+        organization = organization_present?(options[:organization], "user add [EMAIL]")
+
         user_email = email || ask_for_email({:guess_email => false})
-        user.send_invitation(app.to_s, user_email)
-        say "Sending invitation to #{user_email} to work on #{app}", :green
+        owner = yes?("Should this user have owner privileges? (yes/no)")
+        organization.send_invitation(user_email, owner)
+
+        say "Sending invitation to #{user_email} to work on #{organization} organization", :green
+      rescue Client::ForbiddenException
+        say_error "You have to be organization's owner to add new members"
+      rescue Client::NotFoundException => e
+        raise unless e.resource == :organization
+        say_error "Organization '#{options[:organization]}' not found", :with_exit => false
+        say_error "You can list organizations you have access to with `shelly organization list`"
       rescue Client::ValidationException => e
-        if e.errors.include?(["email", "#{email} has already been taken"])
-          say_error "User #{email} is already in the cloud #{app}", :with_exit => false
+        if e.errors.include?(["email", "#{email} has been already taken"])
+          say_error "User #{email} is already in the organization #{organization}"
         else
           e.each_error { |error| say_error error, :with_exit => false }
           exit 1
         end
       end
 
-      desc "delete [EMAIL]", "Remove developer from clouds defined in Cloudfile"
+      method_option :organization, :type => :string, :aliases => "-o", :desc => "Specify organization"
+      desc "delete [EMAIL]", "Remove developer from organization"
       def delete(email = nil)
-        user = Shelly::User.new
-        app = multiple_clouds(options[:cloud], "user delete")
+        organization = organization_present?(options[:organization], "user delete [EMAIL]")
+
         user_email = email || ask_for_email({:guess_email => false})
-        user.delete_collaboration(app.to_s, user_email)
-        say "User #{user_email} deleted from cloud #{app}"
+        organization.delete_member(user_email)
+
+        say "User #{user_email} deleted from organization #{organization}"
+      rescue Client::ForbiddenException
+        say_error "You have to be organization's owner to remove members"
       rescue Client::ConflictException => e
         say_error e[:message]
       rescue Client::NotFoundException => e
-        raise unless e.resource == :user
-        say_error "User '#{user_email}' not found", :with_exit => false
-        say_error "You can list users with `shelly user list`"
+        if e.resource == :user
+          say_error "User '#{user_email}' not found", :with_exit => false
+          say_error "You can list users with `shelly user list`"
+        elsif e.resource == :organization
+          say_error "Organization '#{options[:organization]}' not found", :with_exit => false
+          say_error "You can list organizations you have access to with `shelly organization list`"
+        else
+          raise
+        end
+      end
+
+      no_tasks do
+        def humman_owner(owner)
+          owner ? "owner" : "member"
+        end
+
+        def organization_present?(name, action)
+          unless name
+            say_error "You have to specify organization", :with_exit => false
+            say "Select organization using `shelly #{action} --organization ORGANIZATION_NAME`"
+            Shelly::CLI::Organization.new.list
+            exit 1
+          else
+            Shelly::Organization.new("name" => name).tap do |org|
+              org.members
+            end
+          end
+        end
       end
     end
   end

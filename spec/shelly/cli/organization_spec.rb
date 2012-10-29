@@ -32,7 +32,7 @@ describe Shelly::CLI::Organization do
     end
 
     it "should print out all organizations with apps" do
-      $stdout.should_receive(:puts).with(green("Your organizations"))
+      $stdout.should_receive(:puts).with(green("You have access to the following organizations and clouds:"))
       $stdout.should_receive(:puts).with(green("aaa"))
       $stdout.should_receive(:puts).with(/app1 \s+ |  running/)
       $stdout.should_receive(:puts).with(green("ccc"))

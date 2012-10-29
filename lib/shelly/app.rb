@@ -132,19 +132,6 @@ module Shelly
       "#{File.basename(Dir.pwd)}-#{guessed || 'staging'}".downcase.dasherize
     end
 
-    def collaborations
-      @collaborations ||= Array(shelly.collaborations(code_name)).
-        sort_by { |c| c["email"] }
-    end
-
-    def active_collaborations
-      collaborations.select { |c| c["active"] }
-    end
-
-    def inactive_collaborations
-      collaborations.select { |c| !c["active"] }
-    end
-
     def configs
       @configs ||= shelly.app_configs(code_name)
     end

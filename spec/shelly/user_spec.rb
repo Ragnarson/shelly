@@ -104,20 +104,6 @@ describe Shelly::User do
     end
   end
 
-  describe "#send_invitation" do
-    it "should send invitation" do
-      @client.should_receive(:send_invitation).with("foo-staging", "megan@example.com")
-      @user.send_invitation("foo-staging", "megan@example.com")
-    end
-  end
-
-  describe "#delete_collaboration" do
-    it "should delete collaboration" do
-      @client.should_receive(:delete_collaboration).with("foo-staging", "megan@example.com")
-      @user.delete_collaboration("foo-staging", "megan@example.com")
-    end
-  end
-
   describe "#ssh_key_path" do
     it "should return path to public dsa key file in the first place" do
       @user.ssh_key_path.should == File.expand_path("~/.ssh/id_dsa.pub")

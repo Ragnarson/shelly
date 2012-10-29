@@ -19,6 +19,7 @@ module Shelly
     end
 
     class UnauthorizedException < APIException; end
+    class ForbiddenException < APIException; end
     class ConflictException < APIException; end
     class GemVersionException < APIException; end
     class GatewayTimeoutException < APIException; end
@@ -87,12 +88,12 @@ module Shelly
       delete("/apps/#{cloud}/configs/#{CGI.escape(path)}")
     end
 
-    def send_invitation(cloud, email)
-      post("/apps/#{cloud}/collaborations", :email => email)
+    def send_invitation(name, email, owner = false)
+      post("/organizations/#{name}/memberships", :email => email, :owner => owner)
     end
 
-    def delete_collaboration(cloud, email)
-      delete("/apps/#{cloud}/collaborations/#{email}")
+    def delete_member(name, email)
+      delete("/organizations/#{name}/memberships/#{email}")
     end
 
     def create_app(attributes)
@@ -252,6 +253,7 @@ module Shelly
       if (400..599).include?(code)
         exception_class = case response.code
         when 401; UnauthorizedException
+        when 403; ForbiddenException
         when 404; NotFoundException
         when 409; ConflictException
         when 412; GemVersionException

@@ -47,13 +47,6 @@ describe Shelly::App do
     end
   end
 
-  describe "#collaborations" do
-    it "should fetch app's users" do
-      @client.should_receive(:collaborations).with("foo-staging")
-      @app.collaborations
-    end
-  end
-
   describe "#add_git_remote" do
     before do
       @app.stub(:git_url).and_return("git@git.shellycloud.com:foo-staging.git")
