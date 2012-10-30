@@ -702,6 +702,14 @@ We have been notified about it. We will be adding new resources shortly")
         lambda { invoke(@main, :start) }.should raise_error(SystemExit)
       end
 
+      it "should show message about blocked deploy" do
+        exception = Shelly::Client::LockedException.new("message" => "reason of block")
+        @client.should_receive(:start_cloud).with("foo-production").and_raise(exception)
+        $stdout.should_receive(:puts).with(red "Deployment is currently blocked:")
+        $stdout.should_receive(:puts).with(red "reason of block")
+        lambda { invoke(@main, :start) }.should raise_error(SystemExit)
+      end
+
       def raise_conflict(options = {})
         body = {"state" => "no_code"}.merge(options)
         exception = Shelly::Client::ConflictException.new(body)
@@ -1199,6 +1207,18 @@ We have been notified about it. We will be adding new resources shortly")
               invoke(@main, :redeploy)
             }.should raise_error(SystemExit)
           end
+        end
+      end
+
+      context "when deployment is blocked" do
+        it "should display reason of the block" do
+          exception = Shelly::Client::LockedException.new("message" => "reason of block")
+          @client.should_receive(:redeploy).with("foo-production").and_raise(exception)
+          $stdout.should_receive(:puts).with(red "Deployment is currently blocked:")
+          $stdout.should_receive(:puts).with(red "reason of block")
+          lambda {
+            invoke(@main, :redeploy)
+          }.should raise_error(SystemExit)
         end
       end
 
