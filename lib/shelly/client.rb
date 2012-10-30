@@ -22,6 +22,7 @@ module Shelly
     class ConflictException < APIException; end
     class GemVersionException < APIException; end
     class GatewayTimeoutException < APIException; end
+    class LockedException < APIException; end
     class ValidationException < APIException
       def errors
         self[:errors]
@@ -247,6 +248,7 @@ module Shelly
         when 409; ConflictException
         when 412; GemVersionException
         when 422; ValidationException
+        when 423; LockedException
         when 504; GatewayTimeoutException
         else; APIException
         end

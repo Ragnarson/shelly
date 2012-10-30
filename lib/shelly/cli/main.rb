@@ -204,6 +204,10 @@ We have been notified about it. We will be adding new resources shortly}
           say_error "Not starting. Invoice for cloud '#{app}' was declined."
         end
         exit 1
+      rescue Client::LockedException => e
+        say_error "Deployment is currently blocked:", :with_exit => false
+        say_error e[:message]
+        exit 1
       end
 
       desc "setup", "Set up git remotes for deployment on Shelly Cloud"
@@ -345,6 +349,10 @@ We have been notified about it. We will be adding new resources shortly}
           exit 1
         else raise
         end
+      rescue Client::LockedException => e
+        say_error "Deployment is currently blocked:", :with_exit => false
+        say_error e[:message]
+        exit 1
       end
 
       desc "open", "Open application page in browser"
