@@ -1,5 +1,9 @@
 * [feature] Support for organizations
 
+* [feature] New cloud can be created with existing organizatino with --organization [-o] option
+
+Usage: ```shelly add --organization=ORGANIZATION_NAME```
+
 * Manage users within organization
 
 All ```shelly user``` commands affected

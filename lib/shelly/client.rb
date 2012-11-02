@@ -97,7 +97,8 @@ module Shelly
     end
 
     def create_app(attributes)
-      post("/apps", :app => attributes)
+      organization = attributes.delete(:organization_name)
+      post("/apps", :app => attributes, :organization_name => organization)
     end
 
     def delete_app(code_name)

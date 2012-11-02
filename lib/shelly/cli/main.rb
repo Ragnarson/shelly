@@ -81,6 +81,8 @@ module Shelly
         :desc => "Server size [large, small]"
       method_option "redeem-code", :type => :string, :aliases => "-r",
         :desc => "Redeem code for free credits"
+      method_option "organization", :type => :string, :aliases => "-o",
+        :desc => "Add cloud to existing organization"
       method_option "skip-requirements-check", :type => :boolean,
         :desc => "Skip Shelly Cloud requirements check"
       desc "add", "Add a new cloud"
@@ -94,6 +96,7 @@ module Shelly
         app.databases = options["databases"] || ask_for_databases
         app.size = options["size"] || "large"
         app.redeem_code = options["redeem-code"]
+        app.organization = options["organization"]
         app.create
 
         if overwrite_remote?(app)
@@ -122,6 +125,12 @@ module Shelly
         say_new_line
         say_error "Fix erros in the below command and type it again to create your cloud" , :with_exit => false
         say_error "shelly add --code-name=#{app.code_name.downcase.dasherize} --databases=#{app.databases.join(',')} --size=#{app.size}"
+      rescue Client::ForbiddenException
+        say_error "You have to be the owner of '#{options[:organization]}' organization to add clouds"
+      rescue Client::NotFoundException => e
+        raise unless e.resource == :organization
+        say_error "Organization '#{options[:organization]}' not found", :with_exit => false
+        say_error "You can list organizations you have access to with `shelly organization list`"
       end
 
       map "status" => :list

@@ -532,6 +532,35 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
         invoke(@main, :add)
       end
     end
+
+    it "should show forbidden exception" do
+      @main.options = {:organization => "foo"}
+      exception = Shelly::Client::ForbiddenException.new
+      @app.should_receive(:create).and_raise(exception)
+      $stdout.should_receive(:puts).with(red "You have to be the owner of 'foo' organization to add clouds")
+
+      expect do
+        fake_stdin(["foooo", "none"]) do
+          invoke(@main, :add)
+        end
+      end.to raise_error(SystemExit)
+    end
+
+    it "should show that organization was not found" do
+      @main.options = {:organization => "foo"}
+      response = {"resource" => "organization"}
+      exception = Shelly::Client::NotFoundException.new(response)
+      @app.should_receive(:create).and_raise(exception)
+      $stdout.should_receive(:puts).with(red "Organization 'foo' not found")
+      $stdout.should_receive(:puts).with(red "You can list organizations you have access to with `shelly organization list`")
+
+      expect do
+        fake_stdin(["foooo", "none"]) do
+          invoke(@main, :add)
+        end
+      end.to raise_error(SystemExit)
+    end
+
   end
 
   describe "#list" do

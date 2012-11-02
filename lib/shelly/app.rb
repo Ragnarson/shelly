@@ -10,7 +10,7 @@ module Shelly
 
     attr_accessor :code_name, :databases, :ruby_version, :environment,
       :git_url, :domains, :web_server_ip, :size, :thin, :redeem_code,
-      :content
+      :content, :organization
 
     def initialize(code_name = nil, content = nil)
       self.code_name = code_name
@@ -43,7 +43,9 @@ module Shelly
     end
 
     def create
-      attributes = {:code_name => code_name, :redeem_code => redeem_code}
+      attributes = {:code_name => code_name,
+                    :redeem_code => redeem_code,
+                    :organization_name => organization}
       response = shelly.create_app(attributes)
       self.git_url = response["git_url"]
       self.domains = response["domains"]

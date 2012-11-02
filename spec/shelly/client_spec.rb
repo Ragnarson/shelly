@@ -165,9 +165,15 @@ describe Shelly::Client do
 
   describe "#create_app" do
     it "should send post with app's attributes" do
-      @client.should_receive(:post).with("/apps", :app => {:code_name => "foo", :ruby_version => "1.9.2"})
+      @client.should_receive(:post).with("/apps", :app => {:code_name => "foo", :ruby_version => "1.9.2"}, :organization_name => nil)
       @client.create_app(:code_name => "foo", :ruby_version => "1.9.2")
     end
+
+    it "should send post with app's attributes and organization name" do
+      @client.should_receive(:post).with("/apps", :app => {:code_name => "foo", :ruby_version => "1.9.2"}, :organization_name => "foo")
+      @client.create_app(:code_name => "foo", :ruby_version => "1.9.2", :organization_name => "foo")
+    end
+
   end
 
   describe "#organizations" do
