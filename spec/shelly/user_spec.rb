@@ -3,7 +3,8 @@ require "spec_helper"
 describe Shelly::User do
   before do
     FileUtils.mkdir_p("~/.ssh")
-    File.open("~/.ssh/id_rsa.pub", "w") { |f| f << "ssh-key AAbbcc" }
+    File.open("~/.ssh/id_rsa.pub", "w") { |f| f << "rsa-key AAbbcc" }
+    File.open("~/.ssh/id_dsa.pub", "w") { |f| f << "dsa-key AAbbcc" }
     @client = mock
     Shelly::Client.stub(:new).and_return(@client)
     @user = Shelly::User.new("bob@example.com", "secret")
@@ -24,7 +25,7 @@ describe Shelly::User do
     end
 
     it "should register user at Shelly Cloud" do
-      @client.should_receive(:register_user).with("bob@example.com", "secret", "ssh-key AAbbcc")
+      @client.should_receive(:register_user).with("bob@example.com", "secret", "dsa-key AAbbcc")
       @user.register
     end
 
@@ -36,6 +37,7 @@ describe Shelly::User do
     context "when ssh key is not available" do
       it "should register without it" do
         FileUtils.rm_rf("~/.ssh/id_rsa.pub")
+        FileUtils.rm_rf("~/.ssh/id_dsa.pub")
         @client.should_receive(:register_user).with("bob@example.com", "secret", nil)
         @user.register
       end
@@ -117,7 +119,12 @@ describe Shelly::User do
   end
 
   describe "#ssh_key_path" do
-    it "should return path to public ssh key file" do
+    it "should return path to public dsa key file in the first place" do
+      @user.ssh_key_path.should == File.expand_path("~/.ssh/id_dsa.pub")
+    end
+
+    it "should return path to public rsa key file if dsa key is not present" do
+      FileUtils.rm_rf("~/.ssh/id_dsa.pub")
       @user.ssh_key_path.should == File.expand_path("~/.ssh/id_rsa.pub")
     end
   end
@@ -126,18 +133,22 @@ describe Shelly::User do
     it "should return true if key exists, false otherwise" do
       @user.should be_ssh_key_exists
       FileUtils.rm_rf("~/.ssh/id_rsa.pub")
+      @user.should be_ssh_key_exists
+      FileUtils.rm_rf("~/.ssh/id_dsa.pub")
       @user.should_not be_ssh_key_exists
     end
   end
 
   describe "#delete_ssh_key" do
     it "should invoke logout when ssh key exists" do
-      @client.should_receive(:logout).with('ssh-key AAbbcc')
+      @client.should_receive(:logout).with('rsa-key AAbbcc')
+      @client.should_receive(:logout).with('dsa-key AAbbcc')
       @user.delete_ssh_key
     end
 
     it "should not invoke logout when ssh key doesn't exist" do
       FileUtils.rm_rf("~/.ssh/id_rsa.pub")
+      FileUtils.rm_rf("~/.ssh/id_dsa.pub")
       @client.should_not_receive(:logout)
       @user.delete_ssh_key
     end
@@ -145,7 +156,7 @@ describe Shelly::User do
 
   describe "#upload_ssh_key" do
     it "should read and upload user's public SSH key" do
-      @client.should_receive(:add_ssh_key).with("ssh-key AAbbcc")
+      @client.should_receive(:add_ssh_key).with("dsa-key AAbbcc")
       @user.upload_ssh_key
     end
   end
