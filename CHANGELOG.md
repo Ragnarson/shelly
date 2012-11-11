@@ -1,3 +1,5 @@
+## 0.1.34 / 2012-11-11
+
 * [feature] Accept DSA keys when logging in or registering
 
 DSA key is used in the first place, if it doesn't exist RSA key is used
