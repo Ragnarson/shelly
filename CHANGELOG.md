@@ -1,3 +1,7 @@
+* [feature] Accept DSA keys when logging in or registering
+
+DSA key is used in the first place, if it doesn't exist RSA key is used
+
 ## 0.1.31 / 2012-10-10
 
 * [bug] Writing backups to disk in binary mode to avoid ascii/utf8 conversion errors.
