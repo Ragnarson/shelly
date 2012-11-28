@@ -258,12 +258,6 @@ module Shelly
       option?("whenever")
     end
 
-    # Public: Return databases to backup for given Cloud in Cloudfile
-    # Returns Array of databases, except redis db
-    def backup_databases
-      cloud_databases - ['redis']
-    end
-
     private
 
     # Internal: Checks if specified option is present in Cloudfile

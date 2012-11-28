@@ -135,7 +135,7 @@ describe Shelly::CLI::Backup do
       FileUtils.mkdir_p("/projects/foo")
       Dir.chdir("/projects/foo")
       $stdout.stub(:puts)
-      @app = mock(:backup_databases => ['postgresql', 'mongodb'], :code_name => "foo-staging")
+      @app = mock(:cloud_databases => ['postgresql', 'mongodb', 'redis'], :code_name => "foo-staging")
       Shelly::App.stub(:new).and_return(@app)
       @cloudfile = mock(:present? => true, :clouds => [@app])
       Shelly::Cloudfile.stub(:new).and_return(@cloudfile)
@@ -166,7 +166,7 @@ describe Shelly::CLI::Backup do
     end
 
     it "should backup all dbs in cloudfile" do
-      @app.should_receive(:request_backup).with(['postgresql', 'mongodb'])
+      @app.should_receive(:request_backup).with(['postgresql', 'mongodb', 'redis'])
       invoke(@backup, :create)
     end
 

@@ -71,7 +71,7 @@ module Shelly
           say_error "Cloudfile must be present in current working directory or specify database kind with:", :with_exit => false
           say_error "`shelly backup create DB_KIND`"
         end
-        app.request_backup(kind || app.backup_databases)
+        app.request_backup(kind || app.cloud_databases)
         say "Backup requested. It can take up to several minutes for " +
           "the backup process to finish.", :green
       rescue Client::ValidationException => e

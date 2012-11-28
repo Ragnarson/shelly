@@ -404,10 +404,6 @@ describe Shelly::App do
     it "should return databases in cloudfile" do
       @app.cloud_databases.should =~ ['redis', 'mongodb', 'postgresql']
     end
-
-    it "should return databases except for redis" do
-      @app.backup_databases.should =~ ['postgresql', 'mongodb']
-    end
   end
 
   describe "#delayed_job?" do
