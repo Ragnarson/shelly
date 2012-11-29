@@ -26,11 +26,29 @@ describe Shelly::Backup do
     end
   end
 
-  def attributes
+  describe "#in_progress?" do
+    it "should return true backup is in in_progress state" do
+      backup = Shelly::Backup.new(attributes("state" => "in_progress"))
+      backup.in_progress?.should be_true
+    end
+
+    it "should return true backup is in pending state" do
+      backup = Shelly::Backup.new(attributes("state" => "pending"))
+      backup.in_progress?.should be_true
+    end
+
+    it "should return false backup is in other state" do
+      backup = Shelly::Backup.new(attributes)
+      backup.in_progress?.should be_false
+    end
+  end
+
+
+  def attributes(options = {})
     {"code_name" => "foo",
     "filename"   => "backup.tar.gz",
     "human_size" => "2KB",
     "size"       => 2048,
-    "state"      => "completed"}
+    "state"      => "completed"}.merge(options)
   end
 end

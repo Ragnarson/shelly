@@ -28,7 +28,8 @@ module Shelly
           end
           to_display = [["Filename", "|  Size", "|  State"]]
           backups[-limit..-1].each do |backup|
-            to_display << [backup.filename, "|  #{backup.human_size}", "|  #{backup.state.humanize}"]
+            backup_name = backup.in_progress? ? "creating backup" : backup.filename
+            to_display << [backup_name, "|  #{backup.human_size}", "|  #{backup.state.humanize}"]
           end
 
           say "Available backups:", :green

@@ -50,7 +50,7 @@ describe Shelly::CLI::Backup do
       $stdout.should_receive(:puts).with("\n")
       $stdout.should_receive(:puts).with("  Filename               |  Size  |  State")
       $stdout.should_receive(:puts).with("  backup.postgre.tar.gz  |  10kb  |  completed")
-      $stdout.should_receive(:puts).with("  backup.mongo.tar.gz    |  22kb  |  in progress")
+      $stdout.should_receive(:puts).with("  creating backup        |  22kb  |  in progress")
       @backup.options = {:cloud => "foo-staging", :all => true}
       invoke(@backup, :list)
     end

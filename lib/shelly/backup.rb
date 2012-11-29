@@ -15,5 +15,9 @@ module Shelly
     def download(callback)
       shelly.download_backup(code_name, filename, callback)
     end
+
+    def in_progress?
+      ["in_progress", "pending"].any? { |current| state == current }
+    end
   end
 end
