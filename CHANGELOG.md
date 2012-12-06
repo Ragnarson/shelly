@@ -1,3 +1,5 @@
+## 0.1.34 / 2012-12-06
+
 * [feature] Support for organizations
 
 * [feature] New cloud can be created with existing organizatino with --organization [-o] option
