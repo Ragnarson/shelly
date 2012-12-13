@@ -24,7 +24,7 @@ module Shelly
           if organization.memberships.present?
             members_table = organization.owners.map { |owner| [owner["email"], "  | owner"] }
             members_table += organization.members.map { |member| [member["email"], "  | member"] }
-            members_table += organization.inactive_members.map { |inactive| [inactive["email"] + " (invited)", "  | #{humman_owner(inactive["owner"])}"] }
+            members_table += organization.inactive_members.map { |inactive| [inactive["email"] + " (invited)", "  | #{human_owner(inactive["owner"])}"] }
             print_table(members_table, :ident => 2, :colwidth => 45)
             say_new_line
           end
@@ -86,7 +86,7 @@ module Shelly
       end
 
       no_tasks do
-        def humman_owner(owner)
+        def human_owner(owner)
           owner ? "owner" : "member"
         end
 
