@@ -6,7 +6,7 @@ module Shelly
       namespace :file
       include Helpers
 
-      before_hook :logged_in?, :only => [:upload, :download]
+      before_hook :logged_in?, :only => [:upload, :download, :delete]
       before_hook :require_rsync, :only => [:upload, :download]
       class_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
 
@@ -29,6 +29,19 @@ module Shelly
         app.download(relative_source, destination)
       rescue Client::ConflictException
         say_error "Cloud #{app} is not running. Cannot download files."
+      end
+
+      desc "delete PATH", "Delete files from persistent data storage"
+      def delete(path)
+        app = multiple_clouds(options[:cloud], "file delete #{path}")
+
+        question = "Do you want to permanently delete #{path} (yes/no):"
+        delete_files = ask(question)
+        exit 1 unless delete_files == "yes"
+
+        app.delete_file(path)
+      rescue Client::ConflictException
+        say_error "Cloud #{app} is not running. Cannot delete files."
       end
 
       no_tasks do

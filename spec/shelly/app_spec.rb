@@ -368,6 +368,13 @@ describe Shelly::App do
     end
   end
 
+  describe "#delete_file" do
+    it "should delete file over ssh" do
+      @app.should_receive(:ssh_command).with("delete_file foo/bar")
+      @app.delete_file("foo/bar")
+    end
+  end
+
   describe "#create_cloudfile" do
     it "should create cloudfile with app attributes" do
       @app.ruby_version = "1.9.3"
