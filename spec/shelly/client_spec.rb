@@ -348,6 +348,27 @@ describe Shelly::Client do
     end
   end
 
+  describe "#application_logs_tail" do
+    before do
+      FakeWeb.register_uri(:get, api_url("apps/fooo/application_logs/tail"),
+        :body => {"url" => "http://logs.example.com/fooo"}.to_json)
+    end
+
+    it "should fetch tail url" do
+      FakeWeb.register_uri(:get, "http://bob%40example.com:secret@logs.example.com/fooo",
+        :body => {}.to_json)
+      @client.application_logs_tail("fooo") { }
+    end
+
+    it "should execute block for received data" do
+      FakeWeb.register_uri(:get, "http://bob%40example.com:secret@logs.example.com/fooo",
+        :body => "GET / 127.0.0.1")
+      out = ""
+      @client.application_logs_tail("fooo") { |logs| out << logs }
+      out.should == "GET / 127.0.0.1"
+    end
+  end
+
   describe "#request_parameters" do
     it "should return hash of resquest parameters" do
       expected = {

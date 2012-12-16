@@ -305,13 +305,9 @@ We have been notified about it. We will be adding new resources shortly}
         print_logs(logs)
 
         if options[:tail]
-          loop do
-            logs = app.application_logs(:from => logs['range']['last'],
-              :source => options[:source])
-            print_logs(logs)
-            sleep 0.5
-          end
+          app.application_logs_tail { |logs| print logs }
         end
+
       rescue Client::APIException => e
         raise e unless e.status_code == 416
         say_error "You have requested too many log messages. Try a lower number."

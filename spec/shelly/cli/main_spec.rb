@@ -1142,8 +1142,8 @@ We have been notified about it. We will be adding new resources shortly")
 
     it "should show logs for the cloud" do
       @client.stub(:application_logs).and_return(@sample_logs)
-      $stdout.should_receive(:puts).with("    app1 | log1\n")
-      $stdout.should_receive(:puts).with("    app1 | log2\n")
+      $stdout.should_receive(:puts).with("app1 log1")
+      $stdout.should_receive(:puts).with("app1 log2")
       invoke(@main, :logs)
     end
 
