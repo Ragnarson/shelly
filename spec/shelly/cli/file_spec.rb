@@ -63,4 +63,39 @@ describe Shelly::CLI::File do
       invoke(@cli_files, :download, "some/path", "/destination")
     end
   end
+
+  describe "#delete" do
+    before do
+      @app.stub(:delete_file => true)
+      $stdout.stub(:puts)
+      $stdout.stub(:print)
+    end
+
+    it "should ensure user has logged in" do
+      hooks(@cli_files, :download).should include(:logged_in?)
+    end
+
+    it "should ask about delete application parts" do
+      $stdout.should_receive(:print).with("Do you want to permanently delete some/path (yes/no): ")
+      fake_stdin(["yes"]) do
+        invoke(@cli_files, :delete, "some/path")
+      end
+    end
+
+    it "should delete files" do
+      @app.should_receive(:delete_file).with("some/path")
+      fake_stdin(["yes"]) do
+        invoke(@cli_files, :delete, "some/path")
+      end
+    end
+
+    it "should return exit 1 when user doesn't type 'yes'" do
+      @app.should_not_receive(:delete_file)
+      lambda{
+        fake_stdin(["no"]) do
+          invoke(@cli_files, :delete, "some/path")
+        end
+      }.should raise_error(SystemExit)
+    end
+  end
 end
