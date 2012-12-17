@@ -227,6 +227,10 @@ module Shelly
       rsync(source, destination)
     end
 
+    def delete_file(remote_path)
+      ssh_command("delete_file #{remote_path}")
+    end
+
     # Public: Return databases for given Cloud in Cloudfile
     # Returns Array of databases
     def cloud_databases

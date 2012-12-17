@@ -1,3 +1,7 @@
+## master
+
+* [feature] Support for deleting files from disk - `shelly file delete`
+
 ## 0.1.35 / 2012-12-06
 
 * [feature] Support for organizations
