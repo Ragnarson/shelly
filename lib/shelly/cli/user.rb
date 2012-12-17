@@ -9,23 +9,30 @@ module Shelly
 
       before_hook :logged_in?, :only => [:list, :add, :delete]
 
+      method_option :organization, :type => :string, :aliases => "-o", :desc => "Specify organization"
       desc "list", "List users with access to organizations"
       def list
-        user = Shelly::User.new
-        organizations = user.organizations
-
-        say "Organizations with users:"
+        organizations = if options[:organization]
+          organization = fetch_organization(options[:organization])
+          [organization]
+        else
+          Shelly::User.new.organizations
+        end
 
         organizations.each do |organization|
-          say "  #{organization.name}", :green
+          say organization.name, :green
           if organization.memberships.present?
             members_table = organization.owners.map { |owner| [owner["email"], "  | owner"] }
             members_table += organization.members.map { |member| [member["email"], "  | member"] }
             members_table += organization.inactive_members.map { |inactive| [inactive["email"] + " (invited)", "  | #{humman_owner(inactive["owner"])}"] }
-            print_table(members_table, :ident => 4, :colwidth => 45)
+            print_table(members_table, :ident => 2, :colwidth => 45)
             say_new_line
           end
         end
+      rescue Client::NotFoundException => e
+        raise unless e.resource == :organization
+        say_error "Organization '#{options[:organization]}' not found", :with_exit => false
+        say_error "You can list organizations you have access to with `shelly organization list`"
       end
 
       method_option :organization, :type => :string, :aliases => "-o", :desc => "Specify organization"
@@ -90,9 +97,13 @@ module Shelly
             Shelly::CLI::Organization.new.list
             exit 1
           else
-            Shelly::Organization.new("name" => name).tap do |org|
-              org.members
-            end
+            fetch_organization(name)
+          end
+        end
+
+        def fetch_organization(name)
+          Shelly::Organization.new("name" => name).tap do |org|
+            org.members
           end
         end
       end

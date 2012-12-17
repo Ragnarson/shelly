@@ -31,31 +31,77 @@ describe Shelly::CLI::User do
   end
 
   describe "#list" do
-    let(:organizations){
-      [{"name" => "org1"}]
+    let(:organizations) {
+      [{"name" => "org1"}, {"name" => "org2"}]
     }
 
-    let(:response) {
-      [{'email' => 'user@example.com', 'active' => true, "owner" => true},
-       {'email' => 'user2@example2.com', 'active' => true, "owner" => false},
-       {'email' => 'user3@example3.com', 'active' => false, "owner" => true}]
+    let(:org1_members) {
+      [{'email' => 'user-org1@example.com', 'active' => true, "owner" => true},
+      {'email' => 'user2-org1@example2.com', 'active' => true, "owner" => false},
+      {'email' => 'user3-org1@example3.com', 'active' => false, "owner" => true}]
     }
+
+    let(:org2_members) {
+      [{'email' => 'user-org2@example.com', 'active' => true, "owner" => true},
+      {'email' => 'user2-org2@example2.com', 'active' => true, "owner" => false},
+      {'email' => 'user3-org2@example3.com', 'active' => false, "owner" => true}]
+    }
+
+    before do
+      @client.stub(:members).with("org1").and_return(org1_members)
+      @client.stub(:members).with("org2").and_return(org2_members)
+      @client.stub(:organizations).and_return(organizations)
+    end
 
     it "should ensure user has logged in" do
       hooks(@cli_user, :list).should include(:logged_in?)
     end
 
-    context "on success" do
-      it "should display organization's users" do
-        @cli_user.options = {:organization => "foo-org"}
-        @client.stub(:organizations).and_return(organizations)
-        @client.stub(:members).and_return(response)
-        $stdout.should_receive(:puts).with("Organizations with users:")
-        $stdout.should_receive(:puts).with(green "  org1")
-        $stdout.should_receive(:puts).with(/user@example.com\s+ \| owner/)
-        $stdout.should_receive(:puts).with(/user2@example2.com\s+ \| member/)
-        $stdout.should_receive(:puts).with(/user3@example3.com \(invited\)\s+ \| owner/)
+    context "without --organization option" do
+      it "displays all organizations' users" do
+        $stdout.should_receive(:puts).with(green "org1")
+        $stdout.should_receive(:puts).with(/user-org1@example.com\s+ \| owner/)
+        $stdout.should_receive(:puts).with(/user2-org1@example2.com\s+ \| member/)
+        $stdout.should_receive(:puts).with(/user3-org1@example3.com \(invited\)\s+ \| owner/)
+        $stdout.should_receive(:puts).with("\n").twice
+        $stdout.should_receive(:puts).with(green "org2")
+        $stdout.should_receive(:puts).with(/user-org2@example.com\s+ \| owner/)
+        $stdout.should_receive(:puts).with(/user2-org2@example2.com\s+ \| member/)
+        $stdout.should_receive(:puts).with(/user3-org2@example3.com \(invited\)\s+ \| owner/)
         invoke(@cli_user, :list)
+      end
+    end
+
+    context "with --organization option" do
+      context "when given organization exists" do
+        it "displays organization's users" do
+          organization = Shelly::Organization.new("name" => "org1")
+          Shelly::Organization.should_receive(:new).with("name" => "org1").
+            and_return(organization)
+          organization.stub(:members => org1_members)
+          @cli_user.options = {:organization => "org1"}
+          $stdout.should_receive(:puts).with(green "org1")
+          $stdout.should_receive(:puts).with(/user-org1@example.com\s+ \| owner/)
+          $stdout.should_receive(:puts).with(/user2-org1@example2.com\s+ \| member/)
+          $stdout.should_receive(:puts).with(/user3-org1@example3.com \(invited\)\s+ \| owner/)
+          invoke(@cli_user, :list)
+        end
+      end
+
+      context "when given organization doesn't exist" do
+        it "shows an error" do
+          @cli_user.options = {:organization => "org3"}
+          not_found = Shelly::Client::NotFoundException.new(
+            {"resource" => "organization"})
+          Shelly::Organization.should_receive(:new).with("name" => "org3").
+            and_raise(not_found)
+
+          $stdout.should_receive(:puts).with(red "Organization 'org3' not found")
+          $stdout.should_receive(:puts).with(red "You can list organizations you have access to with `shelly organization list`")
+          lambda do
+            invoke(@cli_user, :list)
+          end.should raise_error(SystemExit)
+        end
       end
     end
   end

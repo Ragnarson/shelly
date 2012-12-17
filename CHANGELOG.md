@@ -1,5 +1,7 @@
 ## master
 
+* [feature] When displaying user list, `--organization=ORGANIZATION_NAME` limits the list to users from a single organization
+
 * [feature] Support for deleting files from disk - `shelly file delete`
 
 ## 0.1.35 / 2012-12-06
