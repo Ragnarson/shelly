@@ -295,6 +295,7 @@ describe Shelly::CLI::Main do
       @app.stub(:attributes).and_return({"trial" => false})
       @app.stub(:git_remote_exist?).and_return(false)
       @main.stub(:check => true)
+      @main.stub(:ask_for_organization)
     end
 
     # This spec tests inside_git_repository? hook
@@ -546,21 +547,71 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
       end.to raise_error(SystemExit)
     end
 
-    it "should show that organization was not found" do
-      @main.options = {:organization => "foo"}
-      response = {"resource" => "organization"}
-      exception = Shelly::Client::NotFoundException.new(response)
-      @app.should_receive(:create).and_raise(exception)
-      $stdout.should_receive(:puts).with(red "Organization 'foo' not found")
-      $stdout.should_receive(:puts).with(red "You can list organizations you have access to with `shelly organization list`")
+    context "organizations" do
+      before do
+        @main.unstub(:ask_for_organization)
+      end
 
-      expect do
+      it "should use --organization option" do
+        @main.options = {"organization" => "foo"}
+        @app.should_receive(:organization=).with("foo")
         fake_stdin(["foooo", "none"]) do
           invoke(@main, :add)
         end
-      end.to raise_error(SystemExit)
-    end
+      end
 
+      context "ask user for organization" do
+        before do
+          @client.stub(:organizations).and_return([
+            {"name" => "aaa"},
+            {"name" => "ccc"}
+          ])
+        end
+
+        it "should ask user to choose organization if present and use chosen organization" do
+          @app.should_receive(:organization=).with("aaa")
+          $stdout.should_receive(:puts).with("Select organization for this cloud:")
+          $stdout.should_receive(:puts).with("existing organizations:")
+          $stdout.should_receive(:puts).with("  1) aaa")
+          $stdout.should_receive(:puts).with("  2) ccc")
+          $stdout.should_receive(:puts).with("new organization (default as code name):")
+          $stdout.should_receive(:puts).with("  3) foooo")
+          $stdout.should_receive(:print).with("Option: ")
+          fake_stdin(["foooo", "none", "1"]) do
+            invoke(@main, :add)
+          end
+        end
+
+        it "should ask user to choose organization if present" do
+          @app.should_receive(:organization=).with(nil)
+          $stdout.should_receive(:puts).with("Select organization for this cloud:")
+          $stdout.should_receive(:puts).with("existing organizations:")
+          $stdout.should_receive(:puts).with("  1) aaa")
+          $stdout.should_receive(:puts).with("  2) ccc")
+          $stdout.should_receive(:puts).with("new organization (default as code name):")
+          $stdout.should_receive(:puts).with("  3) foooo")
+          $stdout.should_receive(:print).with("Option: ")
+          fake_stdin(["foooo", "none", "3"]) do
+            invoke(@main, :add)
+          end
+        end
+      end
+
+      it "should show that organization was not found" do
+        @main.options = {"organization" => "foo"}
+        response = {"resource" => "organization"}
+        exception = Shelly::Client::NotFoundException.new(response)
+        @app.should_receive(:create).and_raise(exception)
+        $stdout.should_receive(:puts).with(red "Organization 'foo' not found")
+        $stdout.should_receive(:puts).with(red "You can list organizations you have access to with `shelly organization list`")
+
+        expect do
+          fake_stdin(["foooo", "none"]) do
+            invoke(@main, :add)
+          end
+        end.to raise_error(SystemExit)
+      end
+    end
   end
 
   describe "#list" do

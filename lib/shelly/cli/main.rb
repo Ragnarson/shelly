@@ -96,7 +96,7 @@ module Shelly
         app.databases = options["databases"] || ask_for_databases
         app.size = options["size"] || "large"
         app.redeem_code = options["redeem-code"]
-        app.organization = options["organization"]
+        app.organization = options["organization"] || ask_for_organization(app.code_name)
         app.create
 
         if overwrite_remote?(app)
@@ -129,7 +129,7 @@ module Shelly
         say_error "You have to be the owner of '#{options[:organization]}' organization to add clouds"
       rescue Client::NotFoundException => e
         raise unless e.resource == :organization
-        say_error "Organization '#{options[:organization]}' not found", :with_exit => false
+        say_error "Organization '#{app.organization}' not found", :with_exit => false
         say_error "You can list organizations you have access to with `shelly organization list`"
       end
 
@@ -547,6 +547,34 @@ We have been notified about it. We will be adding new resources shortly}
           end while not valid
 
           databases.empty? ? ["postgresql"] : databases
+        end
+
+        def ask_for_organization(default_name)
+          organizations = Shelly::User.new.organizations
+          if organizations.count > 1
+            count = organizations.count
+            option_selected = 0
+            loop do
+              say "Select organization for this cloud:"
+              say_new_line
+              say "existing organizations:"
+
+              organizations.each_with_index do |organization, i|
+                print_wrapped "#{i + 1}) #{organization.name}", :ident => 2
+              end
+              say_new_line
+              say "new organization (default as code name):"
+
+              print_wrapped "#{count + 1}) #{default_name}", :ident => 2
+
+              option_selected = ask("Option:")
+              break if ('1'..(count + 1).to_s).include?(option_selected)
+            end
+
+            if (1..count).include?(option_selected.to_i)
+              return organizations[option_selected.to_i - 1].name
+            end
+          end
         end
 
         def info_adding_cloudfile_to_repository
