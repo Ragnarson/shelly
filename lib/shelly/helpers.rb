@@ -120,7 +120,7 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository}
 
     def print_logs(logs)
       logs['entries'].each do |entry|
-        say "%8.8s | %s\n" % entry
+        say "%s %s" % entry
       end
     end
 

@@ -438,4 +438,13 @@ describe Shelly::App do
       @app.whenever?.should be_false
     end
   end
+
+  describe "#application_logs_tail" do
+    it "should execute given block for logs fetched from API" do
+      @client.should_receive(:application_logs_tail).with("foo-staging").and_yield("GET / 127.0.0.1")
+      out = ""
+      @app.application_logs_tail { |logs| out << logs }
+      out.should == "GET / 127.0.0.1"
+    end
+  end
 end
