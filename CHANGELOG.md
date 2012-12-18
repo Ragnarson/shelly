@@ -1,4 +1,4 @@
-## master
+## 0.1.36 / 2012-12-18
 
 * [feature] Let user choose organization when adding new cloud
 
