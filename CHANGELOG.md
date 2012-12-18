@@ -1,5 +1,7 @@
 ## master
 
+* [feature] Let user choose organization when adding new cloud
+
 * [feature] When displaying user list, `--organization=ORGANIZATION_NAME` limits the list to users from a single organization
 
 * [feature] Support for deleting files from disk - `shelly file delete`
