@@ -80,6 +80,10 @@ module Shelly
       shelly.application_logs(code_name, options)
     end
 
+    def application_logs_tail
+      shelly.application_logs_tail(code_name) { |l| yield(l) }
+    end
+
     def database_backups
       shelly.database_backups(code_name).map do |attributes|
         Shelly::Backup.new(attributes.merge("code_name" => code_name))
