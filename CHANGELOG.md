@@ -1,3 +1,7 @@
+## 0.1.38 / 2012-12-20
+
+* [improvement] Using logs streaming server for logs tail (`shelly logs -f`). Logs are displayed more fluently.
+
 ## 0.1.36 / 2012-12-18
 
 * [feature] Let user choose organization when adding new cloud
