@@ -27,7 +27,7 @@ module Shelly
       @email = current_user.email
       @thin = @size == "small" ? 2 : 4
       template = File.read(template_path)
-      cloudfile = ERB.new(template, 0, "%<>-")
+      cloudfile = ERB.new(template, nil, "%<>-")
       cloudfile.result(binding)
     end
 
