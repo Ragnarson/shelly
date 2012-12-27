@@ -103,7 +103,43 @@ describe Shelly::CLI::Deploy do
         "whenever" => "Looking up schedule.rb", "thin_restart" => "thins up and running",
         "delayed_job" => "delayed jobs", "callbacks" => "rake db:migrate"}
     end
-
   end
 
+  describe "#pending" do
+    before do
+      @app.stub(:deployed? => true)
+      @deploys.stub(:multiple_clouds => @app)
+    end
+
+    it "should ensure that user is inside git repo" do
+      hooks(@deploys, :pending).should include(:inside_git_repository?)
+    end
+
+    context "when application has been deployed" do
+      context "and has pending commits to deploy" do
+        it "should display them" do
+          text = "643124c Something (2 days ago)\nd1b8bec Something new (10 days ago)"
+          $stdout.should_receive(:puts).with(text)
+          @app.stub(:pending_commits => text)
+          invoke(@deploys, :pending)
+        end
+      end
+
+      context "and doesn't have pending commits to deploy" do
+        it "should display a message that everything is deployed" do
+          $stdout.should_receive(:puts).with(green "All changes are deployed to Shelly")
+          @app.stub(:pending_commits => "")
+          invoke(@deploys, :pending)
+        end
+      end
+    end
+
+    context "when application hasn't been deployed" do
+      it "should display error" do
+        @app.stub(:deployed? => false)
+        $stdout.should_receive(:puts).with(red "No commits to show. Application hasn't been deployed yet")
+        lambda { invoke(@deploys, :pending) }.should raise_error(SystemExit)
+      end
+    end
+  end
 end

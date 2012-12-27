@@ -261,6 +261,22 @@ module Shelly
       cloud_databases - ['redis']
     end
 
+    # Public: Return true when app has been deployed
+    # false otherwise
+    def deployed?
+      git_info["deployed_commit_sha"].present?
+    end
+
+    # Public: Return list of not deployed commits
+    # Returns: A list of commits as a String with new line chars
+    # format: "#{short SHA} #{commit message} (#{time, ago notation})"
+    def pending_commits
+      current_commit = IO.popen("git rev-parse 'HEAD'").read.strip
+      format = "%C(yellow)%h%Creset %s %C(red)(%cr)%Creset"
+      range = "#{git_info["deployed_commit_sha"]}..#{current_commit}"
+      IO.popen(%Q{git log --no-merges --oneline --pretty=format:"#{format}" #{range}}).read.strip
+    end
+
     private
 
     # Internal: Checks if specified option is present in Cloudfile

@@ -448,4 +448,25 @@ describe Shelly::App do
       out.should == "GET / 127.0.0.1"
     end
   end
+
+  describe "#deployed?" do
+    it "should return true when app has been deployed" do
+      @app.stub(:attributes => {"git_info" => {"deployed_commit_sha" => "d1b8bec"}})
+      @app.should be_deployed
+    end
+
+    it "should return false when app hasn't been deployed yet" do
+      @app.stub(:attributes => {"git_info" => {"deployed_commit_sha" => ""}})
+      @app.should_not be_deployed
+    end
+  end
+
+  describe "#pending_commits" do
+    it "should return list of not deployed commits" do
+      IO.stub_chain(:popen, :read => "c10c5f6\n")
+      IO.should_receive(:popen).with(%Q{git log --no-merges --oneline --pretty=format:\"%C(yellow)%h%Creset %s %C(red)(%cr)%Creset\" c213697..c10c5f6}).and_return(mock(:read => "c10c5f6 Some changes\n"))
+      @app.stub(:attributes => {"git_info" => {"deployed_commit_sha" => "c213697"}})
+      @app.pending_commits.should == "c10c5f6 Some changes"
+    end
+  end
 end
