@@ -1,4 +1,3 @@
-require 'grit'
 require 'bundler'
 
 module Shelly
@@ -52,12 +51,9 @@ module Shelly
 
     def repo_paths
       @repo_paths ||= begin
-        repo = Grit::Repo.new(".")
-        # Select files from repo which are unchanged, added or modified
-        # and then return their paths
-        repo.status.files.map(&:last).select { |status|
-          status.type.nil? || status.type == 'A' || status.type == 'M'
-        }.map(&:path)
+        files = `git ls-files`.split("\n")
+        deleted_files = `git ls-files -d`.split("\n")
+        files - deleted_files
       end
     end
   end

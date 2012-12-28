@@ -3,10 +3,7 @@ require "spec_helper"
 describe Shelly::StructureValidator do
   before do
     @validator = Shelly::StructureValidator.new
-    statuses = [mock(:type => nil, :path => "Gemfile"),
-      mock(:type => nil, :path => "Gemfile.lock"),
-      mock(:type => nil, :path => "config.ru")]
-    Grit::Repo.stub_chain(:new, :status, :files, :map => statuses)
+    @validator.stub(:repo_paths => ["Gemfile", "Gemfile.lock", "config.ru"])
   end
 
   describe "#gemfile?" do
@@ -18,9 +15,7 @@ describe Shelly::StructureValidator do
 
     context "when Gemfile doesn't exist" do
       it "should return false" do
-        Grit::Repo.stub_chain(:new, :status, :files,
-          :map => [mock(:type => 'D', :path => "Gemfile"),
-            mock(:type => nil, :path => "Gemfile.lock")])
+        @validator.stub(:repo_paths => ["Gemfile.lock"])
         @validator.gemfile?.should == false
       end
     end
@@ -35,9 +30,7 @@ describe Shelly::StructureValidator do
 
     context "when Gemfile.lock doesn't exist" do
       it "should return false" do
-        Grit::Repo.stub_chain(:new, :status, :files,
-          :map => [mock(:type => nil, :path => "Gemfile"),
-            mock(:type => 'D' , :path => "Gemfile.lock")])
+        @validator.stub(:repo_paths => ["Gemfile"])
         @validator.gemfile_lock?.should == false
       end
     end
@@ -52,7 +45,7 @@ describe Shelly::StructureValidator do
 
     context "when config.ru doesn't exist" do
       it "should return false" do
-        Grit::Repo.stub_chain(:new, :status, :files, :map => [])
+        @validator.stub(:repo_paths => ["Gemfile.lock"])
         @validator.config_ru?.should == false
       end
     end

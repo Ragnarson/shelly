@@ -1,7 +1,6 @@
 # encoding: utf-8
 require "spec_helper"
 require "shelly/cli/main"
-require "grit"
 
 describe Shelly::CLI::Main do
   before do
