@@ -4,6 +4,9 @@ require "core_ext/hash"
 require "core_ext/string"
 
 require "yaml"
+if YAML.const_defined?(:ENGINE)
+  YAML::ENGINE.yamler = 'psych'
+end
 
 require "shelly/helpers"
 require "shelly/model"

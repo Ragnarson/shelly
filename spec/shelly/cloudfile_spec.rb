@@ -44,6 +44,25 @@ config
            }
          }
     end
+
+    it "prints error and quits when 1.9 incompatible syntax is used" do
+      $stdout.stub(:puts)
+
+      content = <<-config
+foo-staging:
+  domains:
+    - foo-staging.winniecloud.com
+    - *.foo-staging.com
+      config
+
+      File.open("/projects/foo/Cloudfile", "w") { |f| f << content }
+
+      $stdout.should_receive(:puts).with("Your Cloudfile has invalid YAML syntax.")
+
+      expect {
+        @cloudfile.content
+      }.to raise_error(SystemExit)
+    end
   end
 
   describe "#clouds" do
