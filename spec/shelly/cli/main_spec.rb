@@ -411,13 +411,13 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
     end
 
     it "should create the app on shelly cloud and show trial information" do
-      @app.stub(:attributes).and_return({"trial" => true, "credit" => 40})
+      @app.stub(:attributes).and_return({"trial" => true, "credit" => 40, "organization_name" => "example"})
       @client.stub(:shellyapp_url).and_return("http://example.com")
       @app.should_receive(:create)
       $stdout.should_receive(:puts).with(green "Billing information")
       $stdout.should_receive(:puts).with("Cloud created with 40 Euro credit.")
       $stdout.should_receive(:puts).with("Remember to provide billing details before trial ends.")
-      $stdout.should_receive(:puts).with("http://example.com/apps/foo-staging/billing/edit")
+      $stdout.should_receive(:puts).with("http://example.com/organizations/example/edit")
 
       fake_stdin(["", ""]) do
         invoke(@main, :add)
