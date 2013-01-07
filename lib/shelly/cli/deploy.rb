@@ -8,6 +8,7 @@ module Shelly
       include Helpers
 
       before_hook :logged_in?, :only => [:list, :show]
+      before_hook :inside_git_repository?, :only => [:pending]
       class_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
 
       desc "list", "Lists deploy logs"
@@ -54,6 +55,22 @@ module Shelly
       rescue Client::NotFoundException => e
         raise unless e.resource == :log
         say_error "Log not found, list all deploy logs using `shelly deploys list --cloud=#{app.code_name}`"
+      end
+
+      desc "pending", "Show commits which haven't been deployed yet"
+      def pending
+        app = multiple_clouds(options[:cloud], "deploy pending")
+        if app.deployed?
+          commits = app.pending_commits
+          if commits.present?
+            say "Commits which are not deployed to Shelly"
+            say commits
+          else
+            say "All changes are deployed to Shelly", :green
+          end
+        else
+          say_error "No commits to show. Application hasn't been deployed yet"
+        end
       end
 
       no_tasks do
