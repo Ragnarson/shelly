@@ -1,3 +1,7 @@
+## 0.1.39 / 2013-01-08
+
+* [feature] Added `shelly deploys pending` - displays a list of commits which are not deployed to Shelly Cloud yet.
+
 ## 0.1.38 / 2012-12-20
 
 * [improvement] Using logs streaming server for logs tail (`shelly logs -f`). Logs are displayed more fluently.
