@@ -133,7 +133,7 @@ describe Shelly::CLI::Deploy do
 
       context "and doesn't have pending commits to deploy" do
         it "should display a message that everything is deployed" do
-          $stdout.should_receive(:puts).with(green "All changes are deployed to Shelly")
+          $stdout.should_receive(:puts).with(green "All changes are deployed to Shelly Cloud")
           @app.stub(:pending_commits => "")
           invoke(@deploys, :pending)
         end

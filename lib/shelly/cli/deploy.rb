@@ -64,10 +64,10 @@ module Shelly
         if app.deployed?
           commits = app.pending_commits
           if commits.present?
-            say "Commits which are not deployed to Shelly"
+            say "Commits which are not deployed to Shelly Cloud"
             say commits
           else
-            say "All changes are deployed to Shelly", :green
+            say "All changes are deployed to Shelly Cloud", :green
           end
         else
           say_error "No commits to show. Application hasn't been deployed yet"
