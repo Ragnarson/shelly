@@ -1,4 +1,4 @@
-## 0.1.39 / 2013-01-08
+## 0.1.40 / 2013-01-08
 
 * [improvement] `shelly deploys pending` fetches references from origin before displaying the list of commits.
 
