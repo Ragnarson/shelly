@@ -1,5 +1,9 @@
 ## 0.1.39 / 2013-01-08
 
+* [improvement] `shelly deploys pending` fetches references from origin before displaying the list of commits.
+
+## 0.1.39 / 2013-01-08
+
 * [feature] Added `shelly deploys pending` - displays a list of commits which are not deployed to Shelly Cloud yet.
 
 ## 0.1.38 / 2012-12-20
