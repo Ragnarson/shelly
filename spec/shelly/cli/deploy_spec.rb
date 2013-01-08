@@ -115,6 +115,12 @@ describe Shelly::CLI::Deploy do
       hooks(@deploys, :pending).should include(:inside_git_repository?)
     end
 
+    it "should fetch git references from shelly" do
+      @app.should_receive(:git_fetch_remote)
+      @app.stub(:pending_commits => "commit")
+      invoke(@deploys, :pending)
+    end
+
     context "when application has been deployed" do
       context "and has pending commits to deploy" do
         it "should display them" do
