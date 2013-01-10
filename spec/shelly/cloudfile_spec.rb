@@ -10,17 +10,6 @@ describe Shelly::Cloudfile do
     @cloudfile = Shelly::Cloudfile.new
   end
 
-  it "should allow improper yaml that works with syck" do
-    yaml = %Q{domains:
-  - *.example.com
-  - example.com
-    }
-    expect {
-      yaml = YAML.load(yaml)
-    }.to_not raise_error
-    yaml.should == {"domains" => ["*.example.com", "example.com"]}
-  end
-
   describe "#content" do
     it "should fetch and parse file content" do
       content = <<-config
@@ -55,6 +44,27 @@ config
            }
          }
     end
+
+    if RUBY_VERSION >= "1.9"
+      it "prints error and quits when 1.9 incompatible syntax is used" do
+        $stdout.stub(:puts)
+
+        content = <<-config
+foo-staging:
+  domains:
+    - foo-staging.winniecloud.com
+    - *.foo-staging.com
+        config
+
+        File.open("/projects/foo/Cloudfile", "w") { |f| f << content }
+
+        $stdout.should_receive(:puts).with("Your Cloudfile has invalid YAML syntax.")
+
+        expect {
+          @cloudfile.content
+        }.to raise_error(SystemExit)
+      end
+    end
   end
 
   describe "#clouds" do
@@ -86,7 +96,7 @@ config
   describe "#generate" do
     before do
       @cloudfile.code_name = "foo-staging"
-      @cloudfile.domains = ["foo-staging.winniecloud.com", "foo.example.com"]
+      @cloudfile.domains = ["foo-staging.winniecloud.com", "*.foo.example.com"]
       @cloudfile.databases = ["postgresql", "mongodb"]
       @cloudfile.ruby_version = "1.9.3"
       @cloudfile.environment = "production"
@@ -104,7 +114,7 @@ foo-staging:
   monitoring_email: bob@example.com
   domains:
     - foo-staging.winniecloud.com
-    - foo.example.com
+    - "*.foo.example.com"
   servers:
     app1:
       size: large
@@ -132,7 +142,7 @@ foo-staging:
   monitoring_email: bob@example.com
   domains:
     - foo-staging.winniecloud.com
-    - foo.example.com
+    - "*.foo.example.com"
   servers:
     app1:
       size: small

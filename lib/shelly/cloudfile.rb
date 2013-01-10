@@ -27,7 +27,7 @@ module Shelly
       @email = current_user.email
       @thin = @size == "small" ? 2 : 4
       template = File.read(template_path)
-      cloudfile = ERB.new(template, 0, "%<>-")
+      cloudfile = ERB.new(template, nil, "%<>-")
       cloudfile.result(binding)
     end
 
@@ -41,6 +41,20 @@ module Shelly
     def content
       return unless present?
       @content ||= YAML.load(File.open(path))
+    rescue Psych::SyntaxError => e
+      # Using $stdout.puts so that it can be stubbed out on jruby.
+      $stdout.puts "Your Cloudfile has invalid YAML syntax."
+      $stdout.puts "You are seeing this message because we stopped supporting invalid YAML that was allowed in Ruby 1.8."
+      $stdout.puts ""
+      $stdout.puts "The most likely reason is a string starting with '*' in the domains array. The solution is to surround such strings with quotes, e.g.:"
+      $stdout.puts "domains:"
+      $stdout.puts "  - \"*.example.com\""
+      $stdout.puts ""
+      $stdout.puts "The original YAML error message was:"
+      $stdout.puts "  #{e.message}"
+      $stdout.puts ""
+      $stdout.puts "If you need any assistance, feel free to contact support@shellycloud.com"
+      exit 1
     end
 
     # Internal: Path to Cloudfile in current directory

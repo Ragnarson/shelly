@@ -417,10 +417,6 @@ We have been notified about it. We will be adding new resources shortly}
         print_check(structure.gem?("rake"), "Gem 'rake' is present",
           "Gem 'rake' is missing in the Gemfile", :show_fulfilled => verbose)
 
-
-        print_check(structure.gem?("rake"), "Gem 'rake' is present",
-          "Gem 'rake' is missing in the Gemfile", :show_fulfilled => verbose)
-
         cloudfile = Cloudfile.new
         if cloudfile.present?
           cloudfile.clouds.each do |app|
