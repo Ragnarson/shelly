@@ -4,7 +4,11 @@
   monitoring_email: <%= @email %>
   domains:
     <%- @domains.each do |domain| -%>
+    <%- if domain.start_with?("*") -%>
+    - "<%= domain %>"
+    <%- else -%>
     - <%= domain %>
+    <%- end -%>
     <%- end -%>
   servers:
     app1:
