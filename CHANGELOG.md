@@ -1,3 +1,9 @@
+## 0.2.0 / 2013-01-10
+
+* [feature] shelly now works on JRuby
+* [feature] only valid YAML is accepted in Cloudfiles
+* [feature] shelly-dependencies is no longer a dependency, add thin to Gemfile separately
+
 ## 0.1.40 / 2013-01-08
 
 * [improvement] `shelly deploys pending` fetches references from origin before displaying the list of commits.
