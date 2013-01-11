@@ -211,8 +211,9 @@ We have been notified about it. We will be adding new resources shortly}
         when "no_billing"
           say_error "Please fill in billing details to start #{app}.", :with_exit => false
           say_error "Visit: #{app.edit_billing_url}", :with_exit => false
-        when "payment_declined"
-          say_error "Not starting. Invoice for cloud '#{app}' was declined."
+        when "turning_off"
+          say_error %{Not starting: cloud '#{app}' is turning off.
+Wait until cloud is in 'turned off' state and try again.}
         end
         exit 1
       rescue Client::LockedException => e

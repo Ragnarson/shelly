@@ -774,9 +774,10 @@ We have been notified about it. We will be adding new resources shortly")
         lambda { invoke(@main, :start) }.should raise_error(SystemExit)
       end
 
-      it "should show messge about payment declined" do
-        raise_conflict("state" => "payment_declined")
-        $stdout.should_receive(:puts).with(red "Not starting. Invoice for cloud 'foo-production' was declined.")
+      it "should show messge about app turning off" do
+        raise_conflict("state" => "turning_off")
+        $stdout.should_receive(:puts).with(red "Not starting: cloud 'foo-production' is turning off.
+Wait until cloud is in 'turned off' state and try again.")
         lambda { invoke(@main, :start) }.should raise_error(SystemExit)
       end
 
