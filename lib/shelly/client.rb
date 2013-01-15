@@ -129,8 +129,8 @@ module Shelly
       get("/apps/#{code_name}")
     end
 
-    def organizations
-      get("/organizations")
+    def organizations(options = {})
+      get("/organizations", options)
     end
 
     def organization(name)

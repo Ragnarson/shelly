@@ -178,6 +178,10 @@ module Shelly
       @attributes ||= shelly.app(code_name)
     end
 
+    def attributes=(attributes)
+      @attributes = attributes
+    end
+
     def statistics
       @stats ||= shelly.statistics(code_name)
     end

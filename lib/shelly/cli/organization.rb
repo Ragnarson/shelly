@@ -11,7 +11,7 @@ module Shelly
       desc "list", "Lists organizations"
       def list
         user = Shelly::User.new
-        organizations = user.organizations
+        organizations = user.organizations_with_apps
         say "You have access to the following organizations and clouds:", :green
         say_new_line
         organizations.each do |organization|

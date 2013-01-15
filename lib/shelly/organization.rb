@@ -5,10 +5,16 @@ module Shelly
     def initialize(attributes = {})
       @name           = attributes["name"]
       @app_code_names = attributes["app_code_names"]
+
+      if apps_attributes = attributes["apps"]
+        @apps = apps_attributes.map { |app_attributes|
+          Shelly::App.new(app_attributes["code_name"]).tap { |app|
+            app.attributes = app_attributes} }
+      end
     end
 
     def apps
-      app_code_names.map do |code_name|
+      @apps ||= app_code_names.map do |code_name|
         Shelly::App.new(code_name)
       end
     end

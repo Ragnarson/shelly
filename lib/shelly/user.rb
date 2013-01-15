@@ -19,6 +19,12 @@ module Shelly
       end
     end
 
+    def organizations_with_apps
+      shelly.organizations(:with_apps => true).map do |attributes|
+        Shelly::Organization.new(attributes)
+      end
+    end
+
     def register
       ssh_key = File.read(ssh_key_path) if ssh_key_exists?
       shelly.register_user(email, password, ssh_key)
