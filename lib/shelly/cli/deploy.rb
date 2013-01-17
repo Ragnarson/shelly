@@ -20,6 +20,8 @@ module Shelly
           logs.each do |log|
             if log['author'].present? && log['commit_sha'].present?
               log_line = " * #{log['created_at']} #{log['commit_sha'][0..6]} by #{log['author']}"
+            elsif log['author'].present?
+              log_line = " * #{log['created_at']} redeploy by #{log['author']}"
             else
               log_line = " * #{log['created_at']}"
             end

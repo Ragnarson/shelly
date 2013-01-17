@@ -1,3 +1,5 @@
+* [improvement] Show redeploy authors in `shelly deploys list`
+
 ## 0.2.0 / 2013-01-10
 
 * [feature] shelly now works on JRuby
