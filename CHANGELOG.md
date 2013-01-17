@@ -1,3 +1,5 @@
+## 0.2.1 / 2013-01-17
+
 * [improvement] Show redeploy authors in `shelly deploys list`
 
 ## 0.2.0 / 2013-01-10
