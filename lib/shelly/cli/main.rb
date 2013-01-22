@@ -109,7 +109,7 @@ module Shelly
 
         say "Creating Cloudfile", :green
         app.create_cloudfile
-        if app.trial?
+        if app.credit > 0
           say_new_line
           say "Billing information", :green
           say "Cloud created with #{app.credit} Euro credit."

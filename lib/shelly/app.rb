@@ -194,10 +194,6 @@ module Shelly
       attributes["state"]
     end
 
-    def trial?
-      !!attributes["trial"]
-    end
-
     def credit
       attributes["credit"]
     end

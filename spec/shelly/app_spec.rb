@@ -133,7 +133,6 @@ describe Shelly::App do
     before do
       @response = {"web_server_ip" => "192.0.2.1",
                    "state" => "running",
-                   "trial" => true,
                    "credit" => 23.0,
                    "git_info" => {
                      "deployed_commit_message" => "Commit message",
@@ -141,17 +140,6 @@ describe Shelly::App do
                      "repository_url" => "git@winniecloud.net:example-cloud",
                      "deployed_push_author" => "megan@example.com"}}
       @client.stub(:app).and_return(@response)
-    end
-
-    describe "#trial?" do
-      it "should return true if app is trial" do
-        @app.should be_trial
-      end
-
-      it "should return false if app is not trial" do
-        @client.stub(:app).and_return("trial" => false)
-        @app.should_not be_trial
-      end
     end
 
     describe "#credit" do
