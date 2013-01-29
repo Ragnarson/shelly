@@ -291,7 +291,7 @@ describe Shelly::CLI::Main do
       Shelly::App.stub(:inside_git_repository?).and_return(true)
       Shelly::App.stub(:new).and_return(@app)
       @client.stub(:token).and_return("abc")
-      @app.stub(:attributes).and_return({"trial" => false})
+      @app.stub(:attributes).and_return({"organization" => {"credit" => 0}})
       @app.stub(:git_remote_exist?).and_return(false)
       @main.stub(:check => true)
       @main.stub(:ask_for_organization)
@@ -409,8 +409,9 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
       end
     end
 
-    it "should create the app on shelly cloud and show trial information" do
-      @app.stub(:attributes).and_return({"trial" => true, "credit" => 40, "organization_name" => "example"})
+    it "should create the app on shelly cloud and show credit information" do
+      @app.stub(:attributes).and_return("organization" => {"credit" => "40"})
+      @app.stub(:organization).and_return("example")
       @client.stub(:shellyapp_url).and_return("http://example.com")
       @app.should_receive(:create)
       $stdout.should_receive(:puts).with(green "Billing information")

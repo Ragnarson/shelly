@@ -194,12 +194,8 @@ module Shelly
       attributes["state"]
     end
 
-    def trial?
-      !!attributes["trial"]
-    end
-
     def credit
-      attributes["credit"]
+      attributes["organization"]["credit"].to_f
     end
 
     def self.inside_git_repository?
@@ -211,7 +207,7 @@ module Shelly
     end
 
     def edit_billing_url
-      "#{shelly.shellyapp_url}/organizations/#{attributes["organization_name"]}/edit"
+      "#{shelly.shellyapp_url}/organizations/#{organization}/edit"
     end
 
     def open
