@@ -133,25 +133,15 @@ describe Shelly::App do
     before do
       @response = {"web_server_ip" => "192.0.2.1",
                    "state" => "running",
-                   "trial" => true,
-                   "credit" => 23.0,
+                   "organization" => {
+                     "credit" => 23.0
+                   },
                    "git_info" => {
                      "deployed_commit_message" => "Commit message",
                      "deployed_commit_sha" => "52e65ed2d085eaae560cdb81b2b56a7d76",
                      "repository_url" => "git@winniecloud.net:example-cloud",
                      "deployed_push_author" => "megan@example.com"}}
       @client.stub(:app).and_return(@response)
-    end
-
-    describe "#trial?" do
-      it "should return true if app is trial" do
-        @app.should be_trial
-      end
-
-      it "should return false if app is not trial" do
-        @client.stub(:app).and_return("trial" => false)
-        @app.should_not be_trial
-      end
     end
 
     describe "#credit" do
@@ -328,7 +318,7 @@ describe Shelly::App do
 
   describe "#edit_billing_url" do
     it "should return link to edit billing page for app" do
-      @app.stub(:attributes).and_return({"organization_name" => "example"})
+      @app.stub(:organization).and_return("example")
       @app.edit_billing_url.should == "http://shellyapp.example.com/organizations/example/edit"
     end
   end
