@@ -258,10 +258,12 @@ Wait until cloud is in 'turned off' state and try again.}
       method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
       def stop
         app = multiple_clouds(options[:cloud], "stop")
-        ask_to_stop_application
-        app.stop
-        say_new_line
-        say "Cloud '#{app}' stopped"
+        stop_question = "Are you sure you want to shut down '#{app}' cloud (yes/no):"
+        if ask(stop_question) == "yes"
+          app.stop
+          say_new_line
+          say "Cloud '#{app}' stopped"
+        end
       rescue Client::NotFoundException => e
         raise unless e.resource == :cloud
         say_error "You have no access to '#{app}' cloud defined in Cloudfile"

@@ -54,12 +54,6 @@ module Shelly
       end
     end
 
-    def ask_to_stop_application
-      stop_question = "Are you sure you want to shut down your application (yes/no):"
-      stop_application = ask(stop_question)
-      exit 1 unless stop_application == "yes"
-    end
-
     def inside_git_repository?
       unless App.inside_git_repository?
         say_error %q{Current directory is not a git repository.

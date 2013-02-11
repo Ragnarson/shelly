@@ -836,7 +836,7 @@ Wait until cloud is in 'turned off' state and try again.")
 
     it "should stop the cloud" do
       @client.stub(:stop_cloud)
-      $stdout.should_receive(:print).with("Are you sure you want to shut down your application (yes/no): ")
+      $stdout.should_receive(:print).with("Are you sure you want to shut down 'foo-production' cloud (yes/no): ")
       $stdout.should_receive(:puts).with("\n")
       $stdout.should_receive(:puts).with("Cloud 'foo-production' stopped")
       fake_stdin(["yes"]) do
