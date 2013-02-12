@@ -1,3 +1,5 @@
+* [improvement] Handle stopping clouds in different states
+
 ## 0.2.2 / 2013-02-01
 
 * Changes reflecting improved API

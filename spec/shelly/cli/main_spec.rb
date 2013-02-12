@@ -844,6 +844,44 @@ Wait until cloud is in 'turned off' state and try again.")
       end
     end
 
+    it "should show messages about app being deployed" do
+      raise_conflict("state" => "deploying")
+      $stdout.should_receive(:puts).with(red "Your cloud is currently being deployed and it can not be stopped.")
+      lambda do
+        fake_stdin(["yes"]) do
+          invoke(@main, :stop)
+        end
+      end.should raise_error(SystemExit)
+    end
+
+    it "should show messge about app's no_code" do
+      raise_conflict("state" => "no_code")
+      @client.stub(:shellyapp_url).and_return("https://example.com")
+      $stdout.should_receive(:puts).with(red "You need to deploy your cloud first.")
+      $stdout.should_receive(:puts).with('More information can be found at:')
+      $stdout.should_receive(:puts).with('https://example.com/documentation/deployment')
+      lambda do
+        fake_stdin(["yes"]) do
+          invoke(@main, :stop)
+        end
+      end.should raise_error(SystemExit)
+    end
+
+    it "should show messge about app turning off" do
+      raise_conflict("state" => "turning_off")
+      $stdout.should_receive(:puts).with(red "Your cloud is turning off.")
+      lambda do
+        fake_stdin(["yes"]) do
+          invoke(@main, :stop)
+        end
+      end.should raise_error(SystemExit)
+    end
+
+    def raise_conflict(options = {})
+      body = {"state" => "no_code"}.merge(options)
+      exception = Shelly::Client::ConflictException.new(body)
+      @client.stub(:stop_cloud).and_raise(exception)
+    end
   end
 
   describe "#info" do
