@@ -264,6 +264,18 @@ Wait until cloud is in 'turned off' state and try again.}
           say_new_line
           say "Cloud '#{app}' stopped"
         end
+      rescue Client::ConflictException => e
+        case e[:state]
+        when "deploying"
+          say_error "Your cloud is currently being deployed and it can not be stopped."
+        when "no_code"
+          say_error "You need to deploy your cloud first.", :with_exit => false
+          say       "More information can be found at:"
+          say       "#{app.shelly.shellyapp_url}/documentation/deployment"
+          exit 1
+        when "turning_off"
+          say_error "Your cloud is turning off."
+        end
       rescue Client::NotFoundException => e
         raise unless e.resource == :cloud
         say_error "You have no access to '#{app}' cloud defined in Cloudfile"
