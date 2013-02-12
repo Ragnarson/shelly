@@ -207,7 +207,7 @@ module Shelly
     end
 
     def edit_billing_url
-      "#{shelly.shellyapp_url}/organizations/#{organization}/edit"
+      "#{shelly.shellyapp_url}/organizations/#{organization || code_name}/edit"
     end
 
     def open
