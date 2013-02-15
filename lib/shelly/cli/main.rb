@@ -455,6 +455,13 @@ Wait until cloud is in 'turned off' state and try again.}
                 "Gem 'whenever' is missing in the Gemfile for '#{app}' cloud",
                 :show_fulfilled => verbose)
             end
+
+            if app.sidekiq?
+              print_check(structure.gem?("sidekiq"),
+                "Gem 'sidekiq' is present for '#{app}' cloud",
+                "Gem 'sidekiq' is missing in the Gemfile for '#{app}' cloud",
+                :show_fulfilled => verbose)
+            end
           end
         end
 

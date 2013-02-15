@@ -430,6 +430,20 @@ describe Shelly::App do
     end
   end
 
+  describe "#sidekiq?" do
+    it "should return true if present" do
+      content = {"servers" => {"app1" => {"sidekiq" => true}}}
+      @app.stub(:content).and_return(content)
+      @app.sidekiq?.should be_true
+    end
+
+    it "should return false if not present" do
+      content = {"servers" => {"app1" => {"size" => "small"}}}
+      @app.stub(:content).and_return(content)
+      @app.sidekiq?.should be_false
+    end
+  end
+
   describe "#application_logs_tail" do
     it "should execute given block for logs fetched from API" do
       @client.should_receive(:application_logs_tail).with("foo-staging").and_yield("GET / 127.0.0.1")

@@ -1423,7 +1423,7 @@ Wait until cloud is in 'turned off' state and try again.")
     before do
       Shelly::App.stub(:inside_git_repository?).and_return(true)
       Bundler::Definition.stub_chain(:build, :specs, :map) \
-        .and_return(["thin", "pg", "delayed_job", "whenever"])
+        .and_return(["thin", "pg", "delayed_job", "whenever", "sidekiq"])
       Shelly::StructureValidator.any_instance.stub(:repo_paths) \
         .and_return(["config.ru", "Gemfile", "Gemfile.lock"])
     end
@@ -1495,7 +1495,8 @@ Wait until cloud is in 'turned off' state and try again.")
     context "cloudfile" do
       before do
         cloud = mock(:code_name => "foo-staging", :cloud_databases => ["postgresql"],
-          :whenever? => true, :delayed_job? => true, :to_s => "foo-staging")
+          :whenever? => true, :delayed_job? => true, :sidekiq? => true,
+          :to_s => "foo-staging")
         cloudfile = mock(:clouds => [cloud])
 
         Shelly::Cloudfile.stub(:new).and_return(cloudfile)
@@ -1523,6 +1524,19 @@ Wait until cloud is in 'turned off' state and try again.")
 
         it "should show that necessary gem exists" do
           $stdout.should_receive(:puts).with("  #{green("✓")} Gem 'delayed_job' is present for 'foo-staging' cloud")
+          invoke(@main, :check)
+        end
+      end
+
+      context "sidekiq is enabled" do
+        it "should show that necessary gem doesn't exist" do
+          Bundler::Definition.stub_chain(:build, :specs, :map).and_return([])
+          $stdout.should_receive(:puts).with("  #{red("✗")} Gem 'sidekiq' is missing in the Gemfile for 'foo-staging' cloud")
+          invoke(@main, :check)
+        end
+
+        it "should show that necessary gem exists" do
+          $stdout.should_receive(:puts).with("  #{green("✓")} Gem 'sidekiq' is present for 'foo-staging' cloud")
           invoke(@main, :check)
         end
       end

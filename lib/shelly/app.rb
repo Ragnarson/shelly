@@ -251,6 +251,12 @@ module Shelly
       option?("whenever")
     end
 
+    # Public: Sidekiq enabled?
+    # Returns true if sidekiq is present
+    def sidekiq?
+      option?("sidekiq")
+    end
+
     # Public: Return databases to backup for given Cloud in Cloudfile
     # Returns Array of databases, except redis db
     def backup_databases

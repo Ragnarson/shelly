@@ -1,3 +1,5 @@
+* [feature] Require sidekiq gem if present in Cloudfile when running `shelly check`
+
 ## 0.2.3 / 2013-02-12
 
 * [improvement] Handle stopping clouds in different states
