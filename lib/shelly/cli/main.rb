@@ -301,6 +301,8 @@ Wait until cloud is in 'turned off' state and try again.}
         else
           say "Missing git remote"
         end
+      rescue Client::ConflictException => e
+        say_error e[:message]
       end
 
       desc "logs", "Show latest application logs"
