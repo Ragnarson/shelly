@@ -1,3 +1,5 @@
+## 0.2.4 / 2013-02-18
+
 * [feature] Require sidekiq gem if present in Cloudfile when running `shelly check`
 * Changes reflecting new API
 
