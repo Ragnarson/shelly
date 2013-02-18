@@ -188,6 +188,10 @@ module Shelly
       post("/apps/#{code_name}/database_backups", :kind => kind)
     end
 
+    def download_backup_url(code_name, filename)
+      get("/apps/#{code_name}/database_backups/#{filename}/download_url")["url"]
+    end
+
     def members(name)
       get("/organizations/#{name}/memberships")
     end
@@ -226,9 +230,12 @@ module Shelly
           end
         end
 
-        options = request_parameters("/apps/#{cloud}/database_backups/#{filename}", :get)
-        options = options.merge(:block_response => process_response,
-          :headers => {:accept => "application/x-gzip"})
+        options = {
+          :url            => download_backup_url(cloud, filename),
+          :method         => :get,
+          :block_response => process_response,
+          :headers => {:accept => "application/x-gzip"}
+        }.merge(http_basic_auth_options)
 
         RestClient::Request.execute(options)
       end
