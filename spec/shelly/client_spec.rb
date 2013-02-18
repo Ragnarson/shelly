@@ -321,14 +321,29 @@ describe Shelly::Client do
     end
   end
 
+  describe "#download_backup_url" do
+    it "should return download backup url" do
+      filename = "2011.11.26.04.00.10.foo.postgres.tar.gz"
+      url = api_url("apps/foo/database_backups/#{filename}/download_url")
+      FakeWeb.register_uri(:get, url, :body => {"url" => "https://backup.example.com/file.gz"}.to_json)
+      @client.download_backup_url("foo", filename).should == "https://backup.example.com/file.gz"
+    end
+  end
+
   describe "#download_backup" do
     before do
       @filename = "2011.11.26.04.00.10.foo.postgres.tar.gz"
-      url = api_url("apps/foo/database_backups/#{@filename}")
+      @client.stub(:download_backup_url => "https://backup.example.com/file.gz")
       response = Net::HTTPResponse.new('', '', '')
       # Streaming
       response.stub(:read_body).and_yield("aaa").and_yield("bbbbb").and_yield("dddf")
-      FakeWeb.register_uri(:get, url, :response => response)
+      FakeWeb.register_uri(:get, "https://bob%40example.com:secret@backup.example.com/file.gz
+", :response => response)
+    end
+
+    it "should fetch from API backup url" do
+      @client.should_receive(:download_backup_url).with("foo", @filename)
+      @client.download_backup("foo", @filename)
     end
 
     it "should write streamed database backup to file" do
