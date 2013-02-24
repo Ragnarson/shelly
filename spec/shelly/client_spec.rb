@@ -244,7 +244,7 @@ describe Shelly::Client do
   end
 
   describe "#console" do
-    it "should fetch instance data from API" do
+    it "should fetch virtual server data from API" do
       body = {:port => "40010", :host => "console.example.com", :user => "foo-production"}
       FakeWeb.register_uri(:get, api_url("apps/staging-foo/console"),
         :body => body.to_json)

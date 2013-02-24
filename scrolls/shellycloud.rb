@@ -39,12 +39,12 @@ after_everything do
   app_name.gsub!(/\W/, '') # only letters and numbers
   app_name.gsub!("_", "-")
 
-  instance_size = "large"
+  virtual_server_size = "large"
   if framework_env == "production"
-    say_custom "shellycloud", "Using large instances for production environment"
+    say_custom "shellycloud", "Using large virtual servers for production environment"
   else
-    say_custom "shellycloud", "Using small instances for staging environment"
-    instance_size = "small"
+    say_custom "shellycloud", "Using small virtual servers for staging environment"
+    virtual_server_size = "small"
   end
 
   code_name = "#{app_name}-#{framework_env}"
@@ -52,7 +52,7 @@ after_everything do
   name = File.basename(".")
   command =  "bundle exec shelly add --code_name #{code_name} "
   command += "--databases=#{selected_db} " if selected_db
-  command += "--size=#{instance_size}"
+  command += "--size=#{virtual_server_size}"
 
   run command
 

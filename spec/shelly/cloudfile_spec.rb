@@ -104,7 +104,7 @@ config
       @cloudfile.stub(:current_user => mock(:email => "bob@example.com"))
     end
 
-    context "for large instance" do
+    context "for large virtual server" do
       it "should generate sample Cloudfile with given attributes" do
         FakeFS.deactivate!
         expected = <<-config
@@ -131,7 +131,7 @@ config
       end
     end
 
-    context "for small instance" do
+    context "for small virtual server" do
       it "should generate sample Cloudfile with given attributes and 2 thins" do
         FakeFS.deactivate!
         @cloudfile.size = "small"
