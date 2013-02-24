@@ -96,6 +96,8 @@ describe Shelly::CLI::Deploy do
       $stdout.should_receive(:puts).with("rake db:migrate")
       $stdout.should_receive(:puts).with(green "Starting delayed job")
       $stdout.should_receive(:puts).with("delayed jobs")
+      $stdout.should_receive(:puts).with(green "Starting sidekiq")
+      $stdout.should_receive(:puts).with("sidekiq workers")
       $stdout.should_receive(:puts).with(green "Starting thin")
       $stdout.should_receive(:puts).with("thins up and running")
     end
@@ -103,7 +105,8 @@ describe Shelly::CLI::Deploy do
     def response
       {"created_at" => "2011-12-12 at 14:14:59", "bundle_install" => "Installing gems",
         "whenever" => "Looking up schedule.rb", "thin_restart" => "thins up and running",
-        "delayed_job" => "delayed jobs", "callbacks" => "rake db:migrate"}
+        "delayed_job" => "delayed jobs", "sidekiq" => "sidekiq workers",
+        "callbacks" => "rake db:migrate"}
     end
   end
 

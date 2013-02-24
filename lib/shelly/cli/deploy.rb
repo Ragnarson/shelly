@@ -51,6 +51,9 @@ module Shelly
         if content["delayed_job"]
           say("Starting delayed job", :green); say(content["delayed_job"])
         end
+        if content["sidekiq"]
+          say("Starting sidekiq", :green); say(content["sidekiq"])
+        end
         if content["thin_restart"]
           say("Starting thin", :green); say(content["thin_restart"])
         end
