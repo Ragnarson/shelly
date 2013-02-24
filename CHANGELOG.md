@@ -1,4 +1,6 @@
-* [feature] Show sidekiq logs in deployment process logs
+## 0.2.5 / 2013-02-24
+
+* [feature] Show starting/stopping sidekiq in deployment logs
 
 ## 0.2.4 / 2013-02-18
 
