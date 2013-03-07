@@ -1,3 +1,7 @@
+## 0.2.6 / 2013-03-06
+
+* [bug] Fixes issues with newer version of Thor gem (> 0.15.0)
+
 ## 0.2.5 / 2013-02-24
 
 * [feature] Show starting/stopping sidekiq in deployment logs
