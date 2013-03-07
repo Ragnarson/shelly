@@ -19,14 +19,23 @@ module Shelly
       repo_paths.include?("config.ru")
     end
 
+    def rakefile?
+      repo_paths.include?("Rakefile")
+    end
+
     def gem?(name)
       gems.include?(name)
+    end
+
+    def task?(name)
+      tasks.include?("rake #{name}")
     end
 
     # Public: Check all requirements that app has to fulfill
     def valid?
       gemfile? && gemfile_lock? && gem?("thin") &&
-        gem?("rake") && config_ru?
+        gem?("rake") && config_ru? && rakefile? &&
+        task?("db:migrate") && task?("db:setup")
     end
 
     def invalid?
@@ -47,6 +56,11 @@ module Shelly
       definition = Bundler::Definition.build(@gemfile_path,
         @gemfile_lock_path, nil)
       @gems ||= definition.specs.map(&:name)
+    end
+
+    def tasks
+      return [] unless rakefile?
+      @loaded_tasks ||= %x(rake -P).split("\n")
     end
 
     def repo_paths

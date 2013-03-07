@@ -1425,7 +1425,8 @@ Wait until cloud is in 'turned off' state and try again.")
       Bundler::Definition.stub_chain(:build, :specs, :map) \
         .and_return(["thin", "pg", "delayed_job", "whenever", "sidekiq"])
       Shelly::StructureValidator.any_instance.stub(:repo_paths) \
-        .and_return(["config.ru", "Gemfile", "Gemfile.lock"])
+        .and_return(["config.ru", "Gemfile", "Gemfile.lock", "Rakefile"])
+      Shelly::StructureValidator.any_instance.stub(:tasks).and_return(["rake db:migrate"])
     end
 
     it "should ensure user is in git repository" do
@@ -1477,9 +1478,24 @@ Wait until cloud is in 'turned off' state and try again.")
       end
     end
 
+    context "when 'db:migrate' task exists" do
+      it "should show that necessary task exists" do
+        $stdout.should_receive(:puts).with("  #{green("✓")} Task 'db:migrate' is present")
+        invoke(@main, :check)
+      end
+    end
+
+    context "when 'db:migrate' task doesn't exist" do
+      it "should show that necessary task doesn't exist" do
+        Shelly::StructureValidator.any_instance.stub(:tasks).and_return([])
+        $stdout.should_receive(:puts).with("  #{red("✗")} Task 'db:migrate' is missing")
+        invoke(@main, :check)
+      end
+    end
+
     context "when config.ru exists" do
       it "should show that config.ru exists" do
-        $stdout.should_receive(:puts).with("  #{green("✓")} File config.ru is present")
+        $stdout.should_receive(:puts).with("  #{green("✓")} config.ru is present")
         invoke(@main, :check)
       end
     end
@@ -1487,7 +1503,22 @@ Wait until cloud is in 'turned off' state and try again.")
     context "when config.ru doesn't exist" do
       it "should show that config.ru is neccessary" do
         Shelly::StructureValidator.any_instance.stub(:repo_paths).and_return([])
-        $stdout.should_receive(:puts).with("  #{red("✗")} File config.ru is missing")
+        $stdout.should_receive(:puts).with("  #{red("✗")} config.ru is missing")
+        invoke(@main, :check)
+      end
+    end
+
+    context "when Rakefile exists" do
+      it "should show that Rakefile exists" do
+        $stdout.should_receive(:puts).with("  #{green("✓")} Rakefile is present")
+        invoke(@main, :check)
+      end
+    end
+
+    context "when Rakefile doesn't exist" do
+      it "should show that Rakefile is neccessary" do
+        Shelly::StructureValidator.any_instance.stub(:repo_paths).and_return([])
+        $stdout.should_receive(:puts).with("  #{red("✗")} Rakefile is missing")
         invoke(@main, :check)
       end
     end
@@ -1576,8 +1607,10 @@ Wait until cloud is in 'turned off' state and try again.")
 
     it "should display only errors and warnings when in verbose mode" do
       $stdout.should_not_receive(:puts).with("  #{green("✓")} Gem 'thin' is present")
+      $stdout.should_not_receive(:puts).with("  #{green("✓")} Task 'db:migrate' is present")
       $stdout.should_receive(:puts).with("  #{yellow("ϟ")} Gem 'shelly-dependencies' is missing, we recommend to install it\n    See more at https://shellycloud.com/documentation/requirements#shelly-dependencies")
       $stdout.should_receive(:puts).with("  #{red("✗")} Gem 'rake' is missing in the Gemfile")
+      $stdout.should_receive(:puts).with("  #{red("✗")} Task 'db:setup' is missing")
       $stdout.should_receive(:puts).with("\nFix points marked with #{red("✗")} to run your application on the Shelly Cloud")
       $stdout.should_receive(:puts).with("See more about requirements on https://shellycloud.com/documentation/requirements")
       @main.check(false)
