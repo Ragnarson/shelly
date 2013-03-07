@@ -1,3 +1,7 @@
+## 0.2.7 / 2013-03-07
+
+* [bug] Checking presence of Rakefile and tasks (db:migrate and db:setup)
+
 ## 0.2.6 / 2013-03-06
 
 * [bug] Fixes issues with newer version of Thor gem (> 0.15.0)
