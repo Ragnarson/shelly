@@ -419,8 +419,12 @@ Wait until cloud is in 'turned off' state and try again.}
           "Gemfile.lock is missing in git repository",
           :show_fulfilled => verbose)
 
-        print_check(structure.config_ru?, "File config.ru is present",
-          "File config.ru is missing",
+        print_check(structure.config_ru?, "config.ru is present",
+          "config.ru is missing",
+          :show_fulfilled => verbose)
+
+        print_check(structure.rakefile?, "Rakefile is present",
+          "Rakefile is missing",
           :show_fulfilled => verbose)
 
         print_check(structure.gem?("shelly-dependencies"),
@@ -433,6 +437,12 @@ Wait until cloud is in 'turned off' state and try again.}
 
         print_check(structure.gem?("rake"), "Gem 'rake' is present",
           "Gem 'rake' is missing in the Gemfile", :show_fulfilled => verbose)
+
+        print_check(structure.task?("db:migrate"), "Task 'db:migrate' is present",
+          "Task 'db:migrate' is missing", :show_fulfilled => verbose)
+
+        print_check(structure.task?("db:setup"), "Task 'db:setup' is present",
+          "Task 'db:setup' is missing", :show_fulfilled => verbose)
 
         cloudfile = Cloudfile.new
         if cloudfile.present?

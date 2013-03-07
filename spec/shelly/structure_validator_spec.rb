@@ -3,7 +3,7 @@ require "spec_helper"
 describe Shelly::StructureValidator do
   before do
     @validator = Shelly::StructureValidator.new
-    @validator.stub(:repo_paths => ["Gemfile", "Gemfile.lock", "config.ru"])
+    @validator.stub(:repo_paths => ["Gemfile", "Gemfile.lock", "config.ru", "Rakefile"])
   end
 
   describe "#gemfile?" do
@@ -51,6 +51,21 @@ describe Shelly::StructureValidator do
     end
   end
 
+  describe "#rakefile?" do
+    context "when Rakefile exists" do
+      it "should return true" do
+        @validator.rakefile?.should be_true
+      end
+    end
+
+    context "when Rakefile doesn't exist" do
+      it "should return false" do
+        @validator.stub(:repo_paths => ["Gemfile"])
+        @validator.rakefile?.should be_false
+      end
+    end
+  end
+
   describe "#gem?" do
     before do
       @validator.stub(:gemfile? => true, :gemfile_lock? => true)
@@ -77,6 +92,28 @@ describe Shelly::StructureValidator do
       it "should return false" do
         @validator.stub(:gemfile_lock? => false)
         @validator.gem?("thin").should be_false
+      end
+    end
+  end
+
+  describe "#task?" do
+    before do
+      @validator.should_receive(:'`').at_most(1).with("rake -P").and_return("rake db:migrate")
+      @validator.stub(:rakefile? => true)
+    end
+
+    it "should return true if task is present" do
+      @validator.task?("db:migrate").should be_true
+    end
+
+    it "should return false if task is missing" do
+      @validator.task?("db:setup").should be_false
+    end
+
+    context "when Rakefile doesn't exist" do
+      it "should return false" do
+        @validator.stub(:rakefile? => false)
+        @validator.task?("db:migrate").should be_false
       end
     end
   end
