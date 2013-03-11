@@ -85,6 +85,8 @@ module Shelly
         :desc => "Add cloud to existing organization"
       method_option "skip-requirements-check", :type => :boolean,
         :desc => "Skip Shelly Cloud requirements check"
+      method_option "zone", :type => :boolean, :hide => true,
+        :desc => "Create cloud in given zone"
       desc "add", "Add a new cloud"
       def add
         check_options(options)
@@ -97,6 +99,7 @@ module Shelly
         app.size = options["size"] || "large"
         app.redeem_code = options["redeem-code"]
         app.organization = options["organization"] || ask_for_organization(app.code_name)
+        app.zone_name = options["zone"]
         app.create
 
         if overwrite_remote?(app)

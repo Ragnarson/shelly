@@ -98,7 +98,9 @@ module Shelly
 
     def create_app(attributes)
       organization = attributes.delete(:organization_name)
-      post("/apps", :app => attributes, :organization_name => organization)
+      zone = attributes.delete(:zone_name)
+      post("/apps", :app => attributes, :organization_name => organization,
+             :zone_name => zone)
     end
 
     def delete_app(code_name)
