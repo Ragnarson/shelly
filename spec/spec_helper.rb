@@ -3,6 +3,9 @@ if ENV["COVERAGE"]
   SimpleCov.start
 end
 
+# Psych is required here to make sure it will be used as default
+# yaml engine when running tests (required by cloudfile_spec:49)
+require 'psych' if RUBY_VERSION >= "1.9"
 require "rspec"
 require "shelly"
 require "helpers"
