@@ -1,3 +1,7 @@
+## 0.2.8 / 2013-03-12
+
+* Requires newer version of wijet-thor
+
 ## 0.2.7 / 2013-03-07
 
 * [bug] Checking presence of Rakefile and tasks (db:migrate and db:setup)
