@@ -347,6 +347,14 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
           @main.options = {"code-name" => "foo", "databases" => ["postgresql"], "size" => "large"}
           invoke(@main, :add)
         end
+
+        it "should use zone from option" do
+          @app.should_receive(:zone_name=).with('eu1')
+          @main.options = {"zone" => "eu1"}
+          fake_stdin(["mycodename", ""]) do
+            invoke(@main, :add)
+          end
+        end
       end
     end
 
