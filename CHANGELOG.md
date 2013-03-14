@@ -1,3 +1,7 @@
+## 0.2.9 / 2013-03-14
+
+* [feature] Added force option (skip confirmation question) for `shelly file delete`
+
 ## 0.2.8 / 2013-03-12
 
 * Requires newer version of wijet-thor
