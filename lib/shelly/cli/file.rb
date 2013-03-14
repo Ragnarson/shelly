@@ -31,13 +31,17 @@ module Shelly
         say_error "Cloud #{app} is not running. Cannot download files."
       end
 
+      method_option :force, :type => :boolean, :aliases => "-f",
+        :desc => "Skip confirmation question"
       desc "delete PATH", "Delete files from persistent data storage"
       def delete(path)
         app = multiple_clouds(options[:cloud], "file delete #{path}")
 
-        question = "Do you want to permanently delete #{path} (yes/no):"
-        delete_files = ask(question)
-        exit 1 unless delete_files == "yes"
+        unless options[:force]
+          question = "Do you want to permanently delete #{path} (yes/no):"
+          delete_files = ask(question)
+          exit 1 unless delete_files == "yes"
+        end
 
         app.delete_file(path)
       rescue Client::ConflictException

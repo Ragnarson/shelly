@@ -5,6 +5,7 @@ describe Shelly::CLI::File do
   before do
     FileUtils.stub(:chmod)
     @cli_files = Shelly::CLI::File.new
+    Shelly::CLI::File.stub(:new).and_return(@cli_files)
     @client = mock
     Shelly::Client.stub(:new).and_return(@client)
     @client.stub(:token).and_return("abc")
@@ -75,27 +76,37 @@ describe Shelly::CLI::File do
       hooks(@cli_files, :download).should include(:logged_in?)
     end
 
-    it "should ask about delete application parts" do
-      $stdout.should_receive(:print).with("Do you want to permanently delete some/path (yes/no): ")
-      fake_stdin(["yes"]) do
+    context "with --force option" do
+      it "should delete files without confirmation" do
+        @cli_files.options = {:force => true}
+        @app.should_receive(:delete_file).with("some/path")
         invoke(@cli_files, :delete, "some/path")
       end
     end
 
-    it "should delete files" do
-      @app.should_receive(:delete_file).with("some/path")
-      fake_stdin(["yes"]) do
-        invoke(@cli_files, :delete, "some/path")
-      end
-    end
-
-    it "should return exit 1 when user doesn't type 'yes'" do
-      @app.should_not_receive(:delete_file)
-      lambda{
-        fake_stdin(["no"]) do
+    context "without --force option" do
+      it "should ask about delete application parts" do
+        $stdout.should_receive(:print).with("Do you want to permanently delete some/path (yes/no): ")
+        fake_stdin(["yes"]) do
           invoke(@cli_files, :delete, "some/path")
         end
-      }.should raise_error(SystemExit)
+      end
+
+      it "should delete files" do
+        @app.should_receive(:delete_file).with("some/path")
+        fake_stdin(["yes"]) do
+          invoke(@cli_files, :delete, "some/path")
+        end
+      end
+
+      it "should return exit 1 when user doesn't type 'yes'" do
+        @app.should_not_receive(:delete_file)
+        lambda{
+          fake_stdin(["no"]) do
+            invoke(@cli_files, :delete, "some/path")
+          end
+        }.should raise_error(SystemExit)
+      end
     end
   end
 end
