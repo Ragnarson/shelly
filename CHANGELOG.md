@@ -1,3 +1,5 @@
+## 0.2.10 / 2013-03-18
+
 * [feature] Added default organization option to `shelly add` which creates organization with the same name as cloud's code name
 
 ## 0.2.9 / 2013-03-14
