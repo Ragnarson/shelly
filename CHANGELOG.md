@@ -1,3 +1,5 @@
+* [feature] Added default organization option to `shelly add` which creates organization with the same name as cloud's code name
+
 ## 0.2.9 / 2013-03-14
 
 * [feature] Added force option (skip confirmation question) for `shelly file delete`

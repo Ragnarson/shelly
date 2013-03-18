@@ -605,6 +605,16 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
         end
       end
 
+      context "default-organizaation" do
+        it "should not ask for organization" do
+          @main.options = {"default-organization" => true}
+          @app.should_not_receive(:organization=)
+          fake_stdin(["foooo", "none"]) do
+            invoke(@main, :add)
+          end
+        end
+      end
+
       it "should show that organization was not found" do
         @main.options = {"organization" => "foo"}
         response = {"resource" => "organization"}

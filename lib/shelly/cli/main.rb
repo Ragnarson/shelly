@@ -85,6 +85,8 @@ module Shelly
         :desc => "Add cloud to existing organization"
       method_option "skip-requirements-check", :type => :boolean,
         :desc => "Skip Shelly Cloud requirements check"
+      method_option "default-organization", :type => :boolean,
+        :desc => "Create cloud with default organization"
       method_option "zone", :type => :boolean, :hide => true,
         :desc => "Create cloud in given zone"
       desc "add", "Add a new cloud"
@@ -98,7 +100,9 @@ module Shelly
         app.databases = options["databases"] || ask_for_databases
         app.size = options["size"] || "large"
         app.redeem_code = options["redeem-code"]
-        app.organization = options["organization"] || ask_for_organization(app.code_name)
+        unless options["default-organization"]
+          app.organization = options["organization"] || ask_for_organization(app.code_name)
+        end
         app.zone_name = options["zone"]
         app.create
 
