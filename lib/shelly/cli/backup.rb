@@ -23,7 +23,7 @@ module Shelly
           limit = 0
           unless options[:all] || backups.count < (Shelly::Backup::LIMIT + 1)
             limit = Shelly::Backup::LIMIT - 1
-            say "Showing only #{Shelly::Backup::LIMIT} backups."
+            say "Showing only last #{Shelly::Backup::LIMIT} backups.", :green
             say "Use --all or -a option to list all backups."
           end
           to_display = [["Filename", "|  Size", "|  State"]]
@@ -31,7 +31,6 @@ module Shelly
             to_display << [backup.filename, "|  #{backup.human_size}", "|  #{backup.state.humanize}"]
           end
 
-          say "Available backups:", :green
           say_new_line
           print_table(to_display, :ident => 2)
         else
