@@ -46,7 +46,6 @@ describe Shelly::CLI::Backup do
          {"filename" => "backup.mongo.tar.gz", "human_size" => "22kb",
           "size" => 333, "state" => "in_progress"}])
       $stdout.should_not_receive(:puts).with("Limiting the number of backups to 1.")
-      $stdout.should_receive(:puts).with(green "Available backups:")
       $stdout.should_receive(:puts).with("\n")
       $stdout.should_receive(:puts).with("  Filename               |  Size  |  State")
       $stdout.should_receive(:puts).with("  backup.postgre.tar.gz  |  10kb  |  completed")
@@ -57,7 +56,7 @@ describe Shelly::CLI::Backup do
 
     it "should show --all option if not present" do
       stub_const("Shelly::Backup::LIMIT", 1)
-      $stdout.should_receive(:puts).with("Showing only 1 backups.")
+      $stdout.should_receive(:puts).with(green "Showing only last 1 backups.")
       $stdout.should_receive(:puts).with("Use --all or -a option to list all backups.")
       @client.should_receive(:database_backups).with("foo-staging").and_return(
           [{"filename" => "backup.postgre.tar.gz", "human_size" => "10kb",
