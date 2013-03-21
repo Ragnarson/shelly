@@ -1481,18 +1481,29 @@ Wait until cloud is in 'turned off' state and try again.")
       end
     end
 
-    context "when thin gem exists" do
-      it "should show that necessary gem exists" do
-        $stdout.should_receive(:puts).with("  #{green("✓")} Gem 'thin' is present")
-        invoke(@main, :check)
+    context "application server" do
+      context "when thin gem exists" do
+        it "should show that necessary gem exists" do
+          $stdout.should_receive(:puts).with("  #{green("✓")} Web server gem is present")
+          invoke(@main, :check)
+        end
       end
-    end
 
-    context "when thin gem doesn't exist" do
-      it "should show that necessary gem doesn't exist" do
-        Bundler::Definition.stub_chain(:build, :specs, :map).and_return([])
-        $stdout.should_receive(:puts).with("  #{red("✗")} Gem 'thin' is missing in the Gemfile")
-        invoke(@main, :check)
+      context "when puma gem exists" do
+        it "should show that necessary gem exists" do
+          Bundler::Definition.stub_chain(:build, :specs, :map) \
+            .and_return(["puma", "pg", "delayed_job", "whenever", "sidekiq"])
+          $stdout.should_receive(:puts).with("  #{green("✓")} Web server gem is present")
+          invoke(@main, :check)
+        end
+      end
+
+      context "when neither thin nor puma present in Gemfile" do
+        it "should show that necessary gem doesn't exist" do
+          Bundler::Definition.stub_chain(:build, :specs, :map).and_return([])
+          $stdout.should_receive(:puts).with("  #{red("✗")} Missing web server gem in Gemfile. Currently supported: 'thin' and 'puma'")
+          invoke(@main, :check)
+        end
       end
     end
 

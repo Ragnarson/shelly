@@ -1,3 +1,7 @@
+## master
+
+* [bug] shelly check recognizes puma as allowed web server
+
 ## 0.2.11 / 2013-03-22
 
 * [bug] Zone option should be string, `shelly add` option fix
