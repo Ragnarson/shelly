@@ -87,7 +87,7 @@ module Shelly
         :desc => "Skip Shelly Cloud requirements check"
       method_option "default-organization", :type => :boolean,
         :desc => "Create cloud with default organization"
-      method_option "zone", :type => :boolean, :hide => true,
+      method_option "zone", :type => :string, :hide => true,
         :desc => "Create cloud in given zone"
       desc "add", "Add a new cloud"
       def add
