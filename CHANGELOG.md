@@ -1,4 +1,4 @@
-## master
+## 0.2.12 / 2013-03-25
 
 * [bug] shelly check recognizes puma as allowed web server
 
