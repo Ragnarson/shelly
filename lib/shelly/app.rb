@@ -111,15 +111,20 @@ module Shelly
     end
 
     def start
-      shelly.start_cloud(code_name)
+      shelly.start_cloud(code_name)["deployment"]["id"]
     end
 
     def stop
-      shelly.stop_cloud(code_name)
+      shelly.stop_cloud(code_name)["deployment"]["id"]
     end
 
+    # returns the id of created deployment
     def redeploy
-      shelly.redeploy(code_name)
+      shelly.redeploy(code_name)["deployment"]["id"]
+    end
+
+    def deployment(deployment_id)
+      shelly.deployment(code_name, deployment_id)
     end
 
     def self.guess_code_name

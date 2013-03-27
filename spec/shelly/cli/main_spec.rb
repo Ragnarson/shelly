@@ -679,6 +679,10 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
       @client.stub(:apps).and_return([
         {"code_name" => "foo-production", "state" => "running"},
         {"code_name" => "foo-staging", "state" => "no_code"}])
+      @client.stub(:start_cloud => {"deployment" => {"id" => "DEPLOYMENT_ID"}})
+      @deployment =  {"messages" => ["message1"],
+        "result" => "success", "state" => "finished"}
+      @app.stub(:deployment => @deployment)
     end
 
     it "should ensure user has logged in" do
@@ -687,10 +691,9 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
 
     context "single cloud in Cloudfile" do
       it "should start the cloud" do
-        @client.stub(:start_cloud)
         $stdout.should_receive(:puts).with(green "Starting cloud foo-production.")
-        $stdout.should_receive(:puts).with("This can take up to 10 minutes.")
-        $stdout.should_receive(:puts).with("Check status with: `shelly list`")
+        $stdout.should_receive(:puts).with(green "message1")
+        $stdout.should_receive(:puts).with(green "Starting cloud successful")
         invoke(@main, :start)
       end
     end
@@ -699,7 +702,6 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
     context "without Cloudfile" do
       it "should use cloud from params" do
         Dir.chdir("/projects")
-        @client.stub(:start_cloud)
         $stdout.should_receive(:puts).with(green "Starting cloud foo-production.")
         @main.options = {:cloud => "foo-production"}
         invoke(@main, :start)
@@ -707,7 +709,6 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
 
       it "should ask user to specify cloud, list all clouds and exit" do
         Dir.chdir("/projects")
-        @client.stub(:start_cloud)
         $stdout.should_receive(:puts).with(red "You have to specify cloud.")
         $stdout.should_receive(:puts).with("Select cloud using `shelly start --cloud CLOUD_NAME`")
         $stdout.should_receive(:puts).with(green "You have following clouds available:")
@@ -736,8 +737,11 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
 
       it "should fetch from command line which cloud to start" do
         @client.should_receive(:start_cloud).with("foo-staging")
+        @client.should_receive(:deployment).
+          with("foo-staging", "DEPLOYMENT_ID").and_return(@deployment)
         $stdout.should_receive(:puts).with(green "Starting cloud foo-staging.")
-        $stdout.should_receive(:puts).with("Check status with: `shelly list`")
+        $stdout.should_receive(:puts).with(green "message1")
+        $stdout.should_receive(:puts).with(green "Starting cloud successful")
         @main.options = {:cloud => "foo-staging"}
         invoke(@main, :start)
       end
@@ -827,6 +831,9 @@ Wait until cloud is in 'turned off' state and try again.")
       @client.stub(:apps).and_return([{"code_name" => "foo-production"}, {"code_name" => "foo-staging"}])
       @app = Shelly::App.new("foo-production")
       Shelly::App.stub(:new).and_return(@app)
+      @client.stub(:stop_cloud => {"deployment" => {"id" => "DEPLOYMENT_ID"}})
+      @app.stub(:deployment => {"messages" => ["message1"],
+        "result" => "success", "state" => "finished"})
     end
 
     it "should ensure user has logged in" do
@@ -835,7 +842,6 @@ Wait until cloud is in 'turned off' state and try again.")
 
     # multiple_clouds is tested in main_spec.rb in describe "#start" block
     it "should ensure multiple_clouds check" do
-      @client.stub(:stop_cloud)
       @main.should_receive(:multiple_clouds).and_return(@app)
       fake_stdin(["yes"]) do
         invoke(@main, :stop)
@@ -853,10 +859,10 @@ Wait until cloud is in 'turned off' state and try again.")
     end
 
     it "should stop the cloud" do
-      @client.stub(:stop_cloud)
       $stdout.should_receive(:print).with("Are you sure you want to shut down 'foo-production' cloud (yes/no): ")
       $stdout.should_receive(:puts).with("\n")
-      $stdout.should_receive(:puts).with("Cloud 'foo-production' stopped")
+      $stdout.should_receive(:puts).with(green "message1")
+      $stdout.should_receive(:puts).with(green "Stopping cloud successful")
       fake_stdin(["yes"]) do
         invoke(@main, :stop)
       end
@@ -1303,11 +1309,13 @@ Wait until cloud is in 'turned off' state and try again.")
   describe "#redeploy" do
     before do
       setup_project
+      @client.stub(:redeploy => {"deployment" => {"id" => "DEPLOYMENT_ID"}})
+      @app.stub(:deployment => {"messages" => ["message1"],
+        "result" => "success", "state" => "finished"})
     end
 
     # multiple_clouds is tested in main_spec.rb in describe "#start" block
     it "should ensure multiple_clouds check" do
-      @client.stub(:redeploy)
       @main.should_receive(:multiple_clouds).and_return(@app)
       invoke(@main, :redeploy)
     end
@@ -1315,6 +1323,12 @@ Wait until cloud is in 'turned off' state and try again.")
     it "should redeploy the application" do
       $stdout.should_receive(:puts).with(green "Redeploying your application for cloud 'foo-production'")
       @app.should_receive(:redeploy)
+      invoke(@main, :redeploy)
+    end
+
+    it "should print deployment messages" do
+      $stdout.should_receive(:puts).with(green "message1")
+      $stdout.should_receive(:puts).with(green "Cloud redeploy successful")
       invoke(@main, :redeploy)
     end
 
