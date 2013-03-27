@@ -168,11 +168,11 @@ module Shelly
     end
 
     def rake(task)
-      ssh_command("rake_runner \"#{task}\"")
+      ssh(:command => "rake_runner \"#{task}\"")
     end
 
     def dbconsole
-      ssh_command("dbconsole")
+      ssh(:command => "dbconsole")
     end
 
     def attributes
@@ -215,21 +215,23 @@ module Shelly
       Launchy.open("http://#{attributes["domain"]}")
     end
 
-    def console
-      ssh_command
+    def console(server = nil)
+      ssh(:server => server)
     end
 
     def upload(source)
-      rsync(source, "#{ssh['host']}:/srv/glusterfs/disk")
+      conn = console_connection
+      rsync(source, "#{conn['host']}:/srv/glusterfs/disk")
     end
 
     def download(relative_source, destination)
-      source = File.join("#{ssh['host']}:/srv/glusterfs/disk", relative_source)
+      conn = console_connection
+      source = File.join("#{conn['host']}:/srv/glusterfs/disk", relative_source)
       rsync(source, destination)
     end
 
     def delete_file(remote_path)
-      ssh_command("delete_file #{remote_path}")
+      ssh(:command => "delete_file #{remote_path}")
     end
 
     # Public: Return databases for given Cloud in Cloudfile
@@ -287,16 +289,17 @@ module Shelly
       content["servers"].any? {|_, settings| settings.has_key?(option)}
     end
 
-    def ssh
-      @ssh ||= shelly.console(code_name)
+    def console_connection(server = nil)
+      shelly.console(code_name, server)
     end
 
-    def ssh_command(command = "")
-      exec "ssh #{ssh_options} -t #{ssh['host']} #{command}"
+    def ssh(options = {})
+      conn = console_connection(options[:server])
+      exec "ssh #{ssh_options(conn)} -t #{conn['host']} #{options[:command]}"
     end
 
-    def ssh_options
-      "-o StrictHostKeyChecking=no -p #{ssh['port']} -l #{ssh['user']}"
+    def ssh_options(conn = console_connection)
+      "-o StrictHostKeyChecking=no -p #{conn['port']} -l #{conn['user']}"
     end
 
     def rsync(source, destination)

@@ -147,8 +147,8 @@ module Shelly
       post("/apps/#{cloud}/command", {:body => body, :type => type})
     end
 
-    def console(code_name)
-      get("/apps/#{code_name}/console")
+    def console(code_name, server = nil)
+      get("/apps/#{code_name}/console", {:server => server})
     end
 
     def deploy_logs(cloud)

@@ -395,11 +395,16 @@ Wait until cloud is in 'turned off' state and try again.}
 
       desc "console", "Open application console"
       method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
+      method_option :server, :type => :string, :aliases => "-s",
+        :desc => "Specify virtual server, it's random by default"
       def console
         app = multiple_clouds(options[:cloud], "console")
-        app.console
+        app.console(options[:server])
       rescue Client::ConflictException
         say_error "Cloud #{app} is not running. Cannot run console."
+      rescue Client::NotFoundException => e
+        raise unless e.resource == :virtual_server
+        say_error "Virtual Server '#{options[:server]}' not found"
       end
 
       desc "check", "Check if application fulfills Shelly Cloud requirements"

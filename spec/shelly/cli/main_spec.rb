@@ -1401,10 +1401,22 @@ Wait until cloud is in 'turned off' state and try again.")
       invoke(@main, :console)
     end
 
-    context "Instances are not running" do
+    context "virtual servers are not running" do
       it "should display error" do
         @client.stub(:console).and_raise(Shelly::Client::ConflictException)
         $stdout.should_receive(:puts).with(red "Cloud foo-production is not running. Cannot run console.")
+        lambda {
+          invoke(@main, :console)
+        }.should raise_error(SystemExit)
+      end
+    end
+
+    context "virtual server not found" do
+      it "should display error" do
+        ex = Shelly::Client::NotFoundException.new("resource" => "virtual_server")
+        @client.stub(:console).and_raise(ex)
+        @main.options = {:server => "foobar"}
+        $stdout.should_receive(:puts).with(red "Virtual Server 'foobar' not found")
         lambda {
           invoke(@main, :console)
         }.should raise_error(SystemExit)
