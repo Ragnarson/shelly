@@ -140,5 +140,29 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository}
                   end
       say "  #{indicator} #{message}"
     end
+
+    def deployment_progress(app, deployment_id, action_name)
+      printed_messages = []
+      loop do
+        @deployment = app.deployment(deployment_id)
+        new_messages = @deployment["messages"] - printed_messages
+        new_messages.each do |message|
+          color = (message =~ /failed/) ? :red : :green
+          say message, color
+          printed_messages << message
+        end
+
+        break if @deployment["state"] != "running"
+        sleep 5
+      end
+
+      say_new_line
+
+      if @deployment["result"] == "success"
+        say "#{action_name} successful", :green
+      else
+        say "#{action_name} failed. See logs with `shelly deploy show last`", :red
+      end
+    end
   end
 end

@@ -196,13 +196,15 @@ describe Shelly::App do
 
   describe "#start & #stop" do
     it "should start cloud" do
-      @client.should_receive(:start_cloud).with("foo-staging")
-      @app.start
+      @client.should_receive(:start_cloud).with("foo-staging").
+        and_return("deployment" => {"id" => "DEPLOYMENT_ID"})
+      @app.start.should == "DEPLOYMENT_ID"
     end
 
     it "should stop cloud" do
-      @client.should_receive(:stop_cloud).with("foo-staging")
-      @app.stop
+      @client.should_receive(:stop_cloud).with("foo-staging").
+        and_return("deployment" => {"id" => "DEPLOYMENT_ID"})
+      @app.stop.should == "DEPLOYMENT_ID"
     end
   end
 
@@ -288,8 +290,9 @@ describe Shelly::App do
 
   describe "#redeploy" do
     it "should redeploy app via API" do
-      @client.should_receive(:redeploy).with("foo-staging")
-      @app.redeploy
+      @client.should_receive(:redeploy).with("foo-staging").
+        and_return("deployment" => {"id" => "DEPLOYMENT_ID"})
+      @app.redeploy.should == "DEPLOYMENT_ID"
     end
   end
 

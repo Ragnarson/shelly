@@ -194,10 +194,9 @@ module Shelly
       method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
       def start
         app = multiple_clouds(options[:cloud], "start")
-        app.start
+        deployment_id = app.start
         say "Starting cloud #{app}.", :green
-        say "This can take up to 10 minutes."
-        say "Check status with: `shelly list`"
+        deployment_progress(app, deployment_id, "Starting cloud")
       rescue Client::ConflictException => e
         case e[:state]
         when "running"
@@ -267,9 +266,9 @@ Wait until cloud is in 'turned off' state and try again.}
         app = multiple_clouds(options[:cloud], "stop")
         stop_question = "Are you sure you want to shut down '#{app}' cloud (yes/no):"
         if ask(stop_question) == "yes"
-          app.stop
+          deployment_id = app.stop
           say_new_line
-          say "Cloud '#{app}' stopped"
+          deployment_progress(app, deployment_id, "Stopping cloud")
         end
       rescue Client::ConflictException => e
         case e[:state]
@@ -368,8 +367,9 @@ Wait until cloud is in 'turned off' state and try again.}
         :desc => "Specify which cloud to redeploy application for"
       def redeploy
         app = multiple_clouds(options[:cloud], "redeploy")
-        app.redeploy
+        deployment_id = app.redeploy
         say "Redeploying your application for cloud '#{app}'", :green
+        deployment_progress(app, deployment_id, "Cloud redeploy")
       rescue Client::ConflictException => e
         case e[:state]
         when "deploying", "configuring"

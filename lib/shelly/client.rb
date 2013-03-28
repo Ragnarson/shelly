@@ -202,6 +202,10 @@ module Shelly
       post("/apps/#{cloud}/deploys")
     end
 
+    def deployment(cloud, deployment_id)
+      get("/apps/#{cloud}/deploys/#{deployment_id}")
+    end
+
     def query(options = {})
       "?" + options.map { |k, v|
         URI.escape(k.to_s) + "=" + URI.escape(v.to_s) }.join("&")
