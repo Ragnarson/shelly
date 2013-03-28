@@ -9,14 +9,14 @@ describe Shelly::StructureValidator do
   describe "#gemfile?" do
     context "when Gemfile exists" do
       it "should return true" do
-        @validator.gemfile?.should == true
+        @validator.gemfile?.should be_true
       end
     end
 
     context "when Gemfile doesn't exist" do
       it "should return false" do
         @validator.stub(:repo_paths => ["Gemfile.lock"])
-        @validator.gemfile?.should == false
+        @validator.gemfile?.should be_false
       end
     end
   end
@@ -24,14 +24,14 @@ describe Shelly::StructureValidator do
   describe "#gemfile_lock?" do
     context "when Gemfile.lock exists" do
       it "should return true" do
-        @validator.gemfile_lock?.should == true
+        @validator.gemfile_lock?.should be_true
       end
     end
 
     context "when Gemfile.lock doesn't exist" do
       it "should return false" do
         @validator.stub(:repo_paths => ["Gemfile"])
-        @validator.gemfile_lock?.should == false
+        @validator.gemfile_lock?.should be_false
       end
     end
   end
@@ -39,14 +39,14 @@ describe Shelly::StructureValidator do
   describe "#config_ru?" do
     context "when config.ru exists" do
       it "should return true" do
-        @validator.config_ru?.should == true
+        @validator.config_ru?.should be_true
       end
     end
 
     context "when config.ru doesn't exist" do
       it "should return false" do
         @validator.stub(:repo_paths => ["Gemfile.lock"])
-        @validator.config_ru?.should == false
+        @validator.config_ru?.should be_false
       end
     end
   end
@@ -68,7 +68,6 @@ describe Shelly::StructureValidator do
 
   describe "#gem?" do
     before do
-      @validator.stub(:gemfile? => true, :gemfile_lock? => true)
       Bundler::Definition.stub_chain(:build, :specs).and_return(
         [mock(:name => "thin"), mock(:name => "mysql")])
     end
@@ -98,8 +97,8 @@ describe Shelly::StructureValidator do
 
   describe "#task?" do
     before do
-      @validator.should_receive(:'`').at_most(1).with("rake -P").and_return("rake db:migrate")
-      @validator.stub(:rakefile? => true)
+      @validator.should_receive(:'`').at_most(1).with("rake -P") \
+        .and_return("rake db:migrate")
     end
 
     it "should return true if task is present" do
@@ -114,6 +113,75 @@ describe Shelly::StructureValidator do
       it "should return false" do
         @validator.stub(:rakefile? => false)
         @validator.task?("db:migrate").should be_false
+      end
+    end
+  end
+
+  describe "#valid?" do
+    before do
+      @validator.stub(:tasks).and_return(["rake db:migrate", "rake db:setup"])
+      @validator.stub(:gems).and_return(["thin", "rake"])
+    end
+
+    context "when requirements are fulfilled" do
+      context "and 'thin' has been chosen as a web server" do
+        it "should return true" do
+          @validator.valid?.should be_true
+        end
+      end
+
+      context "and 'puma' has been chosen as a web server" do
+        it "should return true" do
+          @validator.stub(:gems).and_return(["puma", "rake"])
+          @validator.valid?.should be_true
+        end
+      end
+    end
+
+    context "when Gemfile doesn't exist" do
+      it "should return false" do
+        @validator.stub(:repo_paths => ["Gemfile.lock", "config.ru", "Rakefile"])
+        @validator.valid?.should be_false
+      end
+    end
+
+    context "when Gemfile.lock doesn't exist" do
+      it "should return false" do
+        @validator.stub(:repo_paths => ["Gemfile", "config.ru", "Rakefile"])
+        @validator.valid?.should be_false
+      end
+    end
+
+    context "when Rakefile doesn't exist" do
+      it "should return false" do
+        @validator.stub(:repo_paths => ["Gemfile", "Gemfile.lock", "config.ru"])
+        @validator.valid?.should be_false
+      end
+    end
+
+    context "when config.ru doesn't exist" do
+      it "should return false" do
+        @validator.stub(:repo_paths => ["Gemfile", "Gemfile.lock", "Rakefile"])
+        @validator.valid?.should be_false
+      end
+    end
+
+    context "when web server is missed" do
+      it "should return false" do
+        @validator.stub(:gems).and_return(["rake"])
+        @validator.valid?.should be_false
+      end
+    end
+
+    context "when task is missed" do
+      it "should return false if db:setup is missing" do
+        @validator.stub(:tasks).and_return(["rake db:migrate"])
+        @validator.valid?.should be_false
+      end
+
+      it "should return false if db:migrate is missing" do
+        @validator.stub(:tasks).and_return(["rake db:setup"])
+        @validator.valid?.should be_false
       end
     end
   end
