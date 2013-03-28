@@ -1,6 +1,8 @@
-## master
+## 0.2.15 / 2013-03-28
 
-* [feature] shelly files list [PATH] lists files from cloud's disk
+* [feature] `shelly files list [PATH]` lists files from cloud's disk
+* [feature] Destination virtual server for `shelly console` can be specified.
+Example `shelly console --server app1`. When not specyfied virtual server is chosen randomly.
 
 ## 0.2.14 / 2013-03-28
 
