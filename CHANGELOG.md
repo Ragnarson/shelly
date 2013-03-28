@@ -1,4 +1,4 @@
-## master
+## 0.2.14 / 2013-03-28
 
 * [bug] Structure validator recognizes puma as allowed web server
 
