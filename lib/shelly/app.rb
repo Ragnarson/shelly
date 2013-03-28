@@ -224,6 +224,10 @@ module Shelly
       ssh_command
     end
 
+    def list_files(path)
+      ssh_command("ls -l /srv/glusterfs/disk/#{path}")
+    end
+
     def upload(source)
       rsync(source, "#{ssh['host']}:/srv/glusterfs/disk")
     end

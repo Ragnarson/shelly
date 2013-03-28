@@ -10,6 +10,14 @@ module Shelly
       before_hook :require_rsync, :only => [:upload, :download]
       class_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
 
+      desc "list [PATH]", "List files in given path"
+      def list(path = "/")
+        app = multiple_clouds(options[:cloud], "file list #{path}")
+        app.list_files(path)
+      rescue Client::ConflictException
+        say_error "Cloud #{app} is not running. Cannot list files."
+      end
+
       desc "upload PATH", "Upload files to persistent data storage"
       def upload(path)
         app = multiple_clouds(options[:cloud], "file upload #{path}")
