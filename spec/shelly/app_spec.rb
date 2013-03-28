@@ -355,7 +355,7 @@ describe Shelly::App do
 
   describe "#list_files" do
     it "should list files for given subpath in disk" do
-      @app.should_receive(:ssh_command).with("ls -l /srv/glusterfs/disk/foo")
+      @app.should_receive(:ssh).with(:command => "ls -l /srv/glusterfs/disk/foo")
       @app.list_files("foo")
     end
   end

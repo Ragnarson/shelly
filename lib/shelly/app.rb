@@ -225,7 +225,7 @@ module Shelly
     end
 
     def list_files(path)
-      ssh_command("ls -l /srv/glusterfs/disk/#{path}")
+      ssh(:command => "ls -l /srv/glusterfs/disk/#{path}")
     end
 
     def upload(source)
