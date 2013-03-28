@@ -1,3 +1,7 @@
+## master
+
+* [feature] shelly files list [PATH] lists files from cloud's disk
+
 ## 0.2.14 / 2013-03-28
 
 * [bug] Structure validator recognizes puma as allowed web server

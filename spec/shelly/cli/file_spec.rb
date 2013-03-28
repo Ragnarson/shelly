@@ -16,6 +16,28 @@ describe Shelly::CLI::File do
     File.open("Cloudfile", 'w') { |f| f.write("foo-production:\n") }
   end
 
+  describe "#list" do
+    it "should ensure user has logged in" do
+      hooks(@cli_files, :upload).should include(:logged_in?)
+    end
+
+    it "should list files" do
+      @app.should_receive(:list_files).with("some/path")
+      invoke(@cli_files, :list, "some/path")
+    end
+
+    context "cloud is not running" do
+      it "should display error" do
+        @client.stub(:console).and_raise(Shelly::Client::ConflictException)
+        $stdout.should_receive(:puts).with(red "Cloud foo-production is not running. Cannot list files.")
+        lambda {
+          invoke(@cli_files, :list, "some/path")
+        }.should raise_error(SystemExit)
+      end
+    end
+
+  end
+
   describe "#upload" do
     it "should ensure user has logged in" do
       hooks(@cli_files, :upload).should include(:logged_in?)
