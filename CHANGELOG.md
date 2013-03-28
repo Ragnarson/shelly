@@ -1,3 +1,7 @@
+## master
+
+* [bug] Structure validator recognizes puma as allowed web server
+
 ## 0.2.13 / 2013-03-28
 
 * [improvement] More verbose output for redeploy, start and stop

@@ -33,9 +33,9 @@ module Shelly
 
     # Public: Check all requirements that app has to fulfill
     def valid?
-      gemfile? && gemfile_lock? && gem?("thin") &&
-        gem?("rake") && config_ru? && rakefile? &&
-        task?("db:migrate") && task?("db:setup")
+      gemfile? && gemfile_lock? && gem?("rake") &&
+        (gem?("thin") || gem?("puma")) && config_ru? &&
+        rakefile? && task?("db:migrate") && task?("db:setup")
     end
 
     def invalid?
