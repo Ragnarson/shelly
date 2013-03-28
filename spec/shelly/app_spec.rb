@@ -343,6 +343,14 @@ describe Shelly::App do
       @app.should_receive(:exec).with("ssh -o StrictHostKeyChecking=no -p 40010 -l foo -t console.example.com ")
       @app.console
     end
+
+    context "when server passed" do
+      it "should request console on given server" do
+        @client.should_receive(:console).with("foo-staging", "app1").and_return({})
+        @app.stub(:exec)
+        @app.console("app1")
+      end
+    end
   end
 
   describe "#list_files" do
@@ -372,7 +380,7 @@ describe Shelly::App do
 
   describe "#delete_file" do
     it "should delete file over ssh" do
-      @app.should_receive(:ssh_command).with("delete_file foo/bar")
+      @app.should_receive(:ssh).with(:command => "delete_file foo/bar")
       @app.delete_file("foo/bar")
     end
   end
