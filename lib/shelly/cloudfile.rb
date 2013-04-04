@@ -5,7 +5,7 @@ module Shelly
     attr_accessor :content
     # Cloudfile attributes used for generating Cloudfile from a template
     attr_accessor :code_name, :ruby_version, :environment, :domains,
-      :databases, :size
+      :databases, :size, :thin, :puma
 
     # Public: Return true if Cloudfile is present in current directory
     def present?
@@ -25,7 +25,6 @@ module Shelly
     # Returns the generated Cloudfile as String
     def generate
       @email = current_user.email
-      @thin = @size == "small" ? 2 : 4
       template = File.read(template_path)
       cloudfile = ERB.new(template, nil, "%<>-")
       cloudfile.result(binding)

@@ -280,11 +280,20 @@ describe Shelly::App do
     it "should assign returned git_url, domains, ruby_version and environment" do
       @client.stub(:create_app).and_return("git_url" => "git@git.example.com:fooo.git",
         "domains" => ["fooo.shellyapp.com"], "ruby_version" => "1.9.2", "environment" => "production")
+      stub_const('RUBY_PLATFORM', 'i686-linux')
       @app.create
       @app.git_url.should == "git@git.example.com:fooo.git"
       @app.domains.should == ["fooo.shellyapp.com"]
       @app.ruby_version.should == "1.9.2"
       @app.environment.should == "production"
+    end
+
+    it "should assign jruby as ruby_version if gem is running under jruby" do
+      @client.stub(:create_app).and_return("git_url" => nil,
+        "domains" => nil, "environment" => nil, "ruby_version" => "1.9.2")
+      stub_const('RUBY_PLATFORM', 'java')
+      @app.create
+      @app.ruby_version.should == "jruby"
     end
   end
 
@@ -386,21 +395,35 @@ describe Shelly::App do
   end
 
   describe "#create_cloudfile" do
-    it "should create cloudfile with app attributes" do
-      @app.ruby_version = "1.9.3"
+    before do
       @app.environment = "production"
       @app.domains = ["example.com", "another.example.com"]
       @app.size = "large"
       @app.databases = []
-      cloudfile = mock
-      cloudfile.should_receive(:code_name=).with("foo-staging")
-      cloudfile.should_receive(:ruby_version=).with("1.9.3")
-      cloudfile.should_receive(:environment=).with("production")
-      cloudfile.should_receive(:domains=).with(["example.com", "another.example.com"])
-      cloudfile.should_receive(:size=).with("large")
-      cloudfile.should_receive(:databases=).with([])
-      cloudfile.should_receive(:create)
-      Shelly::Cloudfile.should_receive(:new).and_return(cloudfile)
+      @cloudfile = mock(:code_name= => nil, :ruby_version= => nil,
+        :environment= => nil, :domains= => nil, :size= => nil, :thin= => nil,
+        :puma= => nil, :databases= => nil, :create => nil)
+      Shelly::Cloudfile.should_receive(:new).and_return(@cloudfile)
+    end
+
+    it "should create cloudfile with app attributes" do
+      @app.ruby_version = "1.9.3"
+      @cloudfile.should_receive(:code_name=).with("foo-staging")
+      @cloudfile.should_receive(:ruby_version=).with("1.9.3")
+      @cloudfile.should_receive(:environment=).with("production")
+      @cloudfile.should_receive(:domains=).with(["example.com", "another.example.com"])
+      @cloudfile.should_receive(:size=).with("large")
+      @cloudfile.should_receive(:thin=).with(4)
+      @cloudfile.should_not_receive(:puma=)
+      @cloudfile.should_receive(:databases=).with([])
+      @cloudfile.should_receive(:create)
+      @app.create_cloudfile
+    end
+
+    it "should set puma instead of thin under jruby" do
+      @app.ruby_version = "jruby"
+      @cloudfile.should_not_receive(:thin=)
+      @cloudfile.should_receive(:puma=).with(2)
       @app.create_cloudfile
     end
   end
