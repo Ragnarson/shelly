@@ -1,3 +1,8 @@
+## 0.2.16 / 2013-04-04
+
+* [bug] `shelly add` now properly sets puma as web server when run under JRuby
+* [bug] `shelly add` now properly sets jruby as ruby_version when run under JRuby
+
 ## 0.2.15 / 2013-03-28
 
 * [feature] `shelly files list [PATH]` lists files from cloud's disk
