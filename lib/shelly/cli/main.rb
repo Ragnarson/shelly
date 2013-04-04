@@ -619,7 +619,7 @@ Wait until cloud is in 'turned off' state and try again.}
 
         def info_adding_cloudfile_to_repository
           say_new_line
-          say "Project is now configured for use with Shell Cloud:", :green
+          say "Project is now configured for use with Shelly Cloud:", :green
           say "You can review changes using", :green
           say "  git status"
         end

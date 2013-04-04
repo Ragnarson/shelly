@@ -496,7 +496,7 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
     end
 
     it "should display info about adding Cloudfile to repository" do
-      $stdout.should_receive(:puts).with("\e[32mProject is now configured for use with Shell Cloud:\e[0m")
+      $stdout.should_receive(:puts).with("\e[32mProject is now configured for use with Shelly Cloud:\e[0m")
       $stdout.should_receive(:puts).with("\e[32mYou can review changes using\e[0m")
       $stdout.should_receive(:puts).with("  git status")
       fake_stdin(["foooo", "none"]) do
