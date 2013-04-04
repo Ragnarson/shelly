@@ -17,6 +17,10 @@ module Shelly
       self.content = content
     end
 
+    def thin
+      size == "small" ? 2 : 4
+    end
+
     def databases=(dbs)
       @databases = dbs - ['none']
     end
@@ -61,6 +65,7 @@ module Shelly
       cloudfile.environment = environment
       cloudfile.domains = domains
       cloudfile.size = size
+      cloudfile.thin = thin
       cloudfile.databases = databases
       cloudfile.create
     end

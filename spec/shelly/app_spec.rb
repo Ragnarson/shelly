@@ -398,6 +398,7 @@ describe Shelly::App do
       cloudfile.should_receive(:environment=).with("production")
       cloudfile.should_receive(:domains=).with(["example.com", "another.example.com"])
       cloudfile.should_receive(:size=).with("large")
+      cloudfile.should_receive(:thin=).with(4)
       cloudfile.should_receive(:databases=).with([])
       cloudfile.should_receive(:create)
       Shelly::Cloudfile.should_receive(:new).and_return(cloudfile)
