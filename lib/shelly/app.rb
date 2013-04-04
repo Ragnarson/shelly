@@ -21,6 +21,10 @@ module Shelly
       size == "small" ? 2 : 4
     end
 
+    def puma
+      size == "small" ? 1 : 2
+    end
+
     def databases=(dbs)
       @databases = dbs - ['none']
     end
@@ -62,7 +66,11 @@ module Shelly
       cloudfile.environment = environment
       cloudfile.domains = domains
       cloudfile.size = size
-      cloudfile.thin = thin
+      if ruby_version == 'jruby'
+        cloudfile.puma = puma
+      else
+        cloudfile.thin = thin
+      end
       cloudfile.databases = databases
       cloudfile.create
     end

@@ -5,7 +5,7 @@ module Shelly
     attr_accessor :content
     # Cloudfile attributes used for generating Cloudfile from a template
     attr_accessor :code_name, :ruby_version, :environment, :domains,
-      :databases, :size, :thin
+      :databases, :size, :thin, :puma
 
     # Public: Return true if Cloudfile is present in current directory
     def present?

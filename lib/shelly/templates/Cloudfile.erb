@@ -13,7 +13,12 @@
   servers:
     app1:
       size: <%= @size %>
+      <%- if @thin -%>
       thin: <%= @thin %>
+      <%- end -%>
+      <%- if @puma -%>
+      puma: <%= @puma %>
+      <%- end -%>
       # whenever: on
       # delayed_job: 1
       databases:
