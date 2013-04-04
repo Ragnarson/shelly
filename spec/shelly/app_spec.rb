@@ -280,11 +280,20 @@ describe Shelly::App do
     it "should assign returned git_url, domains, ruby_version and environment" do
       @client.stub(:create_app).and_return("git_url" => "git@git.example.com:fooo.git",
         "domains" => ["fooo.shellyapp.com"], "ruby_version" => "1.9.2", "environment" => "production")
+      stub_const('RUBY_PLATFORM', 'i686-linux')
       @app.create
       @app.git_url.should == "git@git.example.com:fooo.git"
       @app.domains.should == ["fooo.shellyapp.com"]
       @app.ruby_version.should == "1.9.2"
       @app.environment.should == "production"
+    end
+
+    it "should assign jruby as ruby_version if gem is running under jruby" do
+      @client.stub(:create_app).and_return("git_url" => nil,
+        "domains" => nil, "environment" => nil, "ruby_version" => "1.9.2")
+      stub_const('RUBY_PLATFORM', 'java')
+      @app.create
+      @app.ruby_version.should == "jruby"
     end
   end
 

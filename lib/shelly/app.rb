@@ -52,10 +52,7 @@ module Shelly
                     :organization_name => organization,
                     :zone_name => zone_name}
       response = shelly.create_app(attributes)
-      self.git_url = response["git_url"]
-      self.domains = response["domains"]
-      self.ruby_version = response["ruby_version"]
-      self.environment = response["environment"]
+      assign_attributes(response)
     end
 
     def create_cloudfile
@@ -297,6 +294,17 @@ module Shelly
     end
 
     private
+
+    def assign_attributes(response)
+      self.git_url = response["git_url"]
+      self.domains = response["domains"]
+      self.ruby_version = jruby? ? 'jruby' : response["ruby_version"]
+      self.environment = response["environment"]
+    end
+
+    def jruby?
+      RUBY_PLATFORM == 'java'
+    end
 
     # Internal: Checks if specified option is present in Cloudfile
     def option?(option)
