@@ -17,6 +17,14 @@ module Shelly
       self.content = content
     end
 
+    def thin
+      size == "small" ? 2 : 4
+    end
+
+    def puma
+      size == "small" ? 1 : 2
+    end
+
     def databases=(dbs)
       @databases = dbs - ['none']
     end
@@ -48,10 +56,7 @@ module Shelly
                     :organization_name => organization,
                     :zone_name => zone_name}
       response = shelly.create_app(attributes)
-      self.git_url = response["git_url"]
-      self.domains = response["domains"]
-      self.ruby_version = response["ruby_version"]
-      self.environment = response["environment"]
+      assign_attributes(response)
     end
 
     def create_cloudfile
@@ -61,6 +66,11 @@ module Shelly
       cloudfile.environment = environment
       cloudfile.domains = domains
       cloudfile.size = size
+      if ruby_version == 'jruby'
+        cloudfile.puma = puma
+      else
+        cloudfile.thin = thin
+      end
       cloudfile.databases = databases
       cloudfile.create
     end
@@ -292,6 +302,17 @@ module Shelly
     end
 
     private
+
+    def assign_attributes(response)
+      self.git_url = response["git_url"]
+      self.domains = response["domains"]
+      self.ruby_version = jruby? ? 'jruby' : response["ruby_version"]
+      self.environment = response["environment"]
+    end
+
+    def jruby?
+      RUBY_PLATFORM == 'java'
+    end
 
     # Internal: Checks if specified option is present in Cloudfile
     def option?(option)

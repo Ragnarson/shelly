@@ -101,6 +101,7 @@ config
       @cloudfile.ruby_version = "1.9.3"
       @cloudfile.environment = "production"
       @cloudfile.size = "large"
+      @cloudfile.thin = 4
       @cloudfile.stub(:current_user => mock(:email => "bob@example.com"))
     end
 
@@ -109,7 +110,7 @@ config
         FakeFS.deactivate!
         expected = <<-config
 foo-staging:
-  ruby_version: 1.9.3 # 2.0.0, 1.9.3, 1.9.2 or ree-1.8.7
+  ruby_version: 1.9.3 # 2.0.0, jruby, 1.9.3, 1.9.2 or ree-1.8.7
   environment: production # RAILS_ENV
   monitoring_email: bob@example.com
   domains:
@@ -135,9 +136,10 @@ config
       it "should generate sample Cloudfile with given attributes and 2 thins" do
         FakeFS.deactivate!
         @cloudfile.size = "small"
+        @cloudfile.thin = 2
         expected = <<-config
 foo-staging:
-  ruby_version: 1.9.3 # 2.0.0, 1.9.3, 1.9.2 or ree-1.8.7
+  ruby_version: 1.9.3 # 2.0.0, jruby, 1.9.3, 1.9.2 or ree-1.8.7
   environment: production # RAILS_ENV
   monitoring_email: bob@example.com
   domains:
