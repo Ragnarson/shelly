@@ -161,7 +161,7 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository}
       if @deployment["result"] == "success"
         say "#{action_name} successful", :green
       else
-        say "#{action_name} failed. See logs with `shelly deploy show last`", :red
+        say "#{action_name} failed. See logs with `shelly deploy show last --cloud #{app}`", :red
       end
     end
   end
