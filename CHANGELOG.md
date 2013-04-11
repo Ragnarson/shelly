@@ -1,3 +1,7 @@
+## master
+
+* [feature] Added '--cloud code_name' to command given in output after failed `shelly redeploy` and `shelly stop`.
+
 ## 0.2.16 / 2013-04-04
 
 * [bug] `shelly add` now properly sets puma as web server when run under JRuby
