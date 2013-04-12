@@ -1,4 +1,4 @@
-## master
+## 0.2.17 / 2013-04-12
 
 * [feature] Added '--cloud code_name' to command given in output after failed `shelly redeploy` and `shelly stop`.
 
