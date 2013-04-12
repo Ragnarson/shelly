@@ -848,16 +848,6 @@ Wait until cloud is in 'turned off' state and try again.")
       end
     end
 
-    it "should exit if user doesn't have access to clouds in Cloudfile" do
-      @client.stub(:stop_cloud).and_raise(Shelly::Client::NotFoundException.new("resource" => "cloud"))
-      $stdout.should_receive(:puts).with(red "You have no access to 'foo-production' cloud defined in Cloudfile")
-      lambda {
-        fake_stdin(["yes"]) do
-          invoke(@main, :stop)
-        end
-      }.should raise_error(SystemExit)
-    end
-
     it "should stop the cloud" do
       $stdout.should_receive(:print).with("Are you sure you want to shut down 'foo-production' cloud (yes/no): ")
       $stdout.should_receive(:puts).with("\n")
@@ -868,43 +858,69 @@ Wait until cloud is in 'turned off' state and try again.")
       end
     end
 
-    it "should show messages about app being deployed" do
-      raise_conflict("state" => "deploying")
-      $stdout.should_receive(:puts).with(red "Your cloud is currently being deployed and it can not be stopped.")
-      lambda do
-        fake_stdin(["yes"]) do
-          invoke(@main, :stop)
-        end
-      end.should raise_error(SystemExit)
-    end
+    context "on failure" do
+      context "when application is in deploy_failed state" do
+        it "should display error and `shelly deploy show last --cloud foo-production` command" do
+          @app.stub(:deployment => {"messages" => ["message1"],
+            "result" => "failure", "state" => "deploy_failed"})
 
-    it "should show messge about app's no_code" do
-      raise_conflict("state" => "no_code")
-      @client.stub(:shellyapp_url).and_return("https://example.com")
-      $stdout.should_receive(:puts).with(red "You need to deploy your cloud first.")
-      $stdout.should_receive(:puts).with('More information can be found at:')
-      $stdout.should_receive(:puts).with('https://example.com/documentation/deployment')
-      lambda do
-        fake_stdin(["yes"]) do
-          invoke(@main, :stop)
+          $stdout.should_receive(:puts).with(green "message1")
+          $stdout.should_receive(:puts).
+            with(red "Stopping cloud failed. See logs with `shelly deploy show last --cloud foo-production`")
+          fake_stdin(["yes"]) do
+            invoke(@main, :stop)
+          end
         end
-      end.should raise_error(SystemExit)
-    end
+      end
 
-    it "should show messge about app turning off" do
-      raise_conflict("state" => "turning_off")
-      $stdout.should_receive(:puts).with(red "Your cloud is turning off.")
-      lambda do
-        fake_stdin(["yes"]) do
-          invoke(@main, :stop)
-        end
-      end.should raise_error(SystemExit)
-    end
+      it "should exit if user doesn't have access to clouds in Cloudfile" do
+        @client.stub(:stop_cloud).and_raise(Shelly::Client::NotFoundException.new("resource" => "cloud"))
+        $stdout.should_receive(:puts).with(red "You have no access to 'foo-production' cloud defined in Cloudfile")
+        lambda {
+          fake_stdin(["yes"]) do
+            invoke(@main, :stop)
+          end
+        }.should raise_error(SystemExit)
+      end
 
-    def raise_conflict(options = {})
-      body = {"state" => "no_code"}.merge(options)
-      exception = Shelly::Client::ConflictException.new(body)
-      @client.stub(:stop_cloud).and_raise(exception)
+      it "should show messages about app being deployed" do
+        raise_conflict("state" => "deploying")
+        $stdout.should_receive(:puts).with(red "Your cloud is currently being deployed and it can not be stopped.")
+        lambda do
+          fake_stdin(["yes"]) do
+            invoke(@main, :stop)
+          end
+        end.should raise_error(SystemExit)
+      end
+
+      it "should show messge about app's no_code" do
+        raise_conflict("state" => "no_code")
+        @client.stub(:shellyapp_url).and_return("https://example.com")
+        $stdout.should_receive(:puts).with(red "You need to deploy your cloud first.")
+        $stdout.should_receive(:puts).with('More information can be found at:')
+        $stdout.should_receive(:puts).with('https://example.com/documentation/deployment')
+        lambda do
+          fake_stdin(["yes"]) do
+            invoke(@main, :stop)
+          end
+        end.should raise_error(SystemExit)
+      end
+
+      it "should show messge about app turning off" do
+        raise_conflict("state" => "turning_off")
+        $stdout.should_receive(:puts).with(red "Your cloud is turning off.")
+        lambda do
+          fake_stdin(["yes"]) do
+            invoke(@main, :stop)
+          end
+        end.should raise_error(SystemExit)
+      end
+
+      def raise_conflict(options = {})
+        body = {"state" => "no_code"}.merge(options)
+        exception = Shelly::Client::ConflictException.new(body)
+        @client.stub(:stop_cloud).and_raise(exception)
+      end
     end
   end
 
@@ -1333,6 +1349,17 @@ Wait until cloud is in 'turned off' state and try again.")
     end
 
     context "on redeploy failure" do
+      context "when application is in deploy_failed state" do
+        it "should display error and `shelly deploy show last --cloud foo-production` command" do
+          @app.stub(:deployment => {"messages" => ["message1"],
+            "result" => "failure", "state" => "deploy_failed"})
+          $stdout.should_receive(:puts).with(green "message1")
+          $stdout.should_receive(:puts).
+            with(red "Cloud redeploy failed. See logs with `shelly deploy show last --cloud foo-production`")
+          invoke(@main, :redeploy)
+        end
+      end
+
       %w(deploying configuring).each do |state|
         context "when application is in #{state} state" do
           it "should display error that deploy is in progress" do
