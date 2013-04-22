@@ -754,12 +754,10 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
         lambda { invoke(@main, :start)  }.should raise_error(SystemExit)
       end
 
-      %w{deploying configuring}.each do |state|
-        it "should show information that cloud is #{state}" do
-          raise_conflict("state" => state)
-          $stdout.should_receive(:puts).with(red "Not starting: cloud 'foo-production' is currently deploying")
-          lambda { invoke(@main, :start) }.should raise_error(SystemExit)
-        end
+      it "should show information that cloud is deploying" do
+        raise_conflict("state" => "deploying")
+        $stdout.should_receive(:puts).with(red "Not starting: cloud 'foo-production' is currently deploying")
+        lambda { invoke(@main, :start) }.should raise_error(SystemExit)
       end
 
       it "should show information that cloud has no code" do
@@ -1360,16 +1358,14 @@ Wait until cloud is in 'turned off' state and try again.")
         end
       end
 
-      %w(deploying configuring).each do |state|
-        context "when application is in #{state} state" do
-          it "should display error that deploy is in progress" do
-            exception = Shelly::Client::ConflictException.new("state" => state)
-            @client.should_receive(:redeploy).with("foo-production").and_raise(exception)
-            $stdout.should_receive(:puts).with(red "Your application is being redeployed at the moment")
-            lambda {
-              invoke(@main, :redeploy)
-            }.should raise_error(SystemExit)
-          end
+      context "when application is in deploying state" do
+        it "should display error that deploy is in progress" do
+          exception = Shelly::Client::ConflictException.new("state" => "deploying")
+          @client.should_receive(:redeploy).with("foo-production").and_raise(exception)
+          $stdout.should_receive(:puts).with(red "Your application is being redeployed at the moment")
+          lambda {
+            invoke(@main, :redeploy)
+          }.should raise_error(SystemExit)
         end
       end
 

@@ -201,7 +201,7 @@ module Shelly
         case e[:state]
         when "running"
           say_error "Not starting: cloud '#{app}' is already running"
-        when "deploying", "configuring"
+        when "deploying"
           say_error "Not starting: cloud '#{app}' is currently deploying"
         when "no_code"
           say_error "Not starting: no source code provided", :with_exit => false
@@ -372,7 +372,7 @@ Wait until cloud is in 'turned off' state and try again.}
         deployment_progress(app, deployment_id, "Cloud redeploy")
       rescue Client::ConflictException => e
         case e[:state]
-        when "deploying", "configuring"
+        when "deploying"
           say_error "Your application is being redeployed at the moment"
         when "no_code", "no_billing", "turned_off"
           say_error "Cloud #{app} is not running", :with_exit => false
