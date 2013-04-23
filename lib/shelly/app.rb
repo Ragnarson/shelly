@@ -214,6 +214,10 @@ module Shelly
       attributes["organization"]["credit"].to_f
     end
 
+    def organization_details_present?
+      attributes["organization"]["details_present"]
+    end
+
     def self.inside_git_repository?
       system("git status > /dev/null 2>&1")
     end

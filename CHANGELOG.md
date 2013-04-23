@@ -1,3 +1,7 @@
+## master
+
+* [bug] `shelly add` doesn't prompt the user to provide billing details when adding to existing organization.
+
 ## 0.2.17 / 2013-04-12
 
 * [feature] Added '--cloud code_name' to command given in output after failed `shelly redeploy` and `shelly stop`.
