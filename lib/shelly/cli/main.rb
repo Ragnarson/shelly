@@ -116,12 +116,16 @@ module Shelly
 
         say "Creating Cloudfile", :green
         app.create_cloudfile
-        if app.credit > 0
+        if app.credit > 0 || !app.organization_details_present?
           say_new_line
           say "Billing information", :green
-          say "Cloud created with #{app.credit.to_i} Euro credit."
-          say "Remember to provide billing details before trial ends."
-          say app.edit_billing_url
+          if app.credit > 0
+            say "#{app.credit.to_i} Euro credit remaining."
+          end
+          if !app.organization_details_present?
+            say "Remember to provide billing details before trial ends."
+            say app.edit_billing_url
+          end
         end
 
         info_adding_cloudfile_to_repository

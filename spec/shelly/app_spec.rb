@@ -134,7 +134,8 @@ describe Shelly::App do
       @response = {"web_server_ip" => "192.0.2.1",
                    "state" => "running",
                    "organization" => {
-                     "credit" => 23.0
+                     "credit" => 23.0,
+                     "details_present" => true
                    },
                    "git_info" => {
                      "deployed_commit_message" => "Commit message",
@@ -145,8 +146,14 @@ describe Shelly::App do
     end
 
     describe "#credit" do
-      it "should return freecredit that app has" do
+      it "should return free credit that app has" do
         @app.credit.should == 23.0
+      end
+    end
+
+    describe "#organization_details_present?" do
+      it "should return app's organization's details_present?" do
+        @app.organization_details_present?.should == true
       end
     end
 

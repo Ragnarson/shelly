@@ -9,6 +9,7 @@ describe Shelly::CLI::Main do
     Shelly::CLI::Main.stub(:new).and_return(@main)
     @client = mock
     @client.stub(:token).and_return("abc")
+    @client.stub(:shellyapp_url).and_return("https://example.com")
     Shelly::Client.stub(:new).and_return(@client)
     Shelly::User.stub(:guess_email).and_return("")
     $stdout.stub(:puts)
@@ -291,7 +292,8 @@ describe Shelly::CLI::Main do
       Shelly::App.stub(:inside_git_repository?).and_return(true)
       Shelly::App.stub(:new).and_return(@app)
       @client.stub(:token).and_return("abc")
-      @app.stub(:attributes).and_return({"organization" => {"credit" => 0}})
+      @app.stub(:attributes).and_return(
+        {"organization" => {"credit" => 0, "details_present" => true}})
       @app.stub(:git_remote_exist?).and_return(false)
       @main.stub(:check => true)
       @main.stub(:ask_for_organization)
@@ -418,14 +420,14 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
     end
 
     it "should create the app on shelly cloud and show credit information" do
-      @app.stub(:attributes).and_return("organization" => {"credit" => "40"})
+      @app.stub(:attributes).and_return(
+        "organization" => {"credit" => "40", "details_present" => false})
       @app.stub(:organization).and_return("example")
-      @client.stub(:shellyapp_url).and_return("http://example.com")
       @app.should_receive(:create)
       $stdout.should_receive(:puts).with(green "Billing information")
-      $stdout.should_receive(:puts).with("Cloud created with 40 Euro credit.")
+      $stdout.should_receive(:puts).with("40 Euro credit remaining.")
       $stdout.should_receive(:puts).with("Remember to provide billing details before trial ends.")
-      $stdout.should_receive(:puts).with("http://example.com/organizations/example/edit")
+      $stdout.should_receive(:puts).with("https://example.com/organizations/example/edit")
 
       fake_stdin(["", ""]) do
         invoke(@main, :add)
@@ -791,7 +793,6 @@ We have been notified about it. We will be adding new resources shortly")
         @app.stub(:edit_billing_url).and_return("http://example.com/billing/edit")
         $stdout.should_receive(:puts).with(red "Please fill in billing details to start foo-production.")
         $stdout.should_receive(:puts).with(red "Visit: http://example.com/billing/edit")
-        @client.stub(:shellyapp_url).and_return("http://example.com")
         lambda { invoke(@main, :start) }.should raise_error(SystemExit)
       end
 
@@ -893,7 +894,6 @@ Wait until cloud is in 'turned off' state and try again.")
 
       it "should show messge about app's no_code" do
         raise_conflict("state" => "no_code")
-        @client.stub(:shellyapp_url).and_return("https://example.com")
         $stdout.should_receive(:puts).with(red "You need to deploy your cloud first.")
         $stdout.should_receive(:puts).with('More information can be found at:')
         $stdout.should_receive(:puts).with('https://example.com/documentation/deployment')
