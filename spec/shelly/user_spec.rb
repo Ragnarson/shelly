@@ -177,7 +177,7 @@ describe Shelly::User do
 
   describe "#apps" do
     it "should fetch list of apps via API client" do
-      @client.should_receive(:apps)
+      @client.should_receive(:apps).and_return([])
       @user.apps
     end
   end
