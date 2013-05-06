@@ -32,6 +32,7 @@ module Shelly
       desc "register [EMAIL]", "Register new account"
       def register(email = nil)
         user = Shelly::User.new
+        say "Your public SSH key will be uploaded to Shelly Cloud after registration."
         say "Registering with email: #{email}" if email
         user.email = (email || ask_for_email)
         user.password = ask_for_password
@@ -53,6 +54,7 @@ module Shelly
       desc "login [EMAIL]", "Log into Shelly Cloud"
       def login(email = nil)
         user = Shelly::User.new
+        say "Your public SSH key will be uploaded to Shelly Cloud after login."
         raise Errno::ENOENT, user.ssh_key_path unless user.ssh_key_exists?
         user.email = email || ask_for_email
         user.password = ask_for_password(:with_confirmation => false)
