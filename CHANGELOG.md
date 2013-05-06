@@ -1,4 +1,4 @@
-## master
+## 0.2.19 / 2013-05-06
 
 * [improvement] warn user that his public SSH key will be uploaded on login and register.
 
