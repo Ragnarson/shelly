@@ -1,3 +1,7 @@
+## master
+
+* [improvement] warn user that his public SSH key will be uploaded on login and register.
+
 ## 0.2.18 / 2013-04-25
 
 * [bug] `shelly add` doesn't prompt the user to provide billing details when adding to existing organization.
