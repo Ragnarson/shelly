@@ -1557,7 +1557,7 @@ Wait until cloud is in 'turned off' state and try again.")
       context "when neither thin nor puma present in Gemfile" do
         it "should show that necessary gem doesn't exist" do
           Bundler::Definition.stub_chain(:build, :specs, :map).and_return([])
-          $stdout.should_receive(:puts).with("  #{red("✗")} Missing web server gem in Gemfile. Currently supported: 'thin' and 'puma'")
+          $stdout.should_receive(:puts).with("  #{yellow("ϟ")} Missing web server gem in Gemfile. Currently supported: 'thin' and 'puma'")
           invoke(@main, :check)
         end
       end
@@ -1612,7 +1612,7 @@ Wait until cloud is in 'turned off' state and try again.")
       before do
         cloud = mock(:code_name => "foo-staging", :cloud_databases => ["postgresql"],
           :whenever? => true, :delayed_job? => true, :sidekiq? => true,
-          :to_s => "foo-staging")
+          :thin? => true, :puma? => true, :to_s => "foo-staging")
         cloudfile = mock(:clouds => [cloud])
 
         Shelly::Cloudfile.stub(:new).and_return(cloudfile)
@@ -1673,6 +1673,34 @@ Wait until cloud is in 'turned off' state and try again.")
         it "should show that necessary gem exists - pg" do
           Bundler::Definition.stub_chain(:build, :specs, :map).and_return(["pg"])
           $stdout.should_receive(:puts).with("  #{green("✓")} Postgresql driver is present for 'foo-staging' cloud")
+          invoke(@main, :check)
+        end
+      end
+
+      context "thin web server" do
+        it "should show that necessary gem doesn't exist" do
+          Bundler::Definition.stub_chain(:build, :specs, :map).and_return([])
+          $stdout.should_receive(:puts).with("  #{red("✗")} Gem 'thin' is missing in the Gemfile for 'foo-staging' cloud")
+          invoke(@main, :check)
+        end
+
+        it "should show that necessary gem exists" do
+          Bundler::Definition.stub_chain(:build, :specs, :map).and_return(["thin"])
+          $stdout.should_receive(:puts).with("  #{green("✓")} Web server gem 'thin' is present")
+          invoke(@main, :check)
+        end
+      end
+
+      context "puma web server" do
+        it "should show that necessary gem doesn't exist" do
+          Bundler::Definition.stub_chain(:build, :specs, :map).and_return([])
+          $stdout.should_receive(:puts).with("  #{red("✗")} Gem 'puma' is missing in the Gemfile for 'foo-staging' cloud")
+          invoke(@main, :check)
+        end
+
+        it "should show that necessary gem exists" do
+          Bundler::Definition.stub_chain(:build, :specs, :map).and_return(["puma"])
+          $stdout.should_receive(:puts).with("  #{green("✓")} Web server gem 'puma' is present")
           invoke(@main, :check)
         end
       end
