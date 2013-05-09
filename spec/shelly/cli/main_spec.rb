@@ -207,8 +207,11 @@ describe Shelly::CLI::Main do
       File.open("~/.ssh/id_rsa.pub", "w") { |f| f << "ssh-key AAbbcc" }
       @user.stub(:upload_ssh_key)
       @client.stub(:token).and_return("abc")
-      @client.stub(:apps).and_return([{"code_name" => "abc", "state" => "running"},
-        {"code_name" => "fooo", "state" => "no_code"},])
+      @client.stub(:apps).and_return([
+          {"code_name" => "abc", "state" => "running",
+            "state_description" => "running"},
+          {"code_name" => "fooo", "state" => "no_code",
+            "state_description" => "turned off (no code pushed)"},])
       Shelly::User.stub(:new).and_return(@user)
     end
 
@@ -244,7 +247,7 @@ describe Shelly::CLI::Main do
       it "should display list of applications to which user has access" do
         $stdout.should_receive(:puts).with("\e[32mYou have following clouds available:\e[0m")
         $stdout.should_receive(:puts).with(/  abc\s+\|  running/)
-        $stdout.should_receive(:puts).with(/  fooo\s+\|  no code/)
+        $stdout.should_receive(:puts).with(/  fooo\s+\|  turned off \(no code pushed\)/)
         fake_stdin(["megan@example.com", "secret"]) do
           invoke(@main, :login)
         end
@@ -638,9 +641,9 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
     before do
       @client.stub(:token).and_return("abc")
       @client.stub(:apps).and_return([
-        {"code_name" => "abc", "state" => "running"},
-        {"code_name" => "fooo", "state" => "deploy_failed"},
-        {"code_name" => "bar", "state" => "configuration_failed"}
+        {"code_name" => "abc", "state" => "running", "state_description" => "running"},
+        {"code_name" => "fooo", "state" => "deploy_failed", "state_description" => "running (last deployment failed)"},
+        {"code_name" => "bar", "state" => "configuration_failed", "state_description" => "not running (last deployment failed)"}
       ])
     end
 
@@ -651,8 +654,8 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
     it "should display user's clouds" do
       $stdout.should_receive(:puts).with("\e[32mYou have following clouds available:\e[0m")
       $stdout.should_receive(:puts).with(/abc\s+\|  running/)
-      $stdout.should_receive(:puts).with(/fooo\s+\|  deploy failed \(deployment log: `shelly deploys show last -c fooo`\)/)
-      $stdout.should_receive(:puts).with(/bar\s+\|  configuration failed \(deployment log: `shelly deploys show last -c bar`\)/)
+      $stdout.should_receive(:puts).with(/fooo\s+\|  running \(last deployment failed\) \(deployment log: `shelly deploys show last -c fooo`\)/)
+      $stdout.should_receive(:puts).with(/bar\s+\|  not running \(last deployment failed\) \(deployment log: `shelly deploys show last -c bar`\)/)
       invoke(@main, :list)
     end
 
@@ -679,8 +682,10 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
     before do
       setup_project
       @client.stub(:apps).and_return([
-        {"code_name" => "foo-production", "state" => "running"},
-        {"code_name" => "foo-staging", "state" => "no_code"}])
+          {"code_name" => "foo-production", "state" => "running",
+            "state_description" => "running"},
+          {"code_name" => "foo-staging", "state" => "no_code",
+            "state_description" => "turned off (no code pushed)"}])
       @client.stub(:start_cloud => {"deployment" => {"id" => "DEPLOYMENT_ID"}})
       @deployment =  {"messages" => ["message1"],
         "result" => "success", "state" => "finished"}
@@ -710,12 +715,13 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
       end
 
       it "should ask user to specify cloud, list all clouds and exit" do
+        Shelly::App.unstub(:new) # makes Shelly::User#apps work
         Dir.chdir("/projects")
         $stdout.should_receive(:puts).with(red "You have to specify cloud.")
         $stdout.should_receive(:puts).with("Select cloud using `shelly start --cloud CLOUD_NAME`")
         $stdout.should_receive(:puts).with(green "You have following clouds available:")
         $stdout.should_receive(:puts).with("  foo-production  |  running")
-        $stdout.should_receive(:puts).with("  foo-staging     |  no code")
+        $stdout.should_receive(:puts).with("  foo-staging     |  turned off (no code pushed)")
         lambda { invoke(@main, :start) }.should raise_error(SystemExit)
       end
     end
@@ -965,10 +971,10 @@ Wait until cloud is in 'turned off' state and try again.")
 
       context "when deploy failed or configuration failed" do
         it "should display basic information about information and command to last log" do
-          @app.stub(:attributes).and_return(response({"state" => "deploy_failed"}))
+          @app.stub(:attributes).and_return(response({"state" => "deploy_failed", "state_description" => "running (last deployment failed)"}))
           @main.should_receive(:multiple_clouds).and_return(@app)
           $stdout.should_receive(:puts).with(red "Cloud foo-production:")
-          $stdout.should_receive(:puts).with("  State: deploy_failed (deployment log: `shelly deploys show last -c foo-production`)")
+          $stdout.should_receive(:puts).with("  State: running (last deployment failed) (deployment log: `shelly deploys show last -c foo-production`)")
           $stdout.should_receive(:puts).with("  Deployed commit sha: 52e65ed2d085eaae560cdb81b2b56a7d76")
           $stdout.should_receive(:puts).with("  Deployed commit message: Commit message")
           $stdout.should_receive(:puts).with("  Deployed by: megan@example.com")
@@ -982,10 +988,10 @@ Wait until cloud is in 'turned off' state and try again.")
         end
 
         it "should display basic information about information and command to last log" do
-          @app.stub(:attributes).and_return(response({"state" => "configuration_failed"}))
+          @app.stub(:attributes).and_return(response({"state" => "configuration_failed", "state_description" => "running (last deployment failed)"}))
           @main.should_receive(:multiple_clouds).and_return(@app)
           $stdout.should_receive(:puts).with(red "Cloud foo-production:")
-          $stdout.should_receive(:puts).with("  State: configuration_failed (deployment log: `shelly deploys show last -c foo-production`)")
+          $stdout.should_receive(:puts).with("  State: running (last deployment failed) (deployment log: `shelly deploys show last -c foo-production`)")
           $stdout.should_receive(:puts).with("  Deployed commit sha: 52e65ed2d085eaae560cdb81b2b56a7d76")
           $stdout.should_receive(:puts).with("  Deployed commit message: Commit message")
           $stdout.should_receive(:puts).with("  Deployed by: megan@example.com")
@@ -999,7 +1005,7 @@ Wait until cloud is in 'turned off' state and try again.")
         end
 
         it "should not display statistics when statistics are empty" do
-          @app.stub(:attributes).and_return(response({"state" => "turned_off"}))
+          @app.stub(:attributes).and_return(response({"state" => "turned_off", "state_description" => "turned off"}))
           @main.should_receive(:multiple_clouds).and_return(@app)
           @app.stub(:statistics).and_return([])
           $stdout.should_not_receive(:puts).with("Statistics:")
@@ -1021,6 +1027,7 @@ Wait until cloud is in 'turned off' state and try again.")
     def response(options = {})
       { "code_name" => "foo-production",
         "state" => "running",
+        "state_description" => "running",
         "git_info" =>
         {
           "deployed_commit_message" => "Commit message",

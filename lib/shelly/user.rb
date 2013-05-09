@@ -10,7 +10,9 @@ module Shelly
     end
 
     def apps
-      shelly.apps
+      shelly.apps.map do |attributes|
+        Shelly::App.from_attributes(attributes)
+      end
     end
 
     def organizations
