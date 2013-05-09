@@ -17,6 +17,16 @@ module Shelly
       self.content = content
     end
 
+    def self.from_attributes(attributes)
+      new(attributes["code_name"]).tap do |app|
+        app.attributes = attributes
+      end
+    end
+
+    def attributes=(attributes)
+      @attributes = attributes
+    end
+
     def thin
       size == "small" ? 2 : 4
     end
@@ -208,6 +218,10 @@ module Shelly
 
     def state
       attributes["state"]
+    end
+
+    def state_description
+      attributes["state_description"]
     end
 
     def credit

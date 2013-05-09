@@ -17,14 +17,7 @@ module Shelly
         organizations.each do |organization|
           say organization.name, :green
           if organization.apps.present?
-            apps_table = organization.apps.map do |app|
-              state = app.state
-              msg = if state == "deploy_failed" || state == "configuration_failed"
-                " (deployment log: `shelly deploys show last -c #{app["code_name"]}`)"
-              end
-              [app.to_s, "|  #{state.humanize}#{msg}"]
-            end
-            print_table(apps_table, :ident => 2, :colwidth => 35)
+            print_table(apps_table(organization.apps), :ident => 2, :colwidth => 35)
           else
             print_wrapped "No clouds", :ident => 2
           end

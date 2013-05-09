@@ -164,5 +164,14 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository}
         say "#{action_name} failed. See logs with `shelly deploy show last --cloud #{app}`", :red
       end
     end
+
+    def apps_table(apps)
+      apps.map do |app|
+        msg = if app.state == "deploy_failed" || app.state == "configuration_failed"
+          " (deployment log: `shelly deploys show last -c #{app.code_name}`)"
+        end
+        [app.code_name, "|  #{app.state_description}#{msg}"]
+      end
+    end
   end
 end

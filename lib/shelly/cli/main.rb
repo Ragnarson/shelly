@@ -153,14 +153,7 @@ module Shelly
         apps = user.apps
         unless apps.empty?
           say "You have following clouds available:", :green
-          apps_table = apps.map do |app|
-            state = app["state"]
-            msg = if state == "deploy_failed" || state == "configuration_failed"
-              " (deployment log: `shelly deploys show last -c #{app["code_name"]}`)"
-            end
-            [app["code_name"], "|  #{state.humanize}#{msg}"]
-          end
-          print_table(apps_table, :ident => 2)
+          print_table(apps_table(apps), :ident => 2)
         else
           say "You have no clouds yet", :green
         end
@@ -175,7 +168,7 @@ module Shelly
           " (deployment log: `shelly deploys show last -c #{app}`)"
         end
         say "Cloud #{app}:", msg.present? ? :red : :green
-        print_wrapped "State: #{app.state}#{msg}", :ident => 2
+        print_wrapped "State: #{app.state_description}#{msg}", :ident => 2
         say_new_line
         print_wrapped "Deployed commit sha: #{app.git_info["deployed_commit_sha"]}", :ident => 2
         print_wrapped "Deployed commit message: #{app.git_info["deployed_commit_message"]}", :ident => 2
