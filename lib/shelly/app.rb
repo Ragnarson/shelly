@@ -297,6 +297,18 @@ module Shelly
       option?("sidekiq")
     end
 
+    # Public: Thin app servers present?
+    # Returns true if thin is present
+    def thin?
+      option?("thin")
+    end
+
+    # Public: Puma app servers present?
+    # Returns true if puma is present
+    def puma?
+      option?("puma")
+    end
+
     # Public: Return databases to backup for given Cloud in Cloudfile
     # Returns Array of databases, except redis db
     def backup_databases
