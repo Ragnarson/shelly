@@ -446,7 +446,7 @@ Wait until cloud is in 'turned off' state and try again.}
         print_check(structure.gem?("thin") || structure.gem?("puma"),
           "Web server gem is present",
           "Missing web server gem in Gemfile. Currently supported: 'thin' and 'puma'",
-          :show_fulfilled => verbose)
+          :show_fulfilled => verbose, :failure_level => :warning)
 
         print_check(structure.gem?("rake"), "Gem 'rake' is present",
           "Gem 'rake' is missing in the Gemfile", :show_fulfilled => verbose)
@@ -485,6 +485,20 @@ Wait until cloud is in 'turned off' state and try again.}
               print_check(structure.gem?("sidekiq"),
                 "Gem 'sidekiq' is present for '#{app}' cloud",
                 "Gem 'sidekiq' is missing in the Gemfile for '#{app}' cloud",
+                :show_fulfilled => verbose)
+            end
+
+            if app.thin?
+              print_check(structure.gem?("thin"),
+                "Web server gem 'thin' is present",
+                "Gem 'thin' is missing in the Gemfile for '#{app}' cloud",
+                :show_fulfilled => verbose)
+            end
+
+            if app.puma?
+              print_check(structure.gem?("puma"),
+                "Web server gem 'puma' is present",
+                "Gem 'puma' is missing in the Gemfile for '#{app}' cloud",
                 :show_fulfilled => verbose)
             end
           end
