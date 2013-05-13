@@ -10,33 +10,10 @@ describe Shelly::App do
     @app = Shelly::App.new('foo-staging')
   end
 
-  describe ".guess_code_name" do
+  describe ".code_name_from_dir_name" do
     it "should downcase and dasherize code name" do
       Dir.stub(:pwd).and_return("/project/FOO")
-      Shelly::App.guess_code_name.should == "foo-staging"
-    end
-
-    context "no Cloudfile" do
-      it "should return name of current working directory" do
-        Shelly::App.guess_code_name.should == "foo-staging"
-      end
-    end
-
-    context "with Cloudfile" do
-      it "should return production" do
-        File.open("Cloudfile", 'w') {|f| f.write("foo-staging:\n") }
-        Shelly::App.guess_code_name.should == "foo-production"
-      end
-
-      it "should return production" do
-        File.open("Cloudfile", 'w') {|f| f.write("winnie-test:\n") }
-        Shelly::App.guess_code_name.should == "foo-staging"
-      end
-
-      it "should return productionNUMBER" do
-        File.open("Cloudfile", 'w') {|f| f.write("foo-staging:\nfoo-production:\n") }
-        Shelly::App.guess_code_name.should == "foo-production1"
-      end
+      Shelly::App.code_name_from_dir_name.should == "foo"
     end
   end
 

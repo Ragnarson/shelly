@@ -364,7 +364,7 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
     end
 
     it "should use code name provided by user" do
-      $stdout.should_receive(:print).with("Cloud code name (foo-staging - default): ")
+      $stdout.should_receive(:print).with("Cloud code name (foo - default): ")
       @app.should_receive(:code_name=).with("mycodename")
       fake_stdin(["mycodename", ""]) do
         invoke(@main, :add)
@@ -372,9 +372,9 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
     end
 
     context "when user provided empty code name" do
-      it "should use 'current_dirname-purpose' as default" do
-        $stdout.should_receive(:print).with("Cloud code name (foo-staging - default): ")
-        @app.should_receive(:code_name=).with("foo-staging")
+      it "should use 'current_dirname' as default" do
+        $stdout.should_receive(:print).with("Cloud code name (foo - default): ")
+        @app.should_receive(:code_name=).with("foo")
         fake_stdin(["", ""]) do
           invoke(@main, :add)
         end

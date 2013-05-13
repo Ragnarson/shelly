@@ -112,6 +112,7 @@ module Shelly
 
         say "Creating Cloudfile", :green
         app.create_cloudfile
+
         if app.credit > 0 || !app.organization_details_present?
           say_new_line
           say "Billing information", :green
@@ -590,8 +591,8 @@ Wait until cloud is in 'turned off' state and try again.}
         end
 
         def ask_for_code_name
-          default_code_name = Shelly::App.guess_code_name
-          code_name = ask("Cloud code name (#{Shelly::App.guess_code_name} - default):")
+          default_code_name = Shelly::App.code_name_from_dir_name
+          code_name = ask("Cloud code name (#{Shelly::App.code_name_from_dir_name} - default):")
           code_name.blank? ? default_code_name : code_name
         end
 

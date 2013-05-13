@@ -147,21 +147,8 @@ module Shelly
       shelly.deployment(code_name, deployment_id)
     end
 
-    def self.guess_code_name
-      guessed = nil
-      cloudfile = Cloudfile.new
-      if cloudfile.present?
-        clouds = cloudfile.clouds.map(&:code_name)
-        if clouds.grep(/staging/).present?
-          guessed = "production"
-          production_clouds = clouds.grep(/production/)
-          production_clouds.sort.each do  |cloud|
-            cloud =~ /production(\d*)/
-            guessed = "production#{$1.to_i+1}"
-          end
-        end
-      end
-      "#{File.basename(Dir.pwd)}-#{guessed || 'staging'}".downcase.dasherize
+    def self.code_name_from_dir_name
+      "#{File.basename(Dir.pwd)}".downcase.dasherize
     end
 
     def configs
