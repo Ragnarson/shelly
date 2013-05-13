@@ -41,7 +41,7 @@ describe Shelly::CLI::Main do
       out.should include("shelly list                    # List available clouds")
       out.should include("shelly login [EMAIL]           # Log into Shelly Cloud")
       out.should include("shelly logout                  # Logout from Shelly Cloud")
-      out.should include("shelly logs                    # Show latest application logs")
+      out.should include("shelly logs <command>          # View application logs")
       out.should include("shelly open                    # Open application page in browser")
       out.should include("shelly organization <command>  # View organizations")
       out.should include("shelly rake TASK               # Run rake task")
@@ -54,16 +54,6 @@ describe Shelly::CLI::Main do
       out.should include("Options")
       out.should include("[--debug]  # Show debug information")
       out.should include("-h, [--help]   # Describe available tasks or one specific task")
-    end
-
-    it "should display options in help for logs" do
-      out = IO.popen("bin/shelly help logs").read.strip
-      out.should include("-c, [--cloud=CLOUD]    # Specify cloud")
-      out.should include("-n, [--limit=N]        # Amount of messages to show")
-      out.should include("-s, [--source=SOURCE]  # Limit logs to a single source, e.g. nginx")
-      out.should include("-f, [--tail]           # Show new logs automatically")
-      out.should include("[--from=FROM]      # Time from which to find the logs")
-      out.should include("[--debug]          # Show debug information")
     end
 
     it "should display help when user is not logged in" do
@@ -1247,46 +1237,6 @@ Wait until cloud is in 'turned off' state and try again.")
       $stdout.should_receive(:puts).with("You have been successfully logged out")
       invoke(@main, :logout)
       File.exists?("~/.shelly/credentials").should be_false
-    end
-  end
-
-  describe "#logs" do
-    before do
-      setup_project
-      @sample_logs = {"entries" => [['app1', 'log1'], ['app1', 'log2']]}
-    end
-
-    it "should ensure user has logged in" do
-      hooks(@main, :logs).should include(:logged_in?)
-    end
-
-    # multiple_clouds is tested in main_spec.rb in describe "#start" block
-    it "should ensure multiple_clouds check" do
-      @client.stub(:application_logs).and_return(@sample_logs)
-      @main.should_receive(:multiple_clouds).and_return(@app)
-      invoke(@main, :logs)
-    end
-
-    it "should exit if user requested too many log lines" do
-      exception = Shelly::Client::APIException.new({}, 416)
-      @client.stub(:application_logs).and_raise(exception)
-      $stdout.should_receive(:puts).
-        with(red "You have requested too many log messages. Try a lower number.")
-      lambda { invoke(@main, :logs) }.should raise_error(SystemExit)
-    end
-
-    it "should show logs for the cloud" do
-      @client.stub(:application_logs).and_return(@sample_logs)
-      $stdout.should_receive(:puts).with("app1 log1")
-      $stdout.should_receive(:puts).with("app1 log2")
-      invoke(@main, :logs)
-    end
-
-    it "should show requested amount of logs" do
-      @client.should_receive(:application_logs).
-        with("foo-production", {:limit => 2, :source => 'nginx'}).and_return(@sample_logs)
-      @main.options = {:limit => 2, :source => 'nginx'}
-      invoke(@main, :logs)
     end
   end
 
