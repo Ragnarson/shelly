@@ -40,24 +40,24 @@ module Shelly
     end
 
     def add_git_remote
-      system("git remote rm #{code_name} > /dev/null 2>&1")
-      system("git remote add #{code_name} #{git_url}")
+      system("git remote rm shelly > /dev/null 2>&1")
+      system("git remote add shelly #{git_url}")
     end
 
     def git_remote_exist?
-      IO.popen("git remote").read.include?(code_name)
+      IO.popen("git remote").read.include?('shelly')
     end
 
     def git_fetch_remote
-      system("git fetch #{code_name} > /dev/null 2>&1")
+      system("git fetch shelly > /dev/null 2>&1")
     end
 
     def git_add_tracking_branch
-      system("git checkout -b #{code_name} --track #{code_name}/master > /dev/null 2>&1")
+      system("git checkout -b shelly --track shelly/master > /dev/null 2>&1")
     end
 
     def remove_git_remote
-      system("git remote rm #{code_name} > /dev/null 2>&1")
+      system("git remote rm shelly > /dev/null 2>&1")
     end
 
     def create

@@ -108,13 +108,7 @@ module Shelly
         app.zone_name = options["zone"]
         app.create
 
-        if overwrite_remote?(app)
-          say "Adding remote #{app} #{app.git_url}", :green
-          app.add_git_remote
-        else
-          say "You have to manually add git remote:"
-          say "`git remote add NAME #{app.git_url}`"
-        end
+        git_remote = add_remote(app)
 
         say "Creating Cloudfile", :green
         app.create_cloudfile
@@ -131,7 +125,7 @@ module Shelly
         end
 
         info_adding_cloudfile_to_repository
-        info_deploying_to_shellycloud(app)
+        info_deploying_to_shellycloud(git_remote)
 
       rescue Client::ValidationException => e
         e.each_error { |error| say_error error, :with_exit => false }
@@ -242,17 +236,17 @@ Wait until cloud is in 'turned off' state and try again.}
         say "Setting up #{app} cloud", :green
         app.git_url = app.attributes["git_info"]["repository_url"]
         if overwrite_remote?(app)
-          say "git remote add #{app} #{app.git_url}"
+          say "git remote add shelly #{app.git_url}"
           app.add_git_remote
-          say "git fetch #{app}"
+          say "git fetch shelly"
           app.git_fetch_remote
-          say "git checkout -b #{app} --track #{app}/master"
+          say "git checkout -b shelly --track shelly/master"
           app.git_add_tracking_branch
         else
           say "You have to manually add remote:"
-          say "`git remote add #{app} #{app.git_url}`"
-          say "`git fetch production`"
-          say "`git checkout -b #{app} --track #{app}/master`"
+          say "`git remote add shelly #{app.git_url}`"
+          say "`git fetch shelly`"
+          say "`git checkout -b shelly --track shelly/master`"
         end
 
         say_new_line
@@ -561,7 +555,19 @@ Wait until cloud is in 'turned off' state and try again.}
 
         def overwrite_remote?(app)
           git_remote = app.git_remote_exist?
-          !git_remote or (git_remote and yes?("Git remote #{app} exists, overwrite (yes/no): "))
+          !git_remote or (git_remote and yes?("Git remote shelly exists, overwrite (yes/no): "))
+        end
+
+        def add_remote(app)
+          if overwrite_remote?(app)
+            say "Adding remote shelly #{app.git_url}", :green
+            app.add_git_remote
+            "shelly"
+          else
+            say "You have to manually add git remote:"
+            say "`git remote add NAME #{app.git_url}`"
+            "NAME"
+          end
         end
 
         def ask_for_password(options = {})
@@ -637,7 +643,7 @@ Wait until cloud is in 'turned off' state and try again.}
           say "  git status"
         end
 
-        def info_deploying_to_shellycloud(remote)
+        def info_deploying_to_shellycloud(remote = 'shelly')
           say_new_line
           say "When you make sure all settings are correct please issue following commands:", :green
           say "  git add ."
