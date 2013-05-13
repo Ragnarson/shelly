@@ -1,3 +1,5 @@
+## 0.2.21 / 2013-05-13
+
 * [improvement] require 'puma' or 'thin' gems if present in Cloudfile when running `shelly check`
 
 ## 0.2.20 / 2013-05-09
