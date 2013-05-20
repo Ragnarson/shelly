@@ -364,7 +364,7 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
     end
 
     it "should use code name provided by user" do
-      $stdout.should_receive(:print).with("Cloud code name (foo-staging - default): ")
+      $stdout.should_receive(:print).with("Cloud code name (foo - default): ")
       @app.should_receive(:code_name=).with("mycodename")
       fake_stdin(["mycodename", ""]) do
         invoke(@main, :add)
@@ -372,9 +372,9 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
     end
 
     context "when user provided empty code name" do
-      it "should use 'current_dirname-purpose' as default" do
-        $stdout.should_receive(:print).with("Cloud code name (foo-staging - default): ")
-        @app.should_receive(:code_name=).with("foo-staging")
+      it "should use 'current_dirname' as default" do
+        $stdout.should_receive(:print).with("Cloud code name (foo - default): ")
+        @app.should_receive(:code_name=).with("foo")
         fake_stdin(["", ""]) do
           invoke(@main, :add)
         end
@@ -462,7 +462,7 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
 
     context "git remote" do
       it "should add one if it doesn't exist" do
-        $stdout.should_receive(:puts).with("\e[32mAdding remote foooo git@git.shellycloud.com:foooo.git\e[0m")
+        $stdout.should_receive(:puts).with("\e[32mAdding remote shelly git@git.shellycloud.com:foooo.git\e[0m")
         @app.should_receive(:add_git_remote)
         fake_stdin(["foooo", ""]) do
           invoke(@main, :add)
@@ -475,8 +475,8 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
         end
 
         it "should ask if one exist and overwrite" do
-          $stdout.should_receive(:print).with("Git remote foooo exists, overwrite (yes/no):  ")
-          $stdout.should_receive(:puts).with(green "Adding remote foooo git@git.shellycloud.com:foooo.git")
+          $stdout.should_receive(:print).with("Git remote shelly exists, overwrite (yes/no):  ")
+          $stdout.should_receive(:puts).with(green "Adding remote shelly git@git.shellycloud.com:foooo.git")
           @app.should_receive(:add_git_remote)
           fake_stdin(["foooo", "", "yes"]) do
             invoke(@main, :add)
@@ -484,9 +484,15 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
         end
 
         it "should ask if one exist and not overwrite" do
-          $stdout.should_receive(:print).with("Git remote foooo exists, overwrite (yes/no):  ")
+          $stdout.should_receive(:print).with("Git remote shelly exists, overwrite (yes/no):  ")
           $stdout.should_receive(:puts).with("You have to manually add git remote:")
           $stdout.should_receive(:puts).with("`git remote add NAME git@git.shellycloud.com:foooo.git`")
+          $stdout.should_receive(:puts).with("\e[32mWhen you make sure all settings are correct please issue following commands:\e[0m")
+          $stdout.should_receive(:puts).with("  git add .")
+          $stdout.should_receive(:puts).with('  git commit -m "Application added to Shelly Cloud"')
+          $stdout.should_receive(:puts).with("  git push")
+          $stdout.should_receive(:puts).with("\e[32mDeploy to your cloud using:\e[0m")
+          $stdout.should_receive(:puts).with("  git push NAME master")
           @app.should_not_receive(:add_git_remote)
           fake_stdin(["foooo", "", "no"]) do
             invoke(@main, :add)
@@ -515,7 +521,7 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
       $stdout.should_receive(:puts).with('  git commit -m "Application added to Shelly Cloud"')
       $stdout.should_receive(:puts).with("  git push")
       $stdout.should_receive(:puts).with("\e[32mDeploy to your cloud using:\e[0m")
-      $stdout.should_receive(:puts).with("  git push foooo master")
+      $stdout.should_receive(:puts).with("  git push shelly master")
       fake_stdin(["foooo", "none"]) do
         invoke(@main, :add)
       end
@@ -1067,9 +1073,9 @@ Wait until cloud is in 'turned off' state and try again.")
 
     it "should show info about adding remote and branch" do
       $stdout.should_receive(:puts).with(green "Setting up foo-staging cloud")
-      $stdout.should_receive(:puts).with("git remote add foo-staging git_url")
-      $stdout.should_receive(:puts).with("git fetch foo-staging")
-      $stdout.should_receive(:puts).with("git checkout -b foo-staging --track foo-staging/master")
+      $stdout.should_receive(:puts).with("git remote add shelly git_url")
+      $stdout.should_receive(:puts).with("git fetch shelly")
+      $stdout.should_receive(:puts).with("git checkout -b shelly --track shelly/master")
       $stdout.should_receive(:puts).with(green "Your application is set up.")
       invoke(@main, :setup)
     end

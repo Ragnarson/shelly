@@ -10,33 +10,10 @@ describe Shelly::App do
     @app = Shelly::App.new('foo-staging')
   end
 
-  describe ".guess_code_name" do
+  describe ".code_name_from_dir_name" do
     it "should downcase and dasherize code name" do
       Dir.stub(:pwd).and_return("/project/FOO")
-      Shelly::App.guess_code_name.should == "foo-staging"
-    end
-
-    context "no Cloudfile" do
-      it "should return name of current working directory" do
-        Shelly::App.guess_code_name.should == "foo-staging"
-      end
-    end
-
-    context "with Cloudfile" do
-      it "should return production" do
-        File.open("Cloudfile", 'w') {|f| f.write("foo-staging:\n") }
-        Shelly::App.guess_code_name.should == "foo-production"
-      end
-
-      it "should return production" do
-        File.open("Cloudfile", 'w') {|f| f.write("winnie-test:\n") }
-        Shelly::App.guess_code_name.should == "foo-staging"
-      end
-
-      it "should return productionNUMBER" do
-        File.open("Cloudfile", 'w') {|f| f.write("foo-staging:\nfoo-production:\n") }
-        Shelly::App.guess_code_name.should == "foo-production1"
-      end
+      Shelly::App.code_name_from_dir_name.should == "foo"
     end
   end
 
@@ -54,26 +31,26 @@ describe Shelly::App do
     end
 
     it "should try to remove existing git remote" do
-      @app.should_receive(:system).with("git remote rm foo-staging > /dev/null 2>&1")
+      @app.should_receive(:system).with("git remote rm shelly > /dev/null 2>&1")
       @app.add_git_remote
     end
 
     it "should add git remote with proper name and git repository" do
-      @app.should_receive(:system).with("git remote add foo-staging git@git.shellycloud.com:foo-staging.git")
+      @app.should_receive(:system).with("git remote add shelly git@git.shellycloud.com:foo-staging.git")
       @app.add_git_remote
     end
   end
 
   describe "git_fetch_remote" do
     it "should try to remove existing git remote" do
-      @app.should_receive(:system).with("git fetch foo-staging > /dev/null 2>&1")
+      @app.should_receive(:system).with("git fetch shelly > /dev/null 2>&1")
       @app.git_fetch_remote
     end
   end
 
   describe "git_add_tracking_branch" do
     it "should try to remove existing git remote" do
-      @app.should_receive(:system).with("git checkout -b foo-staging --track foo-staging/master > /dev/null 2>&1")
+      @app.should_receive(:system).with("git checkout -b shelly --track shelly/master > /dev/null 2>&1")
       @app.git_add_tracking_branch
     end
   end
@@ -81,7 +58,7 @@ describe Shelly::App do
 
   describe "git_remote_exist" do
     it "should return true if git remote exist" do
-      io = mock(:read => "origin\nfoo-staging")
+      io = mock(:read => "origin\nshelly")
       IO.should_receive(:popen).with("git remote").and_return(io)
       @app.git_remote_exist?.should be_true
     end
