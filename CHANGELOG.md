@@ -1,4 +1,4 @@
-## master
+## 0.2.22 / 2013-05-20
 
 * [improvement] default application name is created without -staging/-production suffix
 * [improvement] git remote created after `shelly add` and `shelly setup` is named 'shelly'
