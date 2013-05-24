@@ -611,7 +611,7 @@ Wait until cloud is in 'turned off' state and try again.}
 
         def ask_for_organization(default_name)
           organizations = Shelly::User.new.organizations
-          if organizations.count > 1
+          unless organizations.blank?
             count = organizations.count
             option_selected = 0
             loop do

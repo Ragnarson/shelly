@@ -581,10 +581,7 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
 
       context "ask user for organization" do
         before do
-          @client.stub(:organizations).and_return([
-            {"name" => "aaa"},
-            {"name" => "ccc"}
-          ])
+          @client.stub(:organizations).and_return([{"name" => "aaa"}])
         end
 
         it "should ask user to choose organization if present and use chosen organization" do
@@ -592,9 +589,8 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
           $stdout.should_receive(:puts).with("Select organization for this cloud:")
           $stdout.should_receive(:puts).with("existing organizations:")
           $stdout.should_receive(:puts).with("  1) aaa")
-          $stdout.should_receive(:puts).with("  2) ccc")
           $stdout.should_receive(:puts).with("new organization (default as code name):")
-          $stdout.should_receive(:puts).with("  3) foooo")
+          $stdout.should_receive(:puts).with("  2) foooo")
           $stdout.should_receive(:print).with("Option: ")
           fake_stdin(["foooo", "none", "1"]) do
             invoke(@main, :add)
@@ -606,11 +602,10 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
           $stdout.should_receive(:puts).with("Select organization for this cloud:")
           $stdout.should_receive(:puts).with("existing organizations:")
           $stdout.should_receive(:puts).with("  1) aaa")
-          $stdout.should_receive(:puts).with("  2) ccc")
           $stdout.should_receive(:puts).with("new organization (default as code name):")
-          $stdout.should_receive(:puts).with("  3) foooo")
+          $stdout.should_receive(:puts).with("  2) foooo")
           $stdout.should_receive(:print).with("Option: ")
-          fake_stdin(["foooo", "none", "3"]) do
+          fake_stdin(["foooo", "none", "2"]) do
             invoke(@main, :add)
           end
         end

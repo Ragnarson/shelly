@@ -1,3 +1,5 @@
+[bug] `shelly add` shows ask for existing organization if user owns at least one
+
 ## 0.2.22 / 2013-05-20
 
 * [improvement] default application name is created without -staging/-production suffix
