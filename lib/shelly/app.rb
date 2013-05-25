@@ -39,21 +39,21 @@ module Shelly
       @databases = dbs - ['none']
     end
 
-    def add_git_remote
-      system("git remote rm shelly > /dev/null 2>&1")
-      system("git remote add shelly #{git_url}")
+    def add_git_remote(remote_name = 'shelly')
+      system("git remote rm #{remote_name} > /dev/null 2>&1")
+      system("git remote add #{remote_name} #{git_url}")
     end
 
-    def git_remote_exist?
-      IO.popen("git remote").read.include?('shelly')
+    def git_remote_exist?(remote_name = 'shelly')
+      IO.popen("git remote").read.include?(remote_name)
     end
 
-    def git_fetch_remote
-      system("git fetch shelly > /dev/null 2>&1")
+    def git_fetch_remote(remote = 'shelly')
+      system("git fetch #{remote} > /dev/null 2>&1")
     end
 
-    def git_add_tracking_branch
-      system("git checkout -b shelly --track shelly/master > /dev/null 2>&1")
+    def git_add_tracking_branch(remote = 'shelly')
+      system("git checkout -b #{remote} --track #{remote}/master > /dev/null 2>&1")
     end
 
     def remove_git_remote

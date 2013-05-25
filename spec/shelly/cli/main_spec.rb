@@ -484,17 +484,14 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
         end
 
         it "should ask if one exist and not overwrite" do
+          @app.stub(:git_remote_exist?).with('test').and_return(false)
           $stdout.should_receive(:print).with("Git remote shelly exists, overwrite (yes/no):  ")
-          $stdout.should_receive(:puts).with("You have to manually add git remote:")
-          $stdout.should_receive(:puts).with("`git remote add NAME git@git.shellycloud.com:foooo.git`")
-          $stdout.should_receive(:puts).with("\e[32mWhen you make sure all settings are correct please issue following commands:\e[0m")
-          $stdout.should_receive(:puts).with("  git add .")
-          $stdout.should_receive(:puts).with('  git commit -m "Application added to Shelly Cloud"')
-          $stdout.should_receive(:puts).with("  git push")
-          $stdout.should_receive(:puts).with("\e[32mDeploy to your cloud using:\e[0m")
-          $stdout.should_receive(:puts).with("  git push NAME master")
+          $stdout.should_receive(:print).with("Specify remote name: ")
+          $stdout.should_receive(:puts).with(green "Adding remote test git@git.shellycloud.com:foooo.git")
+          $stdout.should_receive(:puts).with("  git push test master")
+
           @app.should_not_receive(:add_git_remote)
-          fake_stdin(["foooo", "", "no"]) do
+          fake_stdin(["foooo", "", "no", "test"]) do
             invoke(@main, :add)
           end
         end
@@ -1108,10 +1105,12 @@ Wait until cloud is in 'turned off' state and try again.")
 
       context "and user answers no" do
         it "should display commands to perform manually" do
-          @app.should_not_receive(:add_git_remote)
-          @app.should_not_receive(:git_fetch_remote)
-          @app.should_not_receive(:git_add_tracking_branch)
-          fake_stdin(["no"]) do
+          @app.stub(:git_remote_exist?).with('remote').and_return(false)
+          $stdout.should_receive(:print).with("Specify remote name: ")
+          @app.should_receive(:add_git_remote).with('remote')
+          @app.should_receive(:git_fetch_remote).with('remote')
+          @app.should_receive(:git_add_tracking_branch).with('remote')
+          fake_stdin(["no", "remote"]) do
             invoke(@main, :setup)
           end
         end

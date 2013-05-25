@@ -236,7 +236,7 @@ Wait until cloud is in 'turned off' state and try again.}
         app = multiple_clouds(options[:cloud], "setup")
         say "Setting up #{app} cloud", :green
         app.git_url = app.attributes["git_info"]["repository_url"]
-        if overwrite_remote?(app)
+        if overwrite_default_remote?(app)
           say "git remote add shelly #{app.git_url}"
           app.add_git_remote
           say "git fetch shelly"
@@ -244,10 +244,20 @@ Wait until cloud is in 'turned off' state and try again.}
           say "git checkout -b shelly --track shelly/master"
           app.git_add_tracking_branch
         else
-          say "You have to manually add remote:"
-          say "`git remote add shelly #{app.git_url}`"
-          say "`git fetch shelly`"
-          say "`git checkout -b shelly --track shelly/master`"
+          loop do
+            remote = ask('Specify remote name:')
+            if app.git_remote_exist?(remote)
+              say("Remote '#{remote}' already exists")
+            else
+              say "git remote add #{remote} #{app.git_url}"
+              app.add_git_remote(remote)
+              say "git fetch shelly"
+              app.git_fetch_remote(remote)
+              say "git checkout -b shelly --track shelly/master"
+              app.git_add_tracking_branch(remote)
+              return
+            end
+          end
         end
 
         say_new_line
@@ -554,21 +564,29 @@ Wait until cloud is in 'turned off' state and try again.}
           databases.all? { |kind| kinds.include?(kind) }
         end
 
-        def overwrite_remote?(app)
+        def overwrite_default_remote?(app)
           git_remote = app.git_remote_exist?
           !git_remote or (git_remote and yes?("Git remote shelly exists, overwrite (yes/no): "))
         end
 
         def add_remote(app)
-          if overwrite_remote?(app)
+          remote = if overwrite_default_remote?(app)
             say "Adding remote shelly #{app.git_url}", :green
-            app.add_git_remote
             "shelly"
           else
-            say "You have to manually add git remote:"
-            say "`git remote add NAME #{app.git_url}`"
-            "NAME"
+            loop do
+              remote = ask('Specify remote name:')
+              if app.git_remote_exist?(remote)
+                say("Remote '#{remote}' already exists")
+              else
+                say "Adding remote #{remote} #{app.git_url}", :green
+                return remote
+              end
+            end
           end
+
+          app.add_git_remote(remote)
+          remote
         end
 
         def ask_for_password(options = {})
