@@ -79,6 +79,11 @@ describe Shelly::CLI::Backup do
         hooks(@backup, :get).should include(:logged_in?)
       end
 
+      it "should have a 'download' alias" do
+        @client.should_receive(:download_backup).with("foo-staging", "better.tar.gz", @bar.progress_callback)
+        invoke(@backup, :download, "better.tar.gz")
+      end
+
       # multiple_clouds is tested in main_spec.rb in describe "#start" block
       it "should ensure multiple_clouds check" do
         @client.should_receive(:database_backup).with("foo-staging", "last")

@@ -38,6 +38,7 @@ module Shelly
         end
       end
 
+      map "download" => :get
       desc "get [FILENAME]", "Download database backup"
       long_desc %{
         Download given database backup to current directory.

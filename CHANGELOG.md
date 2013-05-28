@@ -1,3 +1,7 @@
+## master
+
+* [improvement] 'shelly backup download' is now aliased to 'shelly backup get'
+
 ## 0.2.23 / 2013-05-25
 
 * [bug] `shelly add` ask for existing organization if user owns at least one
