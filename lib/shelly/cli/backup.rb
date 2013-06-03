@@ -9,7 +9,7 @@ module Shelly
       namespace :backup
       include Helpers
 
-      before_hook :logged_in?, :only => [:list, :get, :create, :restore]
+      before_hook :logged_in?, :only => [:list, :get, :create, :restore, :import]
 
       class_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
 
@@ -97,6 +97,37 @@ module Shelly
         say "You can list available backups with `shelly backup list` command"
       rescue Client::ConflictException => e
         say_error e[:message]
+      end
+
+      desc "import KIND FILENAME", "Import database from dump file"
+      long_desc %{
+        Import database from local dump file to your cloud
+        KIND - Database kind. Possible values are: postgresql or mongodb
+        FILENAME - Database dump file or directory (mongodb), it has to be in current working directory.
+      }
+      def import(kind, filename)
+        app = multiple_clouds(options[:cloud], "backup import KIND FILENAME")
+        unless ::File.exist?(filename)
+          say_error "File #{filename} doesn't exist"
+        end
+        say "You are about import #{kind} database for cloud #{app} to state from file #{filename}"
+        ask_to_import_database
+        archive = compress(filename)
+        say "Uploading #{archive}", :green
+        app.upload(archive)
+        say "Uploading done", :green
+        say "Importing database", :green
+        app.import_database(kind, archive)
+        say "Database imported successfully", :green
+      end
+
+      no_tasks do
+        def compress(filename)
+          archive_name = "#{::File.basename(filename)}.tar"
+          say "Compressing #{filename} into #{archive_name}", :green
+          system("tar -cf #{archive_name} #{filename}")
+          archive_name
+        end
       end
     end
   end

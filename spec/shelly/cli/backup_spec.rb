@@ -251,4 +251,67 @@ describe Shelly::CLI::Backup do
       end
     end
   end
+
+  describe "#import" do
+    before do
+      FileUtils.touch("dump.sql")
+      @app.stub(:upload => nil, :ssh => nil)
+      @backup.stub(:system)
+      $stdout.stub(:puts)
+      $stdout.stub(:print)
+    end
+
+    it "should ensure user has logged in" do
+      hooks(@backup, :import).should include(:logged_in?)
+    end
+
+    it "should compress file" do
+      @backup.should_receive(:system).with("tar -cf dump.sql.tar dump.sql")
+      $stdout.should_receive(:puts).with(green "Compressing dump.sql into dump.sql.tar")
+      fake_stdin(["yes"]) do
+        invoke(@backup, :import, "postgresql", "dump.sql")
+      end
+    end
+
+    it "should upload compressed file" do
+      @app.should_receive(:upload).with("dump.sql.tar")
+      $stdout.should_receive(:puts).with(green "Uploading dump.sql.tar")
+      fake_stdin(["yes"]) do
+        invoke(@backup, :import, "postgresql", "dump.sql")
+      end
+    end
+
+    it "should import given database from uploaded file" do
+      @app.should_receive(:ssh).with(:command => "import_database postgresql dump.sql.tar")
+      $stdout.should_receive(:puts).with(green "Importing database")
+      fake_stdin(["yes"]) do
+        invoke(@backup, :import, "postgresql", "dump.sql")
+      end
+    end
+
+    context "on answering no" do
+      it "should cancel database import" do
+        $stdout.should_receive(:puts).with("You are about import postgresql database for cloud foo-staging to state from file dump.sql")
+        $stdout.should_receive(:print).with("I want to import the database (yes/no): ")
+        $stdout.should_receive(:puts).with(red "Canceled")
+        lambda {
+          fake_stdin(["no"]) do
+            invoke(@backup, :import, "postgresql", "dump.sql")
+          end
+        }.should raise_error(SystemExit)
+      end
+    end
+
+    context "file doesn't exist" do
+      it "should exit with error" do
+        FileUtils.rm("dump.sql")
+        $stdout.should_receive(:puts).with(red "File dump.sql doesn't exist")
+        lambda {
+          fake_stdin(["yes"]) do
+            invoke(@backup, :import, "postgresql", "dump.sql")
+          end
+        }.should raise_error(SystemExit)
+      end
+    end
+  end
 end
