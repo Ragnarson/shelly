@@ -42,6 +42,12 @@ describe Shelly::CLI::Config do
 
       invoke(@config, :list)
     end
+
+    it "should show no configuration files message" do
+      @client.should_receive(:app_configs).with("foo-production").and_return([])
+      $stdout.should_receive(:puts).with("Cloud foo-production has no configuration files")
+      invoke(@config, :list)
+    end
   end
 
   describe "#show" do

@@ -28,7 +28,7 @@ module Shelly
             print_configs(shelly_configs)
           end
         else
-          say "Cloud #{cloud} has no configuration files"
+          say "Cloud #{app} has no configuration files"
         end
       end
 
