@@ -1,4 +1,4 @@
-## master
+## 0.2.24 / 2013-06-04
 
 * [bug] exit gracefully when downloaded or restored database backup doesn't exist
 * [bug] 'shelly config list' doesn't quit with error if cloud has no configuration files
