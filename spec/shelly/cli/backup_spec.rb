@@ -112,7 +112,7 @@ describe Shelly::CLI::Backup do
 
       context "on backup not found" do
         it "it should display error message" do
-          exception = Shelly::Client::NotFoundException.new({"resource" => "database_backup"})
+          exception = Shelly::Client::NotFoundException.new({"resource" => "backup"})
           @client.stub(:database_backup).and_raise(exception)
           $stdout.should_receive(:puts).with(red "Backup not found")
           $stdout.should_receive(:puts).with("You can list available backups with `shelly backup list` command")
@@ -242,7 +242,7 @@ describe Shelly::CLI::Backup do
 
     context "on backup not found" do
       it "should display error message" do
-        response = {"resource" => "database_backup"}
+        response = {"resource" => "backup"}
         exception = Shelly::Client::NotFoundException.new(response)
         @client.stub(:database_backup).and_raise(exception)
         $stdout.should_receive(:puts).with(red "Backup not found")

@@ -54,7 +54,7 @@ module Shelly
         say_new_line
         say "Backup file saved to #{backup.filename}", :green
       rescue Client::NotFoundException => e
-        raise unless e.resource == :database_backup
+        raise unless e.resource == :backup
         say_error "Backup not found", :with_exit => false
         say "You can list available backups with `shelly backup list` command"
       end
@@ -92,7 +92,7 @@ module Shelly
         say_new_line
         say "Restore has been scheduled. Wait a few minutes till database is restored.", :green
       rescue Client::NotFoundException => e
-        raise unless e.resource == :database_backup
+        raise unless e.resource == :backup
         say_error "Backup not found", :with_exit => false
         say "You can list available backups with `shelly backup list` command"
       rescue Client::ConflictException => e
