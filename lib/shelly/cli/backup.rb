@@ -85,7 +85,7 @@ module Shelly
       def restore(filename)
         app = multiple_clouds(options[:cloud], "backup restore FILENAME")
         backup = app.database_backup(filename)
-        say "You are about restore database #{backup.kind} for cloud #{backup.code_name} to state from #{backup.filename}"
+        say "You are about restore #{backup.kind} database for cloud #{backup.code_name} to state from #{backup.filename}"
         say_new_line
         ask_to_restore_database
         app.restore_backup(filename)

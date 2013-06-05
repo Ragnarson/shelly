@@ -193,8 +193,8 @@ describe Shelly::CLI::Backup do
 
   describe "restore" do
     before do
-      @client.stub(:database_backup).and_return({"filename" => "better.tar.gz", "size" => 12345, "kind" => "postgre"})
-      @client.stub(:restore_backup).and_return({"filename" => "better.tar.gz", "size" => 12345, "kind" => "postgre"})
+      @client.stub(:database_backup).and_return({"filename" => "better.tar.gz", "size" => 12345, "kind" => "postgresql"})
+      @client.stub(:restore_backup).and_return({"filename" => "better.tar.gz", "size" => 12345, "kind" => "postgresql"})
       $stdout.stub(:puts)
       $stdout.stub(:print)
     end
@@ -213,7 +213,7 @@ describe Shelly::CLI::Backup do
     end
 
     it "should restore database" do
-      $stdout.should_receive(:puts).with("You are about restore database postgre for cloud foo-staging to state from better.tar.gz")
+      $stdout.should_receive(:puts).with("You are about restore postgresql database for cloud foo-staging to state from better.tar.gz")
       $stdout.should_receive(:print).with("I want to restore the database (yes/no): ")
       $stdout.should_receive(:puts).with("\n")
       @client.stub(:restore_backup).with("todo-list-test","better.tar.gz")
@@ -227,7 +227,7 @@ describe Shelly::CLI::Backup do
 
     context "when answering no" do
       it "should cancel restore database" do
-        $stdout.should_receive(:puts).with("You are about restore database postgre for cloud foo-staging to state from better.tar.gz")
+        $stdout.should_receive(:puts).with("You are about restore postgresql database for cloud foo-staging to state from better.tar.gz")
         $stdout.should_receive(:print).with("I want to restore the database (yes/no): ")
         $stdout.should_receive(:puts).with("\n")
         $stdout.should_receive(:puts).with(red "Canceled")
