@@ -120,6 +120,10 @@ module Shelly
       shelly.restore_backup(code_name, filename)
     end
 
+    def import_database(kind, filename)
+      ssh(:command => "import_database #{kind} #{filename}")
+    end
+
     def request_backup(kinds)
       Array(kinds).each do |kind|
         shelly.request_backup(code_name, kind)
@@ -342,7 +346,7 @@ module Shelly
 
     def ssh(options = {})
       conn = console_connection(options[:server])
-      exec "ssh #{ssh_options(conn)} -t #{conn['host']} #{options[:command]}"
+      system "ssh #{ssh_options(conn)} -t #{conn['host']} #{options[:command]}"
     end
 
     def ssh_options(conn = console_connection)
@@ -350,7 +354,7 @@ module Shelly
     end
 
     def rsync(source, destination)
-      exec "rsync -avz -e 'ssh #{ssh_options}' --progress #{source} #{destination}"
+      system "rsync -avz -e 'ssh #{ssh_options}' --progress #{source} #{destination}"
     end
   end
 end

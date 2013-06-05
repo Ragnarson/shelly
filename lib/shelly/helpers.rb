@@ -72,6 +72,11 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository}
       say_new_line say_error "Canceled" unless delete_application == "yes"
     end
 
+    def ask_to_import_database
+      import_database = ask("I want to import the database (yes/no):")
+      say_new_line say_error "Canceled" unless import_database == "yes"
+    end
+
     def logged_in?
       user = Shelly::User.new
       user.token
