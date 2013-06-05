@@ -68,10 +68,12 @@ describe Shelly::CLI::Backup do
 
     describe "#get" do
       before do
-        @client.stub(:download_backup)
+        @client.stub(:download_file)
         @bar = mock(:progress_callback => @callback)
         Shelly::DownloadProgressBar.stub(:new).and_return(@bar)
         @client.stub(:database_backup).and_return({"filename" => "better.tar.gz", "size" => 12345})
+        @client.stub(:download_backup_url).with("foo-staging", "better.tar.gz").
+          and_return("https://backups.example.com")
         $stdout.stub(:puts)
       end
 
@@ -80,33 +82,40 @@ describe Shelly::CLI::Backup do
       end
 
       it "should have a 'download' alias" do
-        @client.should_receive(:download_backup).with("foo-staging", "better.tar.gz", @bar.progress_callback)
+        @client.should_receive(:download_file).with("foo-staging", "better.tar.gz",
+                                                    "https://backups.example.com",
+                                                    @bar.progress_callback)
         invoke(@backup, :download, "better.tar.gz")
       end
 
       # multiple_clouds is tested in main_spec.rb in describe "#start" block
       it "should ensure multiple_clouds check" do
+        @client.should_receive(:download_backup_url).with("foo-staging", "better.tar.gz")
         @client.should_receive(:database_backup).with("foo-staging", "last")
         @backup.should_receive(:multiple_clouds).and_return(@app)
         invoke(@backup, :get)
       end
 
       it "should fetch backup size and initialize download progress bar" do
-        @client.stub(:database_backup).and_return({"filename" => "backup.postgres.tar.gz", "size" => 333})
+        @client.stub(:database_backup).and_return({"filename" => "better.tar.gz", "size" => 333})
         Shelly::DownloadProgressBar.should_receive(:new).with(333).and_return(@bar)
 
         invoke(@backup, :get)
       end
 
       it "should fetch given backup file itself" do
-        @client.should_receive(:download_backup).with("foo-staging", "better.tar.gz", @bar.progress_callback)
+        @client.should_receive(:download_file).with("foo-staging", "better.tar.gz",
+                                                    "https://backups.example.com",
+                                                    @bar.progress_callback)
         invoke(@backup, :get, "better.tar.gz")
       end
 
       it "should show info where file has been saved" do
         $stdout.should_receive(:puts)
         $stdout.should_receive(:puts).with(green "Backup file saved to better.tar.gz")
-        @client.should_receive(:download_backup).with("foo-staging", "better.tar.gz", @bar.progress_callback)
+        @client.should_receive(:download_file).with("foo-staging", "better.tar.gz",
+                                                    "https://backups.example.com",
+                                                    @bar.progress_callback)
         invoke(@backup, :get, "last")
       end
 

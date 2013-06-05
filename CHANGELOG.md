@@ -1,4 +1,9 @@
+## master
+
+* [feature] user is able to download logs for a given day by `shelly logs get [DATE]`
+
 ## 0.2.26 / 2013-06-10
+
 * [bug] `shelly backup import` now actually compresses the file (bzip2 is used)
 * [improvement] `shelly backup import` also accepts path to dump file
 

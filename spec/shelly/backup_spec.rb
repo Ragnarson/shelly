@@ -5,6 +5,7 @@ describe Shelly::Backup do
   before do
     @client = mock
     Shelly::Client.stub(:new).and_return(@client)
+    @client.stub(:download_backup_url).and_return("https://backups.example.com")
   end
 
   it "should assign attributes" do
@@ -20,7 +21,9 @@ describe Shelly::Backup do
   describe "#download" do
     it "should download given backup via API file with filename to which backup will be downloaded" do
       callback = lambda {}
-      @client.should_receive(:download_backup).with("foo", "backup.tar.gz", callback)
+      @client.should_receive(:download_backup_url).with("foo", "backup.tar.gz")
+      @client.should_receive(:download_file).with("foo", "backup.tar.gz",
+                                                  "https://backups.example.com", callback)
       backup = Shelly::Backup.new(attributes)
       backup.download(callback)
     end

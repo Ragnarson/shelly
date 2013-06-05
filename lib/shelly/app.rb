@@ -105,6 +105,14 @@ module Shelly
       shelly.application_logs_tail(code_name) { |l| yield(l) }
     end
 
+    def download_application_logs_attributes(date)
+      shelly.download_application_logs_attributes(code_name, date)
+    end
+
+    def download_application_logs(options, callback)
+      shelly.download_file(code_name, options["filename"], options["url"], callback)
+    end
+
     def database_backups
       shelly.database_backups(code_name).map do |attributes|
         Shelly::Backup.new(attributes.merge("code_name" => code_name))

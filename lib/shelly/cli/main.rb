@@ -6,6 +6,7 @@ require "shelly/cli/deploy"
 require "shelly/cli/config"
 require "shelly/cli/file"
 require "shelly/cli/organization"
+require "shelly/cli/logs"
 
 module Shelly
   module CLI
@@ -16,11 +17,12 @@ module Shelly
       register_subcommand(Config, "config", "config <command>", "Manage application configuration files")
       register_subcommand(File, "file", "file <command>", "Upload and download files to and from persistent storage")
       register_subcommand(Organization, "organization", "organization <command>", "View organizations")
+      register_subcommand(Logs, "logs", "logs <command>", "View application logs")
 
       check_unknown_options!(:except => :rake)
 
       # FIXME: it should be possible to pass single symbol, instead of one element array
-      before_hook :logged_in?, :only => [:add, :status, :list, :start, :stop, :logs, :delete, :info, :ip, :logout, :execute, :rake, :setup, :console, :dbconsole]
+      before_hook :logged_in?, :only => [:add, :status, :list, :start, :stop, :delete, :info, :ip, :logout, :execute, :rake, :setup, :console, :dbconsole]
       before_hook :inside_git_repository?, :only => [:add, :setup, :check]
 
       map %w(-v --version) => :version
@@ -313,31 +315,6 @@ Wait until cloud is in 'turned off' state and try again.}
         end
       rescue Client::ConflictException => e
         say_error e[:message]
-      end
-
-      desc "logs", "Show latest application logs"
-      method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
-      method_option :limit, :type => :numeric, :aliases => "-n", :desc => "Amount of messages to show"
-      method_option :from, :type => :string, :desc => "Time from which to find the logs"
-      method_option :source, :type => :string, :aliases => "-s", :desc => "Limit logs to a single source, e.g. nginx"
-      method_option :tail, :type => :boolean, :aliases => "-f", :desc => "Show new logs automatically"
-      def logs
-        cloud = options[:cloud]
-        app = multiple_clouds(cloud, "logs")
-        limit = options[:limit].to_i <= 0 ? 100 : options[:limit]
-        query = {:limit => limit, :source => options[:source]}
-        query.merge!(:from => options[:from]) if options[:from]
-
-        logs = app.application_logs(query)
-        print_logs(logs)
-
-        if options[:tail]
-          app.application_logs_tail { |logs| print logs }
-        end
-
-      rescue Client::APIException => e
-        raise e unless e.status_code == 416
-        say_error "You have requested too many log messages. Try a lower number."
       end
 
       desc "logout", "Logout from Shelly Cloud"
