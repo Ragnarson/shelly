@@ -1,3 +1,7 @@
+## 0.2.25 / 2013-06-06
+
+* [feature] It's possible to import PostgreSQL and MongoDB database from a dump file with `shelly backup import KIND FILENAME`. See our documentation for more info https://shellycloud.com/documentation/database_backups#import_database
+
 ## 0.2.24 / 2013-06-04
 
 * [bug] exit gracefully when downloaded or restored database backup doesn't exist
