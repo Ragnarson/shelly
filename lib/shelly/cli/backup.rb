@@ -103,7 +103,7 @@ module Shelly
       long_desc %{
         Import database from local dump file to your cloud
         KIND - Database kind. Possible values are: postgresql or mongodb
-        FILENAME - Database dump file or directory (mongodb), it has to be in current working directory.
+        FILENAME - Database dump file or directory (mongodb)
       }
       def import(kind, filename)
         app = multiple_clouds(options[:cloud], "backup import KIND FILENAME")
