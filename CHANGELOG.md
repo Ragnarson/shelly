@@ -1,3 +1,7 @@
+## 0.2.26 / 2013-06-10
+* [bug] `shelly backup import` now actually compresses the file (bzip2 is used)
+* [improvement] `shelly backup import` also accepts path to dump file
+
 ## 0.2.25 / 2013-06-06
 
 * [feature] It's possible to import PostgreSQL and MongoDB database from a dump file with `shelly backup import KIND FILENAME`. See our documentation for more info https://shellycloud.com/documentation/database_backups#import_database
