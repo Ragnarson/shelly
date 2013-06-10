@@ -255,7 +255,7 @@ describe Shelly::CLI::Backup do
   describe "#import" do
     before do
       FileUtils.touch("dump.sql")
-      @app.stub(:upload => nil, :ssh => nil)
+      @app.stub(:upload => {"server" => "app1"}, :ssh => nil)
       @backup.stub(:system)
       $stdout.stub(:puts)
       $stdout.stub(:print)
@@ -282,7 +282,8 @@ describe Shelly::CLI::Backup do
     end
 
     it "should import given database from uploaded file" do
-      @app.should_receive(:ssh).with(:command => "import_database postgresql dump.sql.tar")
+      @app.should_receive(:ssh).with(:command => "import_database postgresql dump.sql.tar",
+        :server => "app1")
       $stdout.should_receive(:puts).with(green "Importing database")
       fake_stdin(["yes"]) do
         invoke(@backup, :import, "postgresql", "dump.sql")

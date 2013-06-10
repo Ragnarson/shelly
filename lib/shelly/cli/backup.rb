@@ -114,10 +114,10 @@ module Shelly
         ask_to_import_database
         archive = compress(filename)
         say "Uploading #{archive}", :green
-        app.upload(archive)
+        connection = app.upload(archive)
         say "Uploading done", :green
         say "Importing database", :green
-        app.import_database(kind, archive)
+        app.import_database(kind, archive, connection["server"])
         say "Database imported successfully", :green
       end
 

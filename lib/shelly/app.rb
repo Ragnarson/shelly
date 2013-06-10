@@ -120,8 +120,9 @@ module Shelly
       shelly.restore_backup(code_name, filename)
     end
 
-    def import_database(kind, filename)
-      ssh(:command => "import_database #{kind} #{filename}")
+    def import_database(kind, filename, server)
+      ssh(:command => "import_database #{kind} #{filename}",
+        :server => server)
     end
 
     def request_backup(kinds)
@@ -248,8 +249,9 @@ module Shelly
     end
 
     def upload(source)
-      conn = console_connection
-      rsync(source, "#{conn['host']}:/srv/glusterfs/disk")
+      console_connection.tap do |conn|
+        rsync(source, "#{conn['host']}:/srv/glusterfs/disk")
+      end
     end
 
     def download(relative_source, destination)
