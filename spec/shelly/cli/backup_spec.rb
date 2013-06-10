@@ -259,6 +259,7 @@ describe Shelly::CLI::Backup do
       @backup.stub(:system)
       $stdout.stub(:puts)
       $stdout.stub(:print)
+      Time.stub_chain(:now, :to_i => 1370879705)
     end
 
     it "should ensure user has logged in" do
@@ -266,23 +267,23 @@ describe Shelly::CLI::Backup do
     end
 
     it "should compress file" do
-      @backup.should_receive(:system).with("tar -cf dump.sql.tar dump.sql")
-      $stdout.should_receive(:puts).with(green "Compressing dump.sql into dump.sql.tar")
+      @backup.should_receive(:system).with("tar -cjf dump.sql-1370879705.tar.bz2 dump.sql")
+      $stdout.should_receive(:puts).with(green "Compressing dump.sql into dump.sql-1370879705.tar.bz2")
       fake_stdin(["yes"]) do
         invoke(@backup, :import, "postgresql", "dump.sql")
       end
     end
 
     it "should upload compressed file" do
-      @app.should_receive(:upload).with("dump.sql.tar")
-      $stdout.should_receive(:puts).with(green "Uploading dump.sql.tar")
+      @app.should_receive(:upload).with("dump.sql-1370879705.tar.bz2")
+      $stdout.should_receive(:puts).with(green "Uploading dump.sql-1370879705.tar.bz2")
       fake_stdin(["yes"]) do
         invoke(@backup, :import, "postgresql", "dump.sql")
       end
     end
 
     it "should import given database from uploaded file" do
-      @app.should_receive(:ssh).with(:command => "import_database postgresql dump.sql.tar",
+      @app.should_receive(:ssh).with(:command => "import_database postgresql dump.sql-1370879705.tar.bz2",
         :server => "app1")
       $stdout.should_receive(:puts).with(green "Importing database")
       fake_stdin(["yes"]) do
