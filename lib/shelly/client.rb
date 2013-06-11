@@ -174,6 +174,16 @@ module Shelly
       RestClient::Request.execute(options)
     end
 
+    def download_application_logs_attributes(code_name, options)
+      attributes = get("/apps/#{code_name}/application_logs/download#{query(options)}")
+      headers = RestClient::Request.execute({
+        :method => :get,
+        :url => "#{attributes["url"]}/headers"
+      }.merge(http_basic_auth_options)).headers
+
+      attributes.merge("size" => headers[:content_lenght].to_i)
+    end
+
     def database_backups(code_name)
       get("/apps/#{code_name}/database_backups")
     end
@@ -227,7 +237,7 @@ module Shelly
       request(path, :delete, params)
     end
 
-    def download_backup(cloud, filename, progress_callback = nil)
+    def download_file(cloud, filename, url, progress_callback = nil)
       File.open(filename, "wb") do |out|
         process_response = lambda do |response|
           response.read_body do |chunk|
@@ -237,7 +247,7 @@ module Shelly
         end
 
         options = {
-          :url            => download_backup_url(cloud, filename),
+          :url            => url,
           :method         => :get,
           :block_response => process_response,
           :headers => {:accept => "application/x-gzip"}
