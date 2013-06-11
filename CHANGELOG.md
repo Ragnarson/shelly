@@ -1,4 +1,4 @@
-## master
+## 0.2.27 / 2013-06-11
 
 * [feature] user is able to download logs for a given day by `shelly logs get [DATE]`
 
