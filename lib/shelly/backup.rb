@@ -13,7 +13,8 @@ module Shelly
     end
 
     def download(callback)
-      shelly.download_backup(code_name, filename, callback)
+      url = shelly.download_backup_url(code_name, filename)
+      shelly.download_file(code_name, filename, url, callback)
     end
   end
 end
