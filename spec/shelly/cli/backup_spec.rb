@@ -296,7 +296,7 @@ describe Shelly::CLI::Backup do
         :server => "app1")
       $stdout.should_receive(:puts).with(green "Importing database")
       fake_stdin(["yes"]) do
-        invoke(@backup, :import, "postgresql", "dump.sql")
+        invoke(@backup, :import, "PostgreSQL", "dump.sql")
       end
     end
 

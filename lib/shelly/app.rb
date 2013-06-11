@@ -129,7 +129,7 @@ module Shelly
     end
 
     def import_database(kind, filename, server)
-      ssh(:command => "import_database #{kind} #{filename}",
+      ssh(:command => "import_database #{kind.downcase} #{filename}",
         :server => server)
     end
 
