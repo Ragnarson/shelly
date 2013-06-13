@@ -47,8 +47,7 @@ module Shelly
 
         unless options[:force]
           question = "Do you want to permanently delete #{path} (yes/no):"
-          delete_files = ask(question)
-          exit 1 unless delete_files == "yes"
+          exit 1 unless yes?(question)
         end
 
         app.delete_file(path)

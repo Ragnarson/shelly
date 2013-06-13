@@ -30,26 +30,22 @@ module Shelly
 
     def ask_to_delete_files
       delete_files_question = "I want to delete all files stored on Shelly Cloud (yes/no):"
-      delete_files = ask(delete_files_question)
-      exit 1 unless delete_files == "yes"
+      exit 1 unless yes?(delete_files_question)
     end
 
     def ask_to_delete_database
       delete_database_question = "I want to delete all database data stored on Shelly Cloud (yes/no):"
-      delete_database = ask(delete_database_question)
-      exit 1 unless delete_database == "yes"
+      exit 1 unless yes?(delete_database_question)
     end
 
     def ask_to_delete_application
       delete_application_question = "I want to delete the application (yes/no):"
-      delete_application = ask(delete_application_question)
-      exit 1 unless delete_application == "yes"
+      exit 1 unless yes?(delete_application_question)
     end
 
     def ask_for_acceptance_of_terms
       acceptance_question = "Do you accept the Terms of Service of Shelly Cloud (https://shellycloud.com/terms_of_service) (yes/no)"
-      acceptance = ask(acceptance_question)
-      unless acceptance == "yes"
+      unless yes?(acceptance_question)
         say_error "You must accept the Terms of Service to use Shelly Cloud"
       end
     end
@@ -67,14 +63,13 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository}
     end
 
     def ask_to_restore_database
-      delete_application_question = "I want to restore the database (yes/no):"
-      delete_application = ask(delete_application_question)
-      say_new_line say_error "Canceled" unless delete_application == "yes"
+      question = "I want to restore the database (yes/no):"
+      say_new_line say_error "Canceled" unless yes?(question)
     end
 
     def ask_to_import_database
-      import_database = ask("I want to import the database (yes/no):")
-      say_new_line say_error "Canceled" unless import_database == "yes"
+      question = "I want to import the database (yes/no):"
+      say_new_line say_error "Canceled" unless yes?(question)
     end
 
     def logged_in?

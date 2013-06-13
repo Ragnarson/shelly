@@ -1200,7 +1200,7 @@ Wait until cloud is in 'turned off' state and try again.")
         $stdout.should_receive(:puts).with("\n")
         $stdout.should_receive(:puts).with("Scheduling application delete - done")
         $stdout.should_receive(:puts).with("Removing git remote - done")
-        fake_stdin(["yes", "yes", "yes"]) do
+        fake_stdin(["yes", "y", "yes"]) do
           invoke(@main, :delete)
         end
       end

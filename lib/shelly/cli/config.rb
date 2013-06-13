@@ -81,8 +81,7 @@ module Shelly
       desc "delete PATH", "Delete configuration file"
       def delete(path)
         app = multiple_clouds(options[:cloud], "config delete #{path}")
-        answer = yes?("Are you sure you want to delete 'path' (yes/no): ")
-        if answer
+        if yes?("Are you sure you want to delete 'path' (yes/no): ")
           app.delete_config(path)
           say "File '#{path}' deleted.", :green
           say "To make changes to running application redeploy it using:"

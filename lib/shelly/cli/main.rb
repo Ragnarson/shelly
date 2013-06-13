@@ -270,8 +270,7 @@ Wait until cloud is in 'turned off' state and try again.}
       method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
       def stop
         app = multiple_clouds(options[:cloud], "stop")
-        stop_question = "Are you sure you want to shut down '#{app}' cloud (yes/no):"
-        if ask(stop_question) == "yes"
+        if yes?("Are you sure you want to shut down '#{app}' cloud (yes/no):")
           deployment_id = app.stop
           say_new_line
           deployment_progress(app, deployment_id, "Stopping cloud")
