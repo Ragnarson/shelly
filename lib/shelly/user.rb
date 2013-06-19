@@ -55,8 +55,8 @@ module Shelly
     end
 
     def delete_ssh_key
-      shelly.logout(File.read(dsa_key)) if File.exists?(dsa_key)
-      shelly.logout(File.read(rsa_key)) if File.exists?(rsa_key)
+      shelly.delete_ssh_key(File.read(dsa_key)) if File.exists?(dsa_key)
+      shelly.delete_ssh_key(File.read(rsa_key)) if File.exists?(rsa_key)
     end
 
     def ssh_key_exists?

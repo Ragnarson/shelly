@@ -127,8 +127,8 @@ describe Shelly::User do
 
   describe "#delete_ssh_key" do
     it "should invoke logout when ssh key exists" do
-      @client.should_receive(:logout).with('rsa-key AAbbcc')
-      @client.should_receive(:logout).with('dsa-key AAbbcc')
+      @client.should_receive(:delete_ssh_key).with('rsa-key AAbbcc')
+      @client.should_receive(:delete_ssh_key).with('dsa-key AAbbcc')
       @user.delete_ssh_key
     end
 

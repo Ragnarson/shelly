@@ -1218,7 +1218,7 @@ Wait until cloud is in 'turned off' state and try again.")
       File.open("~/.ssh/id_rsa.pub", "w") { |f| f << "ssh-key AAbbcc" }
       @key_path = File.expand_path("~/.ssh/id_rsa.pub")
       File.open("~/.shelly/credentials", "w") { |f| f << "megan@fox.pl\nsecret" }
-      @client.stub(:logout).and_return(true)
+      @client.stub(:delete_ssh_key).and_return(true)
     end
 
     it "should ensure user has logged in" do
