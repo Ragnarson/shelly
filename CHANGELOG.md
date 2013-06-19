@@ -1,3 +1,7 @@
+## master
+
+* [improvement] API key is now stored in .netrc
+
 ## 0.2.28 / 2013-06-18
 
 * [improvement] user can answer 'y' to 'yes/no' questions

@@ -1,6 +1,7 @@
 require "rest_client"
 require "json"
 require "cgi"
+require "netrc"
 
 module Shelly
   class Client
@@ -15,20 +16,14 @@ module Shelly
     require 'shelly/client/deploys'
     require 'shelly/client/ssh_keys'
     require 'shelly/client/organizations'
-
-    attr_reader :email, :password
-
-    def initialize(email = nil, password = nil)
-      @email = email
-      @password = password
-    end
+    require 'shelly/client/auth'
 
     def api_url
       ENV["SHELLY_URL"] || "https://api.shellycloud.com/apiv2"
     end
 
-    def token
-      get("/token")
+    def api_host
+      URI.parse(api_url).host
     end
 
     def query(options = {})
@@ -86,7 +81,11 @@ module Shelly
     end
 
     def http_basic_auth_options
-      @email ? {:user => @email, :password => @password} : {}
+      if @email && @password
+        {:user => @email, :password => @password}
+      else
+        basic_auth_from_netrc
+      end
     end
 
     def request_parameters(path, method, params = {})

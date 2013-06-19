@@ -3,17 +3,20 @@ require "spec_helper"
 require "shelly/cli/main"
 
 describe Shelly::CLI::Main do
+  let(:user) { Shelly::User.new }
   before do
+    FileUtils.mkpath(File.expand_path("~"))
     FileUtils.stub(:chmod)
     @main = Shelly::CLI::Main.new
     Shelly::CLI::Main.stub(:new).and_return(@main)
     @client = mock
-    @client.stub(:token).and_return("abc")
+    @client.stub(:authorize!)
     @client.stub(:shellyapp_url).and_return("https://example.com")
     Shelly::Client.stub(:new).and_return(@client)
     Shelly::User.stub(:guess_email).and_return("")
     $stdout.stub(:puts)
     $stdout.stub(:print)
+    Shelly::User.stub(:new => user)
   end
 
   describe "#version" do
@@ -67,13 +70,10 @@ describe Shelly::CLI::Main do
 
   describe "#register" do
     before do
-      @client.stub(:register_user)
       @key_path = File.expand_path("~/.ssh/id_rsa.pub")
-      @user = Shelly::User.new
       FileUtils.mkdir_p("~/.ssh")
       File.open("~/.ssh/id_rsa.pub", "w") { |f| f << "ssh-key AAbbcc" }
-      @client.stub(:ssh_key_available?)
-      Shelly::User.stub(:new).and_return(@user)
+      user.stub(:register).with("better@example.com", "secret") { true }
     end
 
     it "should register user without local SSH Key and show message to create SSH Key" do
@@ -96,22 +96,16 @@ describe Shelly::CLI::Main do
     end
 
     it "should suggest email and use it if user enters blank email" do
+      user.should_receive(:register).with("kate@example.com", "secret")
       Shelly::User.stub(:guess_email).and_return("kate@example.com")
       $stdout.should_receive(:print).with("Email (kate@example.com - default): ")
-      @client.should_receive(:register_user).with("kate@example.com", "secret", "ssh-key AAbbcc")
       fake_stdin(["", "secret", "secret", "yes"]) do
         invoke(@main, :register)
       end
     end
 
-    it "should use email provided by user" do
-      @client.should_receive(:register_user).with("better@example.com", "secret", "ssh-key AAbbcc")
-      fake_stdin(["better@example.com", "secret", "secret", "yes"]) do
-        invoke(@main, :register)
-      end
-    end
-
     it "should not ask about email if it's provided as argument" do
+      user.should_receive(:register).with("kate@example.com", "secret")
       $stdout.should_receive(:puts).with("Registering with email: kate@example.com")
       fake_stdin(["secret", "secret", "yes"]) do
         invoke(@main, :register, "kate@example.com")
@@ -135,7 +129,7 @@ describe Shelly::CLI::Main do
         FileUtils.mkdir_p("~/.ssh")
         File.open(@key_path, "w") { |f| f << "key" }
         $stdout.should_receive(:puts).with("Uploading your public SSH key from #{@key_path}")
-        fake_stdin(["kate@example.com", "secret", "secret", "yes"]) do
+        fake_stdin(["better@example.com", "secret", "secret", "yes"]) do
           invoke(@main, :register)
         end
       end
@@ -143,10 +137,10 @@ describe Shelly::CLI::Main do
 
     context "public SSH key doesn't exist" do
       it "should register user without the public SSH key" do
-        @user.stub(:ssh_key_registered?)
+        user.stub(:ssh_key_registered?)
         FileUtils.rm_rf(@key_path)
         $stdout.should_not_receive(:puts).with("Uploading your public SSH key from #{@key_path}")
-        fake_stdin(["kate@example.com", "secret", "secret", "yes"]) do
+        fake_stdin(["better@example.com", "secret", "secret", "yes"]) do
           invoke(@main, :register)
         end
       end
@@ -154,10 +148,9 @@ describe Shelly::CLI::Main do
 
     context "on successful registration" do
       it "should display message about registration and email address confirmation" do
-        @client.stub(:register_user).and_return(true)
         $stdout.should_receive(:puts).with(green "Successfully registered!")
         $stdout.should_receive(:puts).with(green "Check you mailbox for email address confirmation")
-        fake_stdin(["kate@example.com", "pass", "pass", "yes"]) do
+        fake_stdin(["better@example.com", "secret", "secret", "yes"]) do
           invoke(@main, :register)
         end
       end
@@ -167,10 +160,10 @@ describe Shelly::CLI::Main do
       it "should display errors and exit with 1" do
         body = {"message" => "Validation Failed", "errors" => [["email", "has been already taken"]]}
         exception = Shelly::Client::ValidationException.new(body)
-        @client.stub(:register_user).and_raise(exception)
+        user.stub(:register).and_raise(exception)
         $stdout.should_receive(:puts).with("\e[31mEmail has been already taken\e[0m")
         lambda {
-          fake_stdin(["kate@example.com", "pass", "pass", "yes"]) do
+          fake_stdin(["better@example.com", "secret", "secret", "yes"]) do
             invoke(@main, :register)
           end
         }.should raise_error(SystemExit)
@@ -191,27 +184,22 @@ describe Shelly::CLI::Main do
 
   describe "#login" do
     before do
-      @user = Shelly::User.new
+      user.stub(:upload_ssh_key)
       @key_path = File.expand_path("~/.ssh/id_rsa.pub")
       FileUtils.mkdir_p("~/.ssh")
       File.open("~/.ssh/id_rsa.pub", "w") { |f| f << "ssh-key AAbbcc" }
-      @user.stub(:upload_ssh_key)
-      @client.stub(:token).and_return("abc")
       @client.stub(:apps).and_return([
           {"code_name" => "abc", "state" => "running",
             "state_description" => "running"},
           {"code_name" => "fooo", "state" => "no_code",
             "state_description" => "turned off (no code pushed)"},])
-      Shelly::User.stub(:new).and_return(@user)
-    end
-
-    it "should ask about email and password" do
-      fake_stdin(["megan@example.com", "secret"]) do
-        invoke(@main, :login)
-      end
     end
 
     context "on successful login" do
+      before do
+        user.stub(:login).with("megan@example.com", "secret") { true }
+      end
+
       it "should display message about successful login" do
         $stdout.should_receive(:puts).with(green "Login successful")
         fake_stdin(["megan@example.com", "secret"]) do
@@ -227,7 +215,7 @@ describe Shelly::CLI::Main do
       end
 
       it "should upload user's public SSH key" do
-        @user.should_receive(:upload_ssh_key)
+        user.should_receive(:upload_ssh_key)
         $stdout.should_receive(:puts).with("Uploading your public SSH key")
         fake_stdin(["megan@example.com", "secret"]) do
           invoke(@main, :login)
@@ -260,7 +248,7 @@ describe Shelly::CLI::Main do
       it "should exit with 1 and display error message" do
         response = {"message" => "Unauthorized", "url" => "https://admin.winniecloud.com/users/password/new"}
         exception = Shelly::Client::UnauthorizedException.new(response)
-        @client.stub(:token).and_raise(exception)
+        @client.stub(:authorize_with_email_and_password).and_raise(exception)
         $stdout.should_receive(:puts).with("\e[31mWrong email or password\e[0m")
         $stdout.should_receive(:puts).with("\e[31mYou can reset password by using link:\e[0m")
         $stdout.should_receive(:puts).with("\e[31mhttps://admin.winniecloud.com/users/password/new\e[0m")
@@ -308,7 +296,7 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
     # This spec tests logged_in? hook
     it "should exit with message if user is not logged in" do
       exception = Shelly::Client::UnauthorizedException.new
-      @client.stub(:token).and_raise(exception)
+      @client.stub(:authorize!).and_raise(exception)
       $stdout.should_receive(:puts).with(red "You are not logged in. To log in use: `shelly login`")
       lambda {
         fake_stdin(["", ""]) do
@@ -1209,16 +1197,8 @@ Wait until cloud is in 'turned off' state and try again.")
 
   describe "#logout" do
     before do
-      @user = Shelly::User.new
-      @client.stub(:token).and_return("abc")
-      Shelly::User.stub(:new).and_return(@user)
-      FileUtils.mkdir_p("~/.ssh")
-      FileUtils.mkdir_p("~/.shelly")
-      File.open("Cloudfile", 'w') { |f| f.write("foo-production:\n") }
-      File.open("~/.ssh/id_rsa.pub", "w") { |f| f << "ssh-key AAbbcc" }
-      @key_path = File.expand_path("~/.ssh/id_rsa.pub")
-      File.open("~/.shelly/credentials", "w") { |f| f << "megan@fox.pl\nsecret" }
-      @client.stub(:delete_ssh_key).and_return(true)
+      user.stub(:logout => true)
+      user.stub(:delete_ssh_key => false)
     end
 
     it "should ensure user has logged in" do
@@ -1226,17 +1206,16 @@ Wait until cloud is in 'turned off' state and try again.")
     end
 
     it "should logout from shelly cloud and show message" do
-      $stdout.should_receive(:puts).with("Your public SSH key has been removed from Shelly Cloud")
       $stdout.should_receive(:puts).with("You have been successfully logged out")
+      user.should_receive(:logout)
       invoke(@main, :logout)
-      File.exists?("~/.shelly/credentials").should be_false
     end
 
-    it "should remove only credentiales when local ssh key doesn't exist" do
-      FileUtils.rm_rf(@key_path)
-      $stdout.should_receive(:puts).with("You have been successfully logged out")
+    it "should notify user that ssh key was removed" do
+      user.stub(:delete_ssh_key => true)
+      $stdout.should_receive(:puts).with("Your public SSH key has been removed from Shelly Cloud")
+      user.should_receive(:delete_ssh_key)
       invoke(@main, :logout)
-      File.exists?("~/.shelly/credentials").should be_false
     end
   end
 

@@ -69,7 +69,7 @@ describe Shelly::CLI::Runner do
       before do
         @client = mock
         Shelly::Client.stub(:new).and_return(@client)
-        @client.stub(:token).and_return("abc")
+        @client.stub(:authorize!).and_return(true)
         @runner = Shelly::CLI::Runner.new(%w(status))
       end
 

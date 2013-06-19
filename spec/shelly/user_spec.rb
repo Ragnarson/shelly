@@ -1,14 +1,16 @@
 require "spec_helper"
 
 describe Shelly::User do
+  let(:email) { "bob@example.com" }
+  let(:password) { "secret" }
+
   before do
     FileUtils.mkdir_p("~/.ssh")
     File.open("~/.ssh/id_rsa.pub", "w") { |f| f << "rsa-key AAbbcc" }
     File.open("~/.ssh/id_dsa.pub", "w") { |f| f << "dsa-key AAbbcc" }
     @client = mock
     Shelly::Client.stub(:new).and_return(@client)
-    @user = Shelly::User.new("bob@example.com", "secret")
-    @user.stub(:set_credentials_permissions)
+    @user = Shelly::User.new
   end
 
   describe ".guess_email" do
@@ -22,85 +24,30 @@ describe Shelly::User do
   describe "#register" do
     before do
       @client.stub(:register_user)
+      @client.stub(:authorize_with_email_and_password)
     end
 
     it "should register user at Shelly Cloud" do
-      @client.should_receive(:register_user).with("bob@example.com", "secret", "dsa-key AAbbcc")
-      @user.register
-    end
-
-    it "should save credentials after successful registration" do
-      @user.should_receive(:save_credentials)
-      @user.register
+      @client.should_receive(:register_user).with(email, password, "dsa-key AAbbcc")
+      @user.register(email, password)
     end
 
     context "when ssh key is not available" do
       it "should register without it" do
         FileUtils.rm_rf("~/.ssh/id_rsa.pub")
         FileUtils.rm_rf("~/.ssh/id_dsa.pub")
-        @client.should_receive(:register_user).with("bob@example.com", "secret", nil)
-        @user.register
+        @client.should_receive(:register_user).with(email, password, nil)
+        @user.register(email, password)
       end
-    end
-  end
-
-  describe "#token" do
-    it "should return token" do
-      @client.should_receive(:token).and_return({"token" => "abc"})
-      @user.token.should == "abc"
-    end
-  end
-
-  describe "#save_credentials" do
-    it "should save credentials to file" do
-      File.exists?("~/.shelly/credentials").should be_false
-      @user.save_credentials
-      File.read("~/.shelly/credentials").should == "bob@example.com\nsecret"
-    end
-
-    it "should create config_dir if it doesn't exist" do
-      File.exists?("~/.shelly").should be_false
-      @user.save_credentials
-      File.exists?("~/.shelly").should be_true
-    end
-
-    it "should set proper permissions on config_dir and credentials file" do
-      user = Shelly::User.new("bob@example.com", "secret")
-      FileUtils.should_receive(:chmod).with(0700, File.expand_path("~/.shelly"))
-      FileUtils.should_receive(:chmod).with(0600, File.expand_path("~/.shelly/credentials"))
-      user.save_credentials
     end
   end
 
   describe "#delete_credentials" do
     it "should delete credentials from file" do
-      @user.save_credentials
-      File.exists?("~/.shelly/credentials").should be_true
-      File.read("~/.shelly/credentials").should == "bob@example.com\nsecret"
+      FileUtils.mkdir_p("~/.shelly")
+      File.open("~/.shelly/credentials", "w") { |f| f << "bob@example.com\nsecret" }
       @user.delete_credentials
       File.exists?("~/.shelly/credentials").should be_false
-    end
-  end
-
-  describe "#load_credentials" do
-    it "should load credentials from file" do
-      config_dir = File.expand_path("~/.shelly")
-      FileUtils.mkdir_p(config_dir)
-      File.open(File.join(config_dir, "credentials"), "w") { |f| f << "superman@example.com\nkal-el" }
-
-      user = Shelly::User.new
-      user.load_credentials
-      user.email.should == "superman@example.com"
-      user.password.should == "kal-el"
-    end
-
-    context "credentials file doesn't exist" do
-      it "should return nil" do
-        user = Shelly::User.new
-        user.load_credentials.should be_nil
-        user.email.should be_nil
-        user.password.should be_nil
-      end
     end
   end
 
@@ -127,16 +74,16 @@ describe Shelly::User do
 
   describe "#delete_ssh_key" do
     it "should invoke logout when ssh key exists" do
-      @client.should_receive(:delete_ssh_key).with('rsa-key AAbbcc')
-      @client.should_receive(:delete_ssh_key).with('dsa-key AAbbcc')
-      @user.delete_ssh_key
+      @client.should_receive(:delete_ssh_key).with('rsa-key AAbbcc').and_return(true)
+      @client.should_receive(:delete_ssh_key).with('dsa-key AAbbcc').and_return(true)
+      @user.delete_ssh_key.should be_true
     end
 
     it "should not invoke logout when ssh key doesn't exist" do
       FileUtils.rm_rf("~/.ssh/id_rsa.pub")
       FileUtils.rm_rf("~/.ssh/id_dsa.pub")
       @client.should_not_receive(:logout)
-      @user.delete_ssh_key
+      @user.delete_ssh_key.should be_false
     end
   end
 
@@ -149,28 +96,43 @@ describe Shelly::User do
 
   describe "#login" do
     before do
-      @client.stub(:token)
+      @client.stub(:authorize_with_email_and_password)
     end
 
     it "should try to login with given credentials" do
-      @client.should_receive(:token)
-      @user.login
+      @client.should_receive(:authorize_with_email_and_password).
+        with(email, password)
+      @user.login(email, password)
     end
 
-    context "on successful authentication" do
-      it "should save user's credentials" do
-        @user.should_receive(:save_credentials)
-        @user.login
+    it "should remove legacy credentials" do
+      @user.should_receive(:delete_credentials)
+      @user.login(email, password)
+    end
+  end
+
+  describe "#authorize!" do
+    it "should authorize via client" do
+      @client.should_receive(:authorize!)
+      @user.authorize!
+    end
+
+    context "when old credentials file exists" do
+      before do
+        FileUtils.mkdir_p("~/.shelly")
+        File.open("~/.shelly/credentials", "w") { |f| f << "bob@example.com\nsecret" }
       end
-    end
 
-    context "on unsuccessful authentication" do
-      it "should not save credentials" do
-        @client.stub(:token).and_raise(RestClient::Unauthorized.new)
-        @client.should_not_receive(:save_credentials)
-        lambda {
-          @user.login
-        }.should raise_error
+      it "should authorize using email and password from that file" do
+        @client.should_receive(:authorize_with_email_and_password).
+          with("bob@example.com", "secret")
+        @user.authorize!
+      end
+
+      it "should remove the file after authorization" do
+        @client.stub(:authorize_with_email_and_password)
+        @user.authorize!
+        File.exists?("~/.shelly/credentials").should be_false
       end
     end
   end
