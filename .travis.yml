@@ -6,3 +6,6 @@ rvm:
   - ree
   - jruby-18mode
   - jruby-19mode
+notifications:
+	email:
+		- devs@shellycloud.com
