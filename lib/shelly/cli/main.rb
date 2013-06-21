@@ -33,13 +33,13 @@ module Shelly
 
       desc "register [EMAIL]", "Register new account"
       def register(email = nil)
-        user = Shelly::User.new
         say "Your public SSH key will be uploaded to Shelly Cloud after registration."
         say "Registering with email: #{email}" if email
-        user.email = (email || ask_for_email)
-        user.password = ask_for_password
+        user = Shelly::User.new
+        email ||= ask_for_email
+        password = ask_for_password
         ask_for_acceptance_of_terms
-        user.register
+        user.register(email, password)
         if user.ssh_key_exists?
           say "Uploading your public SSH key from #{user.ssh_key_path}"
         else
@@ -58,9 +58,9 @@ module Shelly
         user = Shelly::User.new
         say "Your public SSH key will be uploaded to Shelly Cloud after login."
         raise Errno::ENOENT, user.ssh_key_path unless user.ssh_key_exists?
-        user.email = email || ask_for_email
-        user.password = ask_for_password(:with_confirmation => false)
-        user.login
+        email ||= ask_for_email
+        password = ask_for_password(:with_confirmation => false)
+        user.login(email, password)
         say "Login successful", :green
         user.upload_ssh_key
         say "Uploading your public SSH key"
@@ -320,7 +320,7 @@ Wait until cloud is in 'turned off' state and try again.}
       def logout
         user = Shelly::User.new
         say "Your public SSH key has been removed from Shelly Cloud" if user.delete_ssh_key
-        say "You have been successfully logged out" if user.delete_credentials
+        say "You have been successfully logged out" if user.logout
       end
 
       desc "rake TASK", "Run rake task"

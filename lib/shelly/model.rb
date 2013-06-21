@@ -1,13 +1,11 @@
 module Shelly
   class Model
     def current_user
-      @user = User.new
-      @user.load_credentials
-      @user
+      @current_user ||= User.new
     end
 
     def shelly
-      @shelly ||= Client.new(current_user.email, current_user.password)
+      @shelly ||= Client.new
     end
   end
 end

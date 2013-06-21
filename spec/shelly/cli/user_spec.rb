@@ -11,7 +11,7 @@ describe Shelly::CLI::User do
     Shelly::Client.stub(:new).and_return(@client)
     $stdout.stub(:puts)
     $stdout.stub(:print)
-    @client.stub(:token).and_return("abc")
+    @client.stub(:authorize!)
     FileUtils.mkdir_p("/projects/foo")
     Dir.chdir("/projects/foo")
     @app = Shelly::App.new("foo-staging")

@@ -8,7 +8,7 @@ describe Shelly::CLI::File do
     Shelly::CLI::File.stub(:new).and_return(@cli_files)
     @client = mock
     Shelly::Client.stub(:new).and_return(@client)
-    @client.stub(:token).and_return("abc")
+    @client.stub(:authorize!)
     FileUtils.mkdir_p("/projects/foo")
     Dir.chdir("/projects/foo")
     @app = Shelly::App.new("foo-production")
