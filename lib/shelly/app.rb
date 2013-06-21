@@ -130,7 +130,7 @@ module Shelly
 
     def import_database(kind, filename, server)
       ssh(:command => "import_database #{kind.downcase} #{filename}",
-        :server => server)
+        :server => server, :type => :db_server)
     end
 
     def request_backup(kinds)
@@ -197,7 +197,7 @@ module Shelly
     end
 
     def dbconsole
-      ssh(:command => "dbconsole")
+      ssh(:command => "dbconsole", :type => :db_server)
     end
 
     def attributes
@@ -253,19 +253,26 @@ module Shelly
     end
 
     def list_files(path)
-      ssh(:command => "ls -l /srv/glusterfs/disk/#{path}")
+      ssh(:command => "ls -l #{persistent_disk}/#{path}", :type => :server)
     end
 
     def upload(source)
-      console_connection.tap do |conn|
-        rsync(source, "#{conn['host']}:/srv/glusterfs/disk")
+      server_connection.tap do |conn|
+        rsync(source, "#{conn['host']}:#{persistent_disk}", conn)
+      end
+    end
+
+    def upload_database(source)
+      db_server_connection.tap do |conn|
+        rsync(source, "#{conn['host']}:#{persistent_disk}", conn)
       end
     end
 
     def download(relative_source, destination)
-      conn = console_connection
-      source = File.join("#{conn['host']}:/srv/glusterfs/disk", relative_source)
-      rsync(source, destination)
+      server_connection.tap do |conn|
+        source = File.join("#{conn['host']}:#{persistent_disk}", relative_source)
+        rsync(source, destination, conn)
+      end
     end
 
     def delete_file(remote_path)
@@ -341,6 +348,10 @@ module Shelly
       self.environment = response["environment"]
     end
 
+    def persistent_disk
+      "/home/#{code_name}/disk"
+    end
+
     def jruby?
       RUBY_PLATFORM == 'java'
     end
@@ -354,17 +365,39 @@ module Shelly
       shelly.console(code_name, server)
     end
 
+    # Returns first configured virtual server
+    def server_connection
+      shelly.configured_server(code_name)
+    end
+
+    # Returns first configured virtual server with database
+    def db_server_connection(server = nil)
+      shelly.configured_db_server(code_name, server)
+    end
+
+    def connection(options)
+      case options[:type]
+        when :console
+          console_connection(options[:server])
+        when :server
+          server_connection
+        when :db_server
+          db_server_connection(options[:server])
+      end
+    end
+
     def ssh(options = {})
-      conn = console_connection(options[:server])
+      options[:type] = :console unless options[:type]
+      conn = connection(options)
       system "ssh #{ssh_options(conn)} -t #{conn['host']} #{options[:command]}"
     end
 
-    def ssh_options(conn = console_connection)
+    def ssh_options(conn)
       "-o StrictHostKeyChecking=no -p #{conn['port']} -l #{conn['user']}"
     end
 
-    def rsync(source, destination)
-      system "rsync -avz -e 'ssh #{ssh_options}' --progress #{source} #{destination}"
+    def rsync(source, destination, conn)
+      system "rsync -avz -e 'ssh #{ssh_options(conn)}' --progress #{source} #{destination}"
     end
   end
 end
