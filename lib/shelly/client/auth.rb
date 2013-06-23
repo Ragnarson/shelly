@@ -45,6 +45,7 @@ class Shelly::Client
     if netrc
       netrc.delete(api_host)
       netrc.save
+      true # must return a truthy value to print logout confirmation
     end
   end
 
