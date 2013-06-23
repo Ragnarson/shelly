@@ -7,12 +7,10 @@ describe Shelly::Model do
   end
 
   describe "#current_user" do
-    it "should return user with loaded credentials" do
-      File.open(File.join("~/.shelly/credentials"), "w") { |f| f << "superman@example.com\nthe-kal-el" }
+    it "should return a user" do
       base = Shelly::Model.new
       user = base.current_user
-      user.email.should == "superman@example.com"
-      user.password.should == "the-kal-el"
+      user.should be_a(Shelly::User)
     end
   end
 end

@@ -46,14 +46,20 @@ describe Shelly::Client::APIException do
 end
 
 describe Shelly::Client do
+  let(:email) { "bob@example.com" }
+  let(:api_key) { "123123" }
+
   before do
     ENV['SHELLY_URL'] = nil
-    @client = Shelly::Client.new("bob@example.com", "secret")
+    @client = Shelly::Client.new
+    FileUtils.mkpath(File.expand_path("~"))
+    File.open("~/.netrc", "w") { |f|
+      f << "machine api.shellycloud.com\n  login #{email}\n  password #{api_key}" }
+    FileUtils.chmod(0600, "~/.netrc")
   end
 
   def api_url(resource = "")
-    auth = "#{CGI.escape(@client.email)}:#{@client.password}@"
-    "https://#{auth}api.shellycloud.com/apiv2/#{resource}"
+    "https://#{CGI.escape(email)}:#{api_key}@api.shellycloud.com/apiv2/#{resource}"
   end
 
   describe "#api_url" do
@@ -87,10 +93,9 @@ describe Shelly::Client do
     end
   end
 
-  describe "#token" do
-    it "should get authentication token" do
-      @client.should_receive(:get).with("/token")
-      @client.token
+  describe "#user_email" do
+    it "should take user email from .netrc" do
+      @client.user_email.should == email
     end
   end
 
@@ -271,9 +276,16 @@ describe Shelly::Client do
   end
 
   describe "#add_ssh_key" do
-    it "should send put with give SSH key" do
+    it "should send put with given SSH key" do
       @client.should_receive(:post).with("/ssh_keys", {:ssh_key => "abc"})
       @client.add_ssh_key("abc")
+    end
+  end
+
+  describe "#delete_ssh_key" do
+    it "should send delete with given SSH key" do
+      @client.should_receive(:delete).with("/ssh_keys", {:ssh_key => "abc"})
+      @client.delete_ssh_key("abc")
     end
   end
 
@@ -335,7 +347,7 @@ describe Shelly::Client do
   describe "#download_file" do
     before do
       @filename = "2011.11.26.04.00.10.foo.postgres.tar.gz"
-      @url = "https://bob%40example.com:secret@backup.example.com/file.gz"
+      @url = "https://#{CGI.escape(email)}:#{api_key}@backup.example.com/file.gz"
       response = Net::HTTPResponse.new('', '', '')
       # Streaming
       response.stub(:read_body).and_yield("aaa").and_yield("bbbbb").and_yield("dddf")
@@ -360,20 +372,19 @@ describe Shelly::Client do
   end
 
   describe "#application_logs_tail" do
+    let(:logs_url) { "http://#{CGI.escape(email)}:#{api_key}@logs.example.com/fooo" }
     before do
       FakeWeb.register_uri(:get, api_url("apps/fooo/application_logs/tail"),
         :body => {"url" => "http://logs.example.com/fooo"}.to_json)
     end
 
     it "should fetch tail url" do
-      FakeWeb.register_uri(:get, "http://bob%40example.com:secret@logs.example.com/fooo",
-        :body => {}.to_json)
+      FakeWeb.register_uri(:get, logs_url, :body => {}.to_json)
       @client.application_logs_tail("fooo") { }
     end
 
     it "should execute block for received data" do
-      FakeWeb.register_uri(:get, "http://bob%40example.com:secret@logs.example.com/fooo",
-        :body => "GET / 127.0.0.1")
+      FakeWeb.register_uri(:get, logs_url, :body => "GET / 127.0.0.1")
       out = ""
       @client.application_logs_tail("fooo") { |logs| out << logs }
       out.should == "GET / 127.0.0.1"
@@ -388,20 +399,20 @@ describe Shelly::Client do
         :headers  => @client.headers,
         :payload  => {:name => "bob"}.to_json,
         :user     => "bob@example.com",
-        :password => "secret"
+        :password => "123123"
       }
       @client.request_parameters("/account", :post, :name => "bob").should == expected
     end
 
     it "should not include user credentials when they are blank" do
-      client = Shelly::Client.new
+      FileUtils.rm("~/.netrc")
       expected = {
         :method => :get,
         :url => "#{@client.api_url}/account",
         :headers => @client.headers,
         :payload => {}.to_json
       }
-      client.request_parameters("/account", :get).should == expected
+      @client.request_parameters("/account", :get).should == expected
     end
   end
 

@@ -2,13 +2,6 @@ require 'shelly/organization'
 
 module Shelly
   class User < Model
-    attr_accessor :email, :password
-
-    def initialize(email = nil, password = nil)
-      @email = email
-      @password = password
-    end
-
     def apps
       shelly.apps.map do |attributes|
         Shelly::App.from_attributes(attributes)
@@ -21,33 +14,34 @@ module Shelly
       end
     end
 
-    def register
+    def email
+      shelly.user_email
+    end
+
+    def register(email, password)
       ssh_key = File.read(ssh_key_path) if ssh_key_exists?
       shelly.register_user(email, password, ssh_key)
-      save_credentials
     end
 
-    def login
-      client = Client.new(email, password)
-      # test if credentials are valid
-      # if not RestClient::Unauthorized will be raised
-      client.token
-      save_credentials
+    def authorize!
+      if credentials_exists?
+        email, password = File.read(credentials_path).split("\n")
+        shelly.authorize_with_email_and_password(email, password)
+        delete_credentials
+      else
+        shelly.authorize!
+      end
     end
 
-    def token
-      shelly.token["token"]
+    def login(email, password)
+      delete_credentials # clean up previous auth storage
+
+      shelly.authorize_with_email_and_password(email, password)
     end
 
-    def load_credentials
-      return unless credentials_exists?
-      @email, @password = File.read(credentials_path).split("\n")
-    end
-
-    def save_credentials
-      FileUtils.mkdir_p(config_dir) unless credentials_exists?
-      File.open(credentials_path, 'w') { |file| file << "#{email}\n#{password}" }
-      set_credentials_permissions
+    def logout
+      delete_credentials # clean up previous auth storage
+      shelly.forget_authorization
     end
 
     def delete_credentials
@@ -55,8 +49,8 @@ module Shelly
     end
 
     def delete_ssh_key
-      shelly.logout(File.read(dsa_key)) if File.exists?(dsa_key)
-      shelly.logout(File.read(rsa_key)) if File.exists?(rsa_key)
+      shelly.delete_ssh_key(File.read(dsa_key)) if File.exists?(dsa_key)
+      shelly.delete_ssh_key(File.read(rsa_key)) if File.exists?(rsa_key)
     end
 
     def ssh_key_exists?
@@ -96,11 +90,6 @@ module Shelly
 
       def credentials_exists?
         File.exists?(credentials_path)
-      end
-
-      def set_credentials_permissions
-        FileUtils.chmod(0700, config_dir)
-        FileUtils.chmod(0600, credentials_path)
       end
     end
 end

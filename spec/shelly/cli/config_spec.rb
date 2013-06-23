@@ -13,7 +13,7 @@ describe Shelly::CLI::Config do
     $stdout.stub(:print)
     FileUtils.mkdir_p("/projects/foo")
     Dir.chdir("/projects/foo")
-    @client.stub(:token).and_return("abc")
+    @client.stub(:authorize!)
     File.open("Cloudfile", 'w') {|f| f.write("foo-production:\n") }
     FileUtils.mkdir_p("/tmp")
     Dir.stub(:tmpdir).and_return("/tmp")

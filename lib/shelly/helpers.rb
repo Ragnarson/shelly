@@ -74,8 +74,7 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository}
 
     def logged_in?
       user = Shelly::User.new
-      user.token
-      user
+      user.authorize!
     rescue Client::UnauthorizedException
       say_error "You are not logged in. To log in use: `shelly login`"
     end

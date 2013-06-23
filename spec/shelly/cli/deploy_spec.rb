@@ -18,7 +18,7 @@ describe Shelly::CLI::Deploy do
       FileUtils.mkdir_p("/projects/foo")
       Dir.chdir("/projects/foo")
       File.open("Cloudfile", 'w') {|f| f.write("foo-staging:\n") }
-      @client.stub(:token).and_return("abc")
+      @client.stub(:authorize!)
     end
 
     it "should ensure user has logged in" do
@@ -55,7 +55,7 @@ describe Shelly::CLI::Deploy do
       FileUtils.mkdir_p("/projects/foo")
       Dir.chdir("/projects/foo")
       File.open("Cloudfile", 'w') {|f| f.write("foo-staging:\n") }
-      @client.stub(:token).and_return("abc")
+      @client.stub(:authorize!)
     end
 
     it "should ensure user has logged in" do

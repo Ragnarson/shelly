@@ -8,7 +8,7 @@ describe Shelly::CLI::Backup do
     @backup = Shelly::CLI::Backup.new
     Shelly::CLI::Backup.stub(:new).and_return(@backup)
     @client = mock
-    @client.stub(:token).and_return("abc")
+    @client.stub(:authorize!)
     Shelly::Client.stub(:new).and_return(@client)
     FileUtils.mkdir_p("/projects/foo")
     Dir.chdir("/projects/foo")
