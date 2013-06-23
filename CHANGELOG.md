@@ -1,4 +1,4 @@
-## master
+## 0.3.0 / 2013-06-23
 
 * [improvement] API key is now stored in .netrc
 
