@@ -24,7 +24,9 @@ module Shelly
       check_unknown_options!(:except => :rake)
 
       # FIXME: it should be possible to pass single symbol, instead of one element array
-      before_hook :logged_in?, :only => [:add, :status, :list, :start, :stop, :delete, :info, :ip, :logout, :execute, :rake, :setup, :console, :dbconsole]
+      before_hook :logged_in?, :only => [:add, :status, :list, :start, :stop,
+        :delete, :info, :ip, :logout, :execute, :rake, :setup, :console,
+        :dbconsole, :mongoconsole]
       before_hook :inside_git_repository?, :only => [:add, :setup, :check]
 
       map %w(-v --version) => :version
@@ -342,6 +344,15 @@ Wait until cloud is in 'turned off' state and try again.}
         app.dbconsole
       rescue Client::ConflictException
         say_error "Cloud #{app} wasn't deployed properly. Can not run dbconsole."
+      end
+
+      desc "mongoconsole", "Run MongoDB console"
+      method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
+      def mongoconsole
+        app = multiple_clouds(options[:cloud], "mongoconsole")
+        app.mongoconsole
+      rescue Client::ConflictException
+        say_error "Cloud #{app} wasn't deployed properly. Can not run MongoDB console."
       end
 
       desc "redeploy", "Redeploy application"

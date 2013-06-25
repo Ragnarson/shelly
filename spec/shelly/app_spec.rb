@@ -307,6 +307,15 @@ describe Shelly::App do
     end
   end
 
+  describe "#mongoconsole" do
+    it "should return result of mongoconsole" do
+      @client.stub(:configured_db_server).and_return(
+        {"host" => "console.example.com", "port" => "40010", "user" => "foo"})
+      @app.should_receive(:system).with("ssh -o StrictHostKeyChecking=no -p 40010 -l foo -t console.example.com mongo")
+      @app.mongoconsole
+    end
+  end
+
   describe "#to_s" do
     it "should return code_name" do
       @app.to_s.should == "foo-staging"

@@ -204,6 +204,10 @@ module Shelly
       ssh_with_db_server(:command => "dbconsole")
     end
 
+    def mongoconsole
+      ssh_with_db_server(:command => "mongo")
+    end
+
     def attributes
       @attributes ||= shelly.app(code_name)
     end
