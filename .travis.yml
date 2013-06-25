@@ -8,4 +8,5 @@ rvm:
   - jruby-19mode
 notifications:
   email:
-    - devs@shellycloud.com
+    recipients:
+      - devs@shellycloud.com
