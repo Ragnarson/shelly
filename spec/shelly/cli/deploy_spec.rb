@@ -100,13 +100,15 @@ describe Shelly::CLI::Deploy do
       $stdout.should_receive(:puts).with("sidekiq workers")
       $stdout.should_receive(:puts).with(green "Starting thin")
       $stdout.should_receive(:puts).with("thins up and running")
+      $stdout.should_receive(:puts).with(green "Starting puma")
+      $stdout.should_receive(:puts).with("pumas up and running")
     end
 
     def response
       {"created_at" => "2011-12-12 at 14:14:59", "bundle_install" => "Installing gems",
         "whenever" => "Looking up schedule.rb", "thin_restart" => "thins up and running",
-        "delayed_job" => "delayed jobs", "sidekiq" => "sidekiq workers",
-        "callbacks" => "rake db:migrate"}
+        "puma_restart" => "pumas up and running", "delayed_job" => "delayed jobs",
+        "sidekiq" => "sidekiq workers", "callbacks" => "rake db:migrate"}
     end
   end
 
