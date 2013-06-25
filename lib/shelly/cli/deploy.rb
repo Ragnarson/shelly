@@ -57,6 +57,9 @@ module Shelly
         if content["thin_restart"]
           say("Starting thin", :green); say(content["thin_restart"])
         end
+        if content["puma_restart"]
+          say("Starting puma", :green); say(content["puma_restart"])
+        end
       rescue Client::NotFoundException => e
         raise unless e.resource == :log
         say_error "Log not found, list all deploy logs using `shelly deploys list --cloud=#{app.code_name}`"
