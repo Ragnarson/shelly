@@ -208,6 +208,10 @@ module Shelly
       ssh_with_db_server(:command => "mongo")
     end
 
+    def redis_cli
+      ssh_with_db_server(:command => "redis-cli")
+    end
+
     def attributes
       @attributes ||= shelly.app(code_name)
     end
