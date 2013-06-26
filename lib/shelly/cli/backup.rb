@@ -105,13 +105,25 @@ module Shelly
         KIND - Database kind. Possible values are: postgresql or mongodb
         FILENAME - Database dump file or directory (mongodb)
       }
+      method_option :reset, :type => :boolean, :aliases => "-r",
+        :desc => "Reset database before importing from file"
       def import(kind, filename)
         app = multiple_clouds(options[:cloud], "backup import KIND FILENAME")
         unless ::File.exist?(filename)
           say_error "File #{filename} doesn't exist"
         end
-        say "You are about to import #{kind} database for cloud #{app} to state from file #{filename}"
-        ask_to_import_database
+        if options[:reset]
+          say_warning "You are about to reset database #{kind} for cloud #{app}"
+          say_warning "Next, database will be restored to state from file #{filename}"
+          question = "I want to reset and import the database from dump (yes/no):"
+          say_new_line
+          yes?(question) ? app.reset_database(kind) : say_error("Canceled")
+        else
+          say_warning "You are about to import #{kind} database for cloud #{app} to state from file #{filename}"
+          question = "I want to import the database from dump (yes/no):"
+          say_new_line
+          say_error "Canceled" unless yes?(question)
+        end
         archive = compress(filename)
         say "Uploading #{archive}", :green
         connection = app.upload(archive)

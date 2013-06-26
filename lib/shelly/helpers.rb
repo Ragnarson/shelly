@@ -19,6 +19,10 @@ module Shelly
       exit 1 if options[:with_exit]
     end
 
+    def say_warning(message)
+      say message, :yellow
+    end
+
     def ask_for_email(options = {})
       options = {:guess_email => true}.merge(options)
       email_question = options[:guess_email] && !User.guess_email.blank? ? "Email (#{User.guess_email} - default):" : "Email:"
@@ -126,7 +130,7 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository}
     end
 
     def yellow(string)
-      "\e[0;33m#{string}\e[0m"
+      "\e[33m#{string}\e[0m"
     end
 
     def print_check(check, success_message, failure_message, options = {})

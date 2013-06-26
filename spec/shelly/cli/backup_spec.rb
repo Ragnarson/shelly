@@ -302,8 +302,8 @@ describe Shelly::CLI::Backup do
 
     context "on answering no" do
       it "should cancel database import" do
-        $stdout.should_receive(:puts).with("You are about to import postgresql database for cloud foo-staging to state from file dump.sql")
-        $stdout.should_receive(:print).with("I want to import the database (yes/no): ")
+        $stdout.should_receive(:puts).with(yellow "You are about to import postgresql database for cloud foo-staging to state from file dump.sql")
+        $stdout.should_receive(:print).with("I want to import the database from dump (yes/no): ")
         $stdout.should_receive(:puts).with(red "Canceled")
         lambda {
           fake_stdin(["no"]) do
@@ -322,6 +322,19 @@ describe Shelly::CLI::Backup do
             invoke(@backup, :import, "postgresql", "dump.sql")
           end
         }.should raise_error(SystemExit)
+      end
+    end
+
+    context "with --reset option" do
+      it "should reset database first" do
+        @backup.options = {:cloud => "foo-staging", :reset => true}
+        @app.should_receive(:reset_database).with("postgresql")
+        @app.should_receive(:ssh).with(:command => "import_database postgresql dump.sql-1370879705.tar.bz2",
+          :server => "app1")
+        $stdout.should_receive(:puts).with(green "Importing database")
+        fake_stdin(["yes"]) do
+          invoke(@backup, :import, "postgresql", "dump.sql")
+        end
       end
     end
   end

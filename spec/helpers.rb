@@ -17,7 +17,7 @@ module RSpec
     end
 
     def yellow(string)
-      "\e[0;33m#{string}\e[0m"
+      "\e[33m#{string}\e[0m"
     end
 
     def hooks(model, method)
