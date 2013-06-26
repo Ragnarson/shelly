@@ -35,6 +35,7 @@ describe Shelly::CLI::Main do
       out.should include("shelly check                   # Check if application fulfills Shelly Cloud requirements")
       out.should include("shelly config <command>        # Manage application configuration files")
       out.should include("shelly console                 # Open application console")
+      out.should include("shelly database <command>      # Manage databases")
       out.should include("shelly dbconsole               # Run rails dbconsole")
       out.should include("shelly delete                  # Delete the cloud")
       out.should include("shelly deploy <command>        # View deploy logs")

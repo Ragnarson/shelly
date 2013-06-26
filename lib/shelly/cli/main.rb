@@ -3,6 +3,7 @@ require "shelly/cli/command"
 require "shelly/cli/user"
 require "shelly/cli/backup"
 require "shelly/cli/deploy"
+require "shelly/cli/database"
 require "shelly/cli/config"
 require "shelly/cli/file"
 require "shelly/cli/organization"
@@ -13,6 +14,7 @@ module Shelly
     class Main < Command
       register_subcommand(User, "user", "user <command>", "Manage collaborators")
       register_subcommand(Backup, "backup", "backup <command>", "Manage database backups")
+      register_subcommand(Database, "database", "database <command>", "Manage databases")
       register_subcommand(Deploy, "deploy", "deploy <command>", "View deploy logs")
       register_subcommand(Config, "config", "config <command>", "Manage application configuration files")
       register_subcommand(File, "file", "file <command>", "Upload and download files to and from persistent storage")

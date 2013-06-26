@@ -50,6 +50,11 @@ module Shelly
       end
     end
 
+    def ask_to_reset_database
+      reset_database_question = "I want to reset the database (yes/no):"
+      exit 1 unless yes?(reset_database_question)
+    end
+
     def inside_git_repository?
       unless App.inside_git_repository?
         say_error %q{Current directory is not a git repository.
@@ -64,11 +69,6 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository}
 
     def ask_to_restore_database
       question = "I want to restore the database (yes/no):"
-      say_new_line say_error "Canceled" unless yes?(question)
-    end
-
-    def ask_to_import_database
-      question = "I want to import the database (yes/no):"
       say_new_line say_error "Canceled" unless yes?(question)
     end
 
