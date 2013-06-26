@@ -302,7 +302,7 @@ describe Shelly::CLI::Backup do
 
     context "on answering no" do
       it "should cancel database import" do
-        $stdout.should_receive(:puts).with("You are about import postgresql database for cloud foo-staging to state from file dump.sql")
+        $stdout.should_receive(:puts).with("You are about to import postgresql database for cloud foo-staging to state from file dump.sql")
         $stdout.should_receive(:print).with("I want to import the database (yes/no): ")
         $stdout.should_receive(:puts).with(red "Canceled")
         lambda {

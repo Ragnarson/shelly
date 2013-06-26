@@ -110,7 +110,7 @@ module Shelly
         unless ::File.exist?(filename)
           say_error "File #{filename} doesn't exist"
         end
-        say "You are about import #{kind} database for cloud #{app} to state from file #{filename}"
+        say "You are about to import #{kind} database for cloud #{app} to state from file #{filename}"
         ask_to_import_database
         archive = compress(filename)
         say "Uploading #{archive}", :green
