@@ -15,7 +15,7 @@ module Shelly
         app = multiple_clouds(options[:cloud], "file list #{path}")
         app.list_files(path)
       rescue Client::ConflictException
-        say_error "Cloud #{app} is not running. Cannot list files."
+        say_error "Cloud #{app} wasn't deployed properly. Cannot list files."
       end
 
       desc "upload PATH", "Upload files to persistent data storage"
@@ -23,7 +23,7 @@ module Shelly
         app = multiple_clouds(options[:cloud], "file upload #{path}")
         app.upload(path)
       rescue Client::ConflictException
-        say_error "Cloud #{app} is not running. Cannot upload files."
+        say_error "Cloud #{app} wasn't deployed properly. Cannot upload files."
       end
 
       desc "download [SOURCE_PATH] [DEST_PATH]", "Download files from persistent data storage"
@@ -36,7 +36,7 @@ module Shelly
         app = multiple_clouds(options[:cloud], "file download #{relative_source} #{destination}")
         app.download(relative_source, destination)
       rescue Client::ConflictException
-        say_error "Cloud #{app} is not running. Cannot download files."
+        say_error "Cloud #{app} wasn't deployed properly. Cannot download files."
       end
 
       method_option :force, :type => :boolean, :aliases => "-f",
@@ -52,7 +52,7 @@ module Shelly
 
         app.delete_file(path)
       rescue Client::ConflictException
-        say_error "Cloud #{app} is not running. Cannot delete files."
+        say_error "Cloud #{app} wasn't deployed properly. Cannot delete files."
       end
 
       no_tasks do

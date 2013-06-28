@@ -28,8 +28,8 @@ describe Shelly::CLI::File do
 
     context "cloud is not running" do
       it "should display error" do
-        @client.stub(:configured_server).and_raise(Shelly::Client::ConflictException)
-        $stdout.should_receive(:puts).with(red "Cloud foo-production is not running. Cannot list files.")
+        @client.stub(:console).and_raise(Shelly::Client::ConflictException)
+        $stdout.should_receive(:puts).with(red "Cloud foo-production wasn't deployed properly. Cannot list files.")
         lambda {
           invoke(@cli_files, :list, "some/path")
         }.should raise_error(SystemExit)
@@ -59,8 +59,8 @@ describe Shelly::CLI::File do
 
     context "cloud is not running" do
       it "should display error" do
-        @client.stub(:configured_server).and_raise(Shelly::Client::ConflictException)
-        $stdout.should_receive(:puts).with(red "Cloud foo-production is not running. Cannot upload files.")
+        @client.stub(:console).and_raise(Shelly::Client::ConflictException)
+        $stdout.should_receive(:puts).with(red "Cloud foo-production wasn't deployed properly. Cannot upload files.")
         lambda {
           invoke(@cli_files, :upload, "some/path")
         }.should raise_error(SystemExit)
@@ -84,6 +84,16 @@ describe Shelly::CLI::File do
       @client.stub(:console).and_return(expected)
       @app.should_receive(:download).with("some/path", "/destination")
       invoke(@cli_files, :download, "some/path", "/destination")
+    end
+
+    context "cloud is not running" do
+      it "should display error" do
+        @client.stub(:console).and_raise(Shelly::Client::ConflictException)
+        $stdout.should_receive(:puts).with(red "Cloud foo-production wasn't deployed properly. Cannot download files.")
+        lambda {
+          invoke(@cli_files, :download, "some/path")
+        }.should raise_error(SystemExit)
+      end
     end
   end
 
@@ -127,6 +137,16 @@ describe Shelly::CLI::File do
           fake_stdin(["no"]) do
             invoke(@cli_files, :delete, "some/path")
           end
+        }.should raise_error(SystemExit)
+      end
+    end
+
+    context "cloud is not running" do
+      it "should display error" do
+        @app.stub(:delete_file).and_raise(Shelly::Client::ConflictException)
+        $stdout.should_receive(:puts).with(red "Cloud foo-production wasn't deployed properly. Cannot delete files.")
+        lambda {
+          fake_stdin(["yes"]) { invoke(@cli_files, :delete, "some/path") }
         }.should raise_error(SystemExit)
       end
     end

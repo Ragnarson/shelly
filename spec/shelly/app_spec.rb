@@ -348,15 +348,14 @@ describe Shelly::App do
 
   describe "#list_files" do
     it "should list files for given subpath in disk" do
-      @app.should_receive(:ssh).with(:command => "ls -l /home/foo-staging/disk/foo",
-        :type => :server)
+      @app.should_receive(:ssh).with(:command => "ls -l /home/foo-staging/disk/foo")
       @app.list_files("foo")
     end
   end
 
   describe "#upload" do
     it "should run rsync with proper parameters" do
-      @client.stub(:configured_server).and_return(
+      @client.stub(:console).and_return(
         {"host" => "console.example.com", "port" => "40010", "user" => "foo"})
       @app.should_receive(:system).with("rsync -avz -e 'ssh -o StrictHostKeyChecking=no -p 40010 -l foo' --progress /path console.example.com:/home/foo-staging/disk")
       @app.upload("/path")
@@ -365,7 +364,7 @@ describe Shelly::App do
 
   describe "#download" do
     it "should run rsync with proper parameters" do
-      @client.stub(:configured_server).and_return(
+      @client.stub(:console).and_return(
         {"host" => "console.example.com", "port" => "40010", "user" => "foo"})
       @app.should_receive(:system).with("rsync -avz -e 'ssh -o StrictHostKeyChecking=no -p 40010 -l foo' --progress console.example.com:/home/foo-staging/disk/. /tmp")
       @app.download(".", "/tmp")
