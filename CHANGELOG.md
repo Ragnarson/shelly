@@ -1,3 +1,5 @@
+* [feature] `shelly database reset` reset PostgreSQL or MongoDB database, also possible to use with `shelly backup import DB_KIND dump --reset` option
+* [improvement] Puma starting/stopping output shows up in deployment logs
 * [improvement] Affects all commands using ssh connection:
     * `shelly backup import` works when deployment failed
     * `shelly dbconsole` works if database was configured
