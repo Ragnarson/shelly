@@ -196,6 +196,7 @@ module Shelly
         app = multiple_clouds(options[:cloud], "start")
         deployment_id = app.start
         say "Starting cloud #{app}.", :green
+        say_new_line
         deployment_progress(app, deployment_id, "Starting cloud")
       rescue Client::ConflictException => e
         case e[:state]
