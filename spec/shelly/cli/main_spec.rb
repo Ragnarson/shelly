@@ -46,10 +46,12 @@ describe Shelly::CLI::Main do
       out.should include("shelly login [EMAIL]           # Log into Shelly Cloud")
       out.should include("shelly logout                  # Logout from Shelly Cloud")
       out.should include("shelly logs <command>          # View application logs")
+      out.should include("shelly mongoconsole            # Run MongoDB console")
       out.should include("shelly open                    # Open application page in browser")
       out.should include("shelly organization <command>  # View organizations")
       out.should include("shelly rake TASK               # Run rake task")
       out.should include("shelly redeploy                # Redeploy application")
+      out.should include("shelly redis-cli               # Run redis-cli")
       out.should include("shelly register [EMAIL]        # Register new account")
       out.should include("shelly setup                   # Set up git remotes for deployment on Shelly Cloud")
       out.should include("shelly start                   # Start the cloud")
@@ -1418,6 +1420,56 @@ Wait until cloud is in 'turned off' state and try again.")
         $stdout.should_receive(:puts).with(red "Cloud foo-production wasn't deployed properly. Can not run dbconsole.")
         lambda {
           invoke(@main, :dbconsole)
+        }.should raise_error(SystemExit)
+      end
+    end
+  end
+
+  describe "#mongoconsole" do
+    before do
+      setup_project
+    end
+
+    it "should ensure user has logged in" do
+      hooks(@main, :mongoconsole).should include(:logged_in?)
+    end
+
+    it "should execute ssh command" do
+      @app.should_receive(:mongoconsole)
+      invoke(@main, :mongoconsole)
+    end
+
+    context "Instances are not running" do
+      it "should display error" do
+        @client.stub(:configured_db_server).and_raise(Shelly::Client::ConflictException)
+        $stdout.should_receive(:puts).with(red "Cloud foo-production wasn't deployed properly. Can not run MongoDB console.")
+        lambda {
+          invoke(@main, :mongoconsole)
+        }.should raise_error(SystemExit)
+      end
+    end
+  end
+
+  describe "#redis_cli" do
+    before do
+      setup_project
+    end
+
+    it "should ensure user has logged in" do
+      hooks(@main, :redis_cli).should include(:logged_in?)
+    end
+
+    it "should execute ssh command" do
+      @app.should_receive(:redis_cli)
+      invoke(@main, :redis_cli)
+    end
+
+    context "Instances are not running" do
+      it "should display error" do
+        @client.stub(:configured_db_server).and_raise(Shelly::Client::ConflictException)
+        $stdout.should_receive(:puts).with(red "Cloud foo-production wasn't deployed properly. Can not run redis-cli.")
+        lambda {
+          invoke(@main, :redis_cli)
         }.should raise_error(SystemExit)
       end
     end
