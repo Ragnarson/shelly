@@ -1,3 +1,5 @@
+* [improvement] API changes to handle user virtual server interactions
+
 ## 0.3.1 / 2013-06-28
 
 * [feature] `shelly database reset` reset PostgreSQL or MongoDB database, also possible to use with `shelly backup import DB_KIND dump --reset` option
