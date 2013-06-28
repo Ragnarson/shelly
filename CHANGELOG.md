@@ -1,3 +1,5 @@
+## 0.3.2 / 2013-06-28
+
 * [improvement] API changes to handle user virtual server interactions
 
 ## 0.3.1 / 2013-06-28
