@@ -1,4 +1,4 @@
-## master
+## 0.3.3 / 2013-06-28
 
 * [feature] user is able to access MongoDB console
 * [feature] user is able to access redis-cli
