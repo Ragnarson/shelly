@@ -129,12 +129,12 @@ module Shelly
     end
 
     def import_database(kind, filename, server)
-      ssh(:command => "import_database #{kind.downcase} #{filename}",
-        :server => server, :type => :db_server)
+      ssh_with_db_server(:command => "import_database #{kind.downcase} #{filename}",
+        :server => server)
     end
 
     def reset_database(kind)
-      ssh(:command => "reset_database #{kind.downcase}", :type => :db_server)
+      ssh_with_db_server(:command => "reset_database #{kind.downcase}")
     end
 
     def request_backup(kinds)
@@ -201,7 +201,7 @@ module Shelly
     end
 
     def dbconsole
-      ssh(:command => "dbconsole", :type => :db_server)
+      ssh_with_db_server(:command => "dbconsole")
     end
 
     def attributes
@@ -257,23 +257,23 @@ module Shelly
     end
 
     def list_files(path)
-      ssh(:command => "ls -l #{persistent_disk}/#{path}", :type => :server)
+      ssh(:command => "ls -l #{persistent_disk}/#{path}")
     end
 
     def upload(source)
-      server_connection.tap do |conn|
+      console_connection.tap do |conn|
         rsync(source, "#{conn['host']}:#{persistent_disk}", conn)
       end
     end
 
     def upload_database(source)
-      db_server_connection.tap do |conn|
+      configured_db_server_connection.tap do |conn|
         rsync(source, "#{conn['host']}:#{persistent_disk}", conn)
       end
     end
 
     def download(relative_source, destination)
-      server_connection.tap do |conn|
+      console_connection.tap do |conn|
         source = File.join("#{conn['host']}:#{persistent_disk}", relative_source)
         rsync(source, destination, conn)
       end
@@ -365,34 +365,23 @@ module Shelly
       content["servers"].any? {|_, settings| settings.has_key?(option)}
     end
 
+    # Returns first at least configured virtual server
     def console_connection(server = nil)
       shelly.console(code_name, server)
     end
 
-    # Returns first configured virtual server
-    def server_connection
-      shelly.configured_server(code_name)
-    end
-
-    # Returns first configured virtual server with database
-    def db_server_connection(server = nil)
+    # Returns first at least configured virtual server if databases are configured
+    def configured_db_server_connection(server = nil)
       shelly.configured_db_server(code_name, server)
     end
 
-    def connection(options)
-      case options[:type]
-        when :console
-          console_connection(options[:server])
-        when :server
-          server_connection
-        when :db_server
-          db_server_connection(options[:server])
-      end
+    def ssh(options = {})
+      conn = console_connection(options[:server])
+      system "ssh #{ssh_options(conn)} -t #{conn['host']} #{options[:command]}"
     end
 
-    def ssh(options = {})
-      options[:type] = :console unless options[:type]
-      conn = connection(options)
+    def ssh_with_db_server(options = {})
+      conn = configured_db_server_connection(options[:server])
       system "ssh #{ssh_options(conn)} -t #{conn['host']} #{options[:command]}"
     end
 

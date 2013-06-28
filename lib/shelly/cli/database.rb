@@ -20,6 +20,8 @@ module Shelly
         say "All database objects and data will be removed"
         ask_to_reset_database
         app.reset_database(kind)
+      rescue Client::ConflictException
+        say_error "Cloud #{app} wasn't deployed properly. Cannot reset database."
       end
     end
   end

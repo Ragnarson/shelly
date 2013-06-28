@@ -265,6 +265,7 @@ describe Shelly::CLI::Backup do
     before do
       FileUtils.touch("dump.sql")
       @app.stub(:upload_database => {"server" => "app1"}, :ssh => nil)
+      @app.stub(:import_database)
       @backup.stub(:system)
       $stdout.stub(:puts)
       $stdout.stub(:print)
@@ -292,8 +293,9 @@ describe Shelly::CLI::Backup do
     end
 
     it "should import given database from uploaded file" do
-      @app.should_receive(:ssh).with(:command => "import_database postgresql dump.sql-1370879705.tar.bz2",
-        :server => "app1", :type => :db_server)
+      @app.unstub(:import_database)
+      @app.should_receive(:ssh_with_db_server).with(:command => "import_database postgresql dump.sql-1370879705.tar.bz2",
+        :server => "app1")
       $stdout.should_receive(:puts).with(green "Importing database")
       fake_stdin(["yes"]) do
         invoke(@backup, :import, "PostgreSQL", "dump.sql")
@@ -327,10 +329,11 @@ describe Shelly::CLI::Backup do
 
     context "with --reset option" do
       it "should reset database first" do
+        @app.unstub(:import_database)
         @backup.options = {:cloud => "foo-staging", :reset => true}
         @app.should_receive(:reset_database).with("postgresql")
-        @app.should_receive(:ssh).with(:command => "import_database postgresql dump.sql-1370879705.tar.bz2",
-          :server => "app1", :type => :db_server)
+        @app.should_receive(:ssh_with_db_server).with(:command => "import_database postgresql dump.sql-1370879705.tar.bz2",
+          :server => "app1")
         $stdout.should_receive(:puts).with(green "Importing database")
         fake_stdin(["yes"]) do
           invoke(@backup, :import, "postgresql", "dump.sql")
