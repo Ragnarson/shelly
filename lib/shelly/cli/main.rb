@@ -339,7 +339,7 @@ Wait until cloud is in 'turned off' state and try again.}
         app = multiple_clouds(options[:cloud], "dbconsole")
         app.dbconsole
       rescue Client::ConflictException
-        say_error "Cloud #{app} is not running. Cannot run dbconsole."
+        say_error "Cloud #{app} wasn't deployed properly. Can not run dbconsole."
       end
 
       desc "redeploy", "Redeploy application"

@@ -1,3 +1,8 @@
+* [improvement] Affects all commands using ssh connection:
+    * `shelly backup import` works when deployment failed
+    * `shelly dbconsole` works if database was configured
+    * `shelly files *` works if virutal server was at least configured
+
 ## 0.3.0 / 2013-06-23
 
 * [improvement] API key is now stored in .netrc

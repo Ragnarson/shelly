@@ -1413,8 +1413,8 @@ Wait until cloud is in 'turned off' state and try again.")
 
     context "Instances are not running" do
       it "should display error" do
-        @client.stub(:console).and_raise(Shelly::Client::ConflictException)
-        $stdout.should_receive(:puts).with(red "Cloud foo-production is not running. Cannot run dbconsole.")
+        @client.stub(:configured_db_server).and_raise(Shelly::Client::ConflictException)
+        $stdout.should_receive(:puts).with(red "Cloud foo-production wasn't deployed properly. Can not run dbconsole.")
         lambda {
           invoke(@main, :dbconsole)
         }.should raise_error(SystemExit)

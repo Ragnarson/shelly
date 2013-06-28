@@ -300,7 +300,7 @@ describe Shelly::App do
 
   describe "#dbconsole" do
     it "should return result of dbconsole" do
-      @client.stub(:console).and_return(
+      @client.stub(:configured_db_server).and_return(
         {"host" => "console.example.com", "port" => "40010", "user" => "foo"})
       @app.should_receive(:system).with("ssh -o StrictHostKeyChecking=no -p 40010 -l foo -t console.example.com dbconsole")
       @app.dbconsole
@@ -348,25 +348,26 @@ describe Shelly::App do
 
   describe "#list_files" do
     it "should list files for given subpath in disk" do
-      @app.should_receive(:ssh).with(:command => "ls -l /srv/glusterfs/disk/foo")
+      @app.should_receive(:ssh).with(:command => "ls -l /home/foo-staging/disk/foo",
+        :type => :server)
       @app.list_files("foo")
     end
   end
 
   describe "#upload" do
     it "should run rsync with proper parameters" do
-      @client.stub(:console).and_return(
+      @client.stub(:configured_server).and_return(
         {"host" => "console.example.com", "port" => "40010", "user" => "foo"})
-      @app.should_receive(:system).with("rsync -avz -e 'ssh -o StrictHostKeyChecking=no -p 40010 -l foo' --progress /path console.example.com:/srv/glusterfs/disk")
+      @app.should_receive(:system).with("rsync -avz -e 'ssh -o StrictHostKeyChecking=no -p 40010 -l foo' --progress /path console.example.com:/home/foo-staging/disk")
       @app.upload("/path")
     end
   end
 
   describe "#download" do
     it "should run rsync with proper parameters" do
-      @client.stub(:console).and_return(
+      @client.stub(:configured_server).and_return(
         {"host" => "console.example.com", "port" => "40010", "user" => "foo"})
-      @app.should_receive(:system).with("rsync -avz -e 'ssh -o StrictHostKeyChecking=no -p 40010 -l foo' --progress console.example.com:/srv/glusterfs/disk/. /tmp")
+      @app.should_receive(:system).with("rsync -avz -e 'ssh -o StrictHostKeyChecking=no -p 40010 -l foo' --progress console.example.com:/home/foo-staging/disk/. /tmp")
       @app.download(".", "/tmp")
     end
   end
