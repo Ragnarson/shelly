@@ -151,7 +151,7 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository}
         new_messages = @deployment["messages"] - printed_messages
         new_messages.each do |message|
           color = (message =~ /failed/) ? :red : :green
-          say message, color
+          say " ---> #{message}", color
           printed_messages << message
         end
 
