@@ -3,16 +3,16 @@ require "shelly/cli/organization"
 
 describe Shelly::CLI::Organization do
   before do
-  FileUtils.stub(:chmod)
-  @organization = Shelly::CLI::Organization.new
-  Shelly::CLI::Organization.stub(:new).and_return(@organization)
-  @client = mock
-  Shelly::Client.stub(:new).and_return(@client)
-  $stdout.stub(:puts)
-  $stdout.stub(:print)
-  @client.stub(:authorize!)
-  FileUtils.mkdir_p("/projects/foo")
-  Dir.chdir("/projects/foo")
+    FileUtils.stub(:chmod)
+    @organization = Shelly::CLI::Organization.new
+    Shelly::CLI::Organization.stub(:new).and_return(@organization)
+    @client = mock
+    Shelly::Client.stub(:new).and_return(@client)
+    $stdout.stub(:puts)
+    $stdout.stub(:print)
+    @client.stub(:authorize!)
+    FileUtils.mkdir_p("/projects/foo")
+    Dir.chdir("/projects/foo")
   end
 
   describe "#list" do

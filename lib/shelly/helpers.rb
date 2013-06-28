@@ -19,6 +19,10 @@ module Shelly
       exit 1 if options[:with_exit]
     end
 
+    def say_warning(message)
+      say message, :yellow
+    end
+
     def ask_for_email(options = {})
       options = {:guess_email => true}.merge(options)
       email_question = options[:guess_email] && !User.guess_email.blank? ? "Email (#{User.guess_email} - default):" : "Email:"
@@ -50,6 +54,11 @@ module Shelly
       end
     end
 
+    def ask_to_reset_database
+      reset_database_question = "I want to reset the database (yes/no):"
+      exit 1 unless yes?(reset_database_question)
+    end
+
     def inside_git_repository?
       unless App.inside_git_repository?
         say_error %q{Current directory is not a git repository.
@@ -64,11 +73,6 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository}
 
     def ask_to_restore_database
       question = "I want to restore the database (yes/no):"
-      say_new_line say_error "Canceled" unless yes?(question)
-    end
-
-    def ask_to_import_database
-      question = "I want to import the database (yes/no):"
       say_new_line say_error "Canceled" unless yes?(question)
     end
 
@@ -126,7 +130,7 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository}
     end
 
     def yellow(string)
-      "\e[0;33m#{string}\e[0m"
+      "\e[33m#{string}\e[0m"
     end
 
     def print_check(check, success_message, failure_message, options = {})
