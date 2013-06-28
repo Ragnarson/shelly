@@ -28,7 +28,7 @@ describe Shelly::CLI::File do
 
     context "cloud is not running" do
       it "should display error" do
-        @client.stub(:console).and_raise(Shelly::Client::ConflictException)
+        @client.stub(:configured_server).and_raise(Shelly::Client::ConflictException)
         $stdout.should_receive(:puts).with(red "Cloud foo-production is not running. Cannot list files.")
         lambda {
           invoke(@cli_files, :list, "some/path")
@@ -59,7 +59,7 @@ describe Shelly::CLI::File do
 
     context "cloud is not running" do
       it "should display error" do
-        @client.stub(:console).and_raise(Shelly::Client::ConflictException)
+        @client.stub(:configured_server).and_raise(Shelly::Client::ConflictException)
         $stdout.should_receive(:puts).with(red "Cloud foo-production is not running. Cannot upload files.")
         lambda {
           invoke(@cli_files, :upload, "some/path")

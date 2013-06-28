@@ -264,7 +264,7 @@ describe Shelly::CLI::Backup do
   describe "#import" do
     before do
       FileUtils.touch("dump.sql")
-      @app.stub(:upload => {"server" => "app1"}, :ssh => nil)
+      @app.stub(:upload_database => {"server" => "app1"}, :ssh => nil)
       @backup.stub(:system)
       $stdout.stub(:puts)
       $stdout.stub(:print)
@@ -284,7 +284,7 @@ describe Shelly::CLI::Backup do
     end
 
     it "should upload compressed file" do
-      @app.should_receive(:upload).with("dump.sql-1370879705.tar.bz2")
+      @app.should_receive(:upload_database).with("dump.sql-1370879705.tar.bz2")
       $stdout.should_receive(:puts).with(green "Uploading dump.sql-1370879705.tar.bz2")
       fake_stdin(["yes"]) do
         invoke(@backup, :import, "postgresql", "dump.sql")
@@ -293,7 +293,7 @@ describe Shelly::CLI::Backup do
 
     it "should import given database from uploaded file" do
       @app.should_receive(:ssh).with(:command => "import_database postgresql dump.sql-1370879705.tar.bz2",
-        :server => "app1")
+        :server => "app1", :type => :db_server)
       $stdout.should_receive(:puts).with(green "Importing database")
       fake_stdin(["yes"]) do
         invoke(@backup, :import, "PostgreSQL", "dump.sql")
