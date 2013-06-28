@@ -330,7 +330,7 @@ describe Shelly::CLI::Backup do
         @backup.options = {:cloud => "foo-staging", :reset => true}
         @app.should_receive(:reset_database).with("postgresql")
         @app.should_receive(:ssh).with(:command => "import_database postgresql dump.sql-1370879705.tar.bz2",
-          :server => "app1")
+          :server => "app1", :type => :db_server)
         $stdout.should_receive(:puts).with(green "Importing database")
         fake_stdin(["yes"]) do
           invoke(@backup, :import, "postgresql", "dump.sql")

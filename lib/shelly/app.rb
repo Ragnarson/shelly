@@ -134,7 +134,7 @@ module Shelly
     end
 
     def reset_database(kind)
-      ssh(:command => "reset_database #{kind.downcase}")
+      ssh(:command => "reset_database #{kind.downcase}", :type => :db_server)
     end
 
     def request_backup(kinds)
