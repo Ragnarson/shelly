@@ -1,3 +1,7 @@
+## master
+
+* [improvement] consistent output for `shelly start`, `shelly stop` and deployment progress
+
 ## 0.3.3 / 2013-06-28
 
 * [feature] user is able to access MongoDB console

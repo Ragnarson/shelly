@@ -678,7 +678,7 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
     context "single cloud in Cloudfile" do
       it "should start the cloud" do
         $stdout.should_receive(:puts).with(green "Starting cloud foo-production.")
-        $stdout.should_receive(:puts).with(green "message1")
+        $stdout.should_receive(:puts).with(green " ---> message1")
         $stdout.should_receive(:puts).with(green "Starting cloud successful")
         invoke(@main, :start)
       end
@@ -727,7 +727,7 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
         @client.should_receive(:deployment).
           with("foo-staging", "DEPLOYMENT_ID").and_return(@deployment)
         $stdout.should_receive(:puts).with(green "Starting cloud foo-staging.")
-        $stdout.should_receive(:puts).with(green "message1")
+        $stdout.should_receive(:puts).with(green " ---> message1")
         $stdout.should_receive(:puts).with(green "Starting cloud successful")
         @main.options = {:cloud => "foo-staging"}
         invoke(@main, :start)
@@ -835,7 +835,7 @@ Wait until cloud is in 'turned off' state and try again.")
     it "should stop the cloud" do
       $stdout.should_receive(:print).with("Are you sure you want to shut down 'foo-production' cloud (yes/no): ")
       $stdout.should_receive(:puts).with("\n")
-      $stdout.should_receive(:puts).with(green "message1")
+      $stdout.should_receive(:puts).with(green " ---> message1")
       $stdout.should_receive(:puts).with(green "Stopping cloud successful")
       fake_stdin(["yes"]) do
         invoke(@main, :stop)
@@ -848,7 +848,7 @@ Wait until cloud is in 'turned off' state and try again.")
           @app.stub(:deployment => {"messages" => ["message1"],
             "result" => "failure", "state" => "deploy_failed"})
 
-          $stdout.should_receive(:puts).with(green "message1")
+          $stdout.should_receive(:puts).with(green " ---> message1")
           $stdout.should_receive(:puts).
             with(red "Stopping cloud failed. See logs with `shelly deploy show last --cloud foo-production`")
           fake_stdin(["yes"]) do
@@ -1280,7 +1280,7 @@ Wait until cloud is in 'turned off' state and try again.")
     end
 
     it "should print deployment messages" do
-      $stdout.should_receive(:puts).with(green "message1")
+      $stdout.should_receive(:puts).with(green " ---> message1")
       $stdout.should_receive(:puts).with(green "Cloud redeploy successful")
       invoke(@main, :redeploy)
     end
@@ -1290,7 +1290,7 @@ Wait until cloud is in 'turned off' state and try again.")
         it "should display error and `shelly deploy show last --cloud foo-production` command" do
           @app.stub(:deployment => {"messages" => ["message1"],
             "result" => "failure", "state" => "deploy_failed"})
-          $stdout.should_receive(:puts).with(green "message1")
+          $stdout.should_receive(:puts).with(green " ---> message1")
           $stdout.should_receive(:puts).
             with(red "Cloud redeploy failed. See logs with `shelly deploy show last --cloud foo-production`")
           invoke(@main, :redeploy)
