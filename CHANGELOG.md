@@ -1,4 +1,4 @@
-## master
+## 0.3.4 / 2013-07-02
 
 * [improvement] consistent output for `shelly start`, `shelly stop` and deployment progress
 
