@@ -86,6 +86,15 @@ describe Shelly::CLI::Deploy do
       end
     end
 
+    context "log is missing" do
+      it "should show error about contact support" do
+        @client.should_receive(:deploy_log).with("foo-staging", "last").and_return({})
+        $stdout.should_receive(:puts).with(red "There was an error and log is not available")
+        $stdout.should_receive(:puts).with(red "Please contact our support https://shellycloud.com/support")
+        lambda { invoke(@deploys, :show, "last") }.should raise_error(SystemExit)
+      end
+    end
+
     def expected_output
       $stdout.should_receive(:puts).with(green "Log for deploy done on 2011-12-12 at 14:14:59")
       $stdout.should_receive(:puts).with(green "Starting bundle install")

@@ -38,27 +38,32 @@ module Shelly
         specify_log(log)
         app = multiple_clouds(options[:cloud], "deploy show #{log}")
         content = app.deploy_log(log)
-        say "Log for deploy done on #{content["created_at"]}", :green
-        if content["bundle_install"]
-          say("Starting bundle install", :green); say(content["bundle_install"])
-        end
-        if content["whenever"]
-          say("Starting whenever", :green); say(content["whenever"])
-        end
-        if content["callbacks"]
-          say("Starting callbacks", :green); say(content["callbacks"])
-        end
-        if content["delayed_job"]
-          say("Starting delayed job", :green); say(content["delayed_job"])
-        end
-        if content["sidekiq"]
-          say("Starting sidekiq", :green); say(content["sidekiq"])
-        end
-        if content["thin_restart"]
-          say("Starting thin", :green); say(content["thin_restart"])
-        end
-        if content["puma_restart"]
-          say("Starting puma", :green); say(content["puma_restart"])
+        unless content.empty?
+          say "Log for deploy done on #{content["created_at"]}", :green
+          if content["bundle_install"]
+            say("Starting bundle install", :green); say(content["bundle_install"])
+          end
+          if content["whenever"]
+            say("Starting whenever", :green); say(content["whenever"])
+          end
+          if content["callbacks"]
+            say("Starting callbacks", :green); say(content["callbacks"])
+          end
+          if content["delayed_job"]
+            say("Starting delayed job", :green); say(content["delayed_job"])
+          end
+          if content["sidekiq"]
+            say("Starting sidekiq", :green); say(content["sidekiq"])
+          end
+          if content["thin_restart"]
+            say("Starting thin", :green); say(content["thin_restart"])
+          end
+          if content["puma_restart"]
+            say("Starting puma", :green); say(content["puma_restart"])
+          end
+        else
+          say_error("There was an error and log is not available", :with_exit => false)
+          say_error("Please contact our support https://shellycloud.com/support")
         end
       rescue Client::NotFoundException => e
         raise unless e.resource == :log
