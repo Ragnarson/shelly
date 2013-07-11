@@ -6,7 +6,7 @@ module Shelly
     class Database < Command
       namespace :database
       include Helpers
-      before_hook :logged_in?, :only => [:reset]
+      before_hook :logged_in?, :only => [:reset, :tunnel]
       class_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
 
       desc "reset KIND", "Reset database"
@@ -22,6 +22,26 @@ module Shelly
         app.reset_database(kind)
       rescue Client::ConflictException
         say_error "Cloud #{app} wasn't deployed properly. Cannot reset database."
+      end
+
+      desc "tunnel KIND", "Setup tunnel to given database"
+      method_option :port, :type => :string, :aliases => "-p",
+        :desc => "Local port on which tunnel will be set up"
+      def tunnel(kind)
+        app = multiple_clouds(options[:cloud], "database tunnel")
+        local_port = options[:port] || 9900
+        conn = app.tunnel_connection(kind)
+        say "Connection details", :green
+        say "host:     localhost"
+        say "port:     #{local_port}"
+        say "database: #{conn['service']['database_name']}"
+        say "username: #{conn['service']['username']}"
+        say "password: #{conn['service']['password']}"
+        app.setup_tunnel(conn, local_port)
+      rescue Client::NotFoundException => e
+        say_error e["message"]
+      rescue Client::ConflictException => e
+        say_error e["message"]
       end
     end
   end
