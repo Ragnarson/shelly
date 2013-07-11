@@ -291,7 +291,7 @@ describe Shelly::App do
 
   describe "#rake" do
     it "should return result of rake task" do
-      @client.stub(:console).and_return(
+      @client.stub(:tunnel).and_return(
         {"host" => "console.example.com", "port" => "40010", "user" => "foo"})
       @app.should_receive(:system).with("ssh -o StrictHostKeyChecking=no -p 40010 -l foo -t console.example.com rake_runner \"test\"")
       @app.rake("test")
@@ -349,7 +349,7 @@ describe Shelly::App do
 
   describe "#console" do
     it "should run ssh with all parameters" do
-      @client.stub(:console).and_return(
+      @client.stub(:tunnel).and_return(
         {"host" => "console.example.com", "port" => "40010", "user" => "foo"})
       @app.should_receive(:system).with("ssh -o StrictHostKeyChecking=no -p 40010 -l foo -t console.example.com ")
       @app.console
@@ -357,7 +357,7 @@ describe Shelly::App do
 
     context "when server passed" do
       it "should request console on given server" do
-        @client.should_receive(:console).with("foo-staging", "app1").and_return({})
+        @client.should_receive(:tunnel).with("foo-staging", "ssh", "app1").and_return({})
         @app.stub(:system)
         @app.console("app1")
       end
@@ -373,7 +373,7 @@ describe Shelly::App do
 
   describe "#upload" do
     it "should run rsync with proper parameters" do
-      @client.stub(:console).and_return(
+      @client.stub(:tunnel).and_return(
         {"host" => "console.example.com", "port" => "40010", "user" => "foo"})
       @app.should_receive(:system).with("rsync -avz -e 'ssh -o StrictHostKeyChecking=no -p 40010 -l foo' --progress /path console.example.com:/home/foo-staging/disk")
       @app.upload("/path")
@@ -382,7 +382,7 @@ describe Shelly::App do
 
   describe "#download" do
     it "should run rsync with proper parameters" do
-      @client.stub(:console).and_return(
+      @client.stub(:tunnel).and_return(
         {"host" => "console.example.com", "port" => "40010", "user" => "foo"})
       @app.should_receive(:system).with("rsync -avz -e 'ssh -o StrictHostKeyChecking=no -p 40010 -l foo' --progress console.example.com:/home/foo-staging/disk/. /tmp")
       @app.download(".", "/tmp")

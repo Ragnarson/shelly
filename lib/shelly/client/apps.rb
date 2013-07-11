@@ -33,12 +33,4 @@ class Shelly::Client
   def command(cloud, body, type)
     post("/apps/#{cloud}/command", {:body => body, :type => type})
   end
-
-  def console(code_name, server = nil)
-    get("/apps/#{code_name}/console", {:server => server})
-  end
-
-  def configured_db_server(code_name, server = nil)
-    get("/apps/#{code_name}/configured_db_server", {:server => server})
-  end
 end

@@ -30,4 +30,34 @@ describe Shelly::CLI::Database do
       end
     end
   end
+
+  describe "#tunnel" do
+    it "should ensure user has logged in" do
+      hooks(@database, :tunnel).should include(:logged_in?)
+    end
+
+    it "should show tunnel's details" do
+      @app.stub(:setup_tunnel)
+      conn = {
+        'user' => 'foo',
+        'password' => 'secret',
+        'port' => '9900',
+        'database name' => 'foo'
+      }
+      @app.should_receive(:tunnel_connection).and_return(conn)
+      $stdout.should_receive(:puts).with("host:          localhost")
+      $stdout.should_receive(:puts).with("port:          9900")
+      $stdout.should_receive(:puts).with("database name: foo")
+      $stdout.should_receive(:puts).with("username:      foo")
+      $stdout.should_receive(:puts).with("password:      secret")
+      invoke(@database, :tunnel, "mongodb")
+    end
+
+    it "should setup tunnel" do
+      @app.should_receive(:tunnel_connection).and_return({"host" => "localhost"})
+      @app.should_receive(:setup_tunnel).with({"host" => "localhost"}, 10103)
+      @database.options = {:port => 10103}
+      invoke(@database, :tunnel, "mongodb")
+    end
+  end
 end

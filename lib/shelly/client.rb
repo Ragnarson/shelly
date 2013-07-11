@@ -7,6 +7,7 @@ module Shelly
   class Client
     require 'shelly/client/errors'
     require 'shelly/client/shellyapp'
+    require 'shelly/client/tunnels'
     require 'shelly/client/users'
     require 'shelly/client/apps'
     require 'shelly/client/configs'
