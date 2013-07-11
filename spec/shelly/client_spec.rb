@@ -250,12 +250,12 @@ describe Shelly::Client do
     end
   end
 
-  describe "#console" do
+  describe "#tunnel" do
     it "should fetch virtual server data from API" do
       body = {:port => "40010", :host => "console.example.com", :user => "foo-production"}
-      FakeWeb.register_uri(:get, api_url("apps/staging-foo/console"),
+      FakeWeb.register_uri(:post, api_url("apps/staging-foo/tunnels"),
         :body => body.to_json)
-      response = @client.console("staging-foo")
+      response = @client.tunnel("staging-foo", "ssh")
       response.should == {"port" => "40010", "host" => "console.example.com", "user"=>"foo-production"}
     end
   end
