@@ -7,6 +7,6 @@ rvm:
   - jruby-18mode
   - jruby-19mode
 notifications:
-  email:
-    recipients:
-      - devs@shellycloud.com
+  email: false
+  campfire:
+    secure: 'ZSIx+w/r0QrOtpWu8EfmlypA9+pCRYSNU01Hv0ZvxOBu1EEp1Z/sDif0dCyyLrhv7lUOESdlcfmwVXUx93zEk2f+YMakG0NBnvMUhlkUhBLEsxDdPIgihhTirUIcWLrtPhtUbFA68/eXAP55wlz4Vcou5CHz8kk0+qmUX7QnqlI='
