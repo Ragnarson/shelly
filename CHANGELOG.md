@@ -1,3 +1,7 @@
+## 0.3.5 / 2013-07-17
+* [feature] Create SSH tunnels to databases which allow to use third-party database tools.
+* [bugfix] Handle case when no deployment logs are available
+
 ## 0.3.4 / 2013-07-02
 
 * [improvement] consistent output for `shelly start`, `shelly stop` and deployment progress
