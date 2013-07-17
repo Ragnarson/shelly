@@ -28,7 +28,7 @@ describe Shelly::CLI::File do
 
     context "cloud is not running" do
       it "should display error" do
-        @client.stub(:console).and_raise(Shelly::Client::ConflictException)
+        @client.stub(:tunnel).and_raise(Shelly::Client::ConflictException)
         $stdout.should_receive(:puts).with(red "Cloud foo-production wasn't deployed properly. Cannot list files.")
         lambda {
           invoke(@cli_files, :list, "some/path")
@@ -45,7 +45,7 @@ describe Shelly::CLI::File do
 
     it "should upload files" do
       expected = {"host" => "console.example.com", "port" => "40010", "user" => "foo"}
-      @client.stub(:console).and_return(expected)
+      @client.stub(:tunnel).and_return(expected)
       @app.should_receive(:upload).with("some/path")
       invoke(@cli_files, :upload, "some/path")
     end
@@ -59,7 +59,7 @@ describe Shelly::CLI::File do
 
     context "cloud is not running" do
       it "should display error" do
-        @client.stub(:console).and_raise(Shelly::Client::ConflictException)
+        @client.stub(:tunnel).and_raise(Shelly::Client::ConflictException)
         $stdout.should_receive(:puts).with(red "Cloud foo-production wasn't deployed properly. Cannot upload files.")
         lambda {
           invoke(@cli_files, :upload, "some/path")
@@ -81,14 +81,14 @@ describe Shelly::CLI::File do
 
     it "should download files" do
       expected = {"host" => "console.example.com", "port" => "40010", "user" => "foo"}
-      @client.stub(:console).and_return(expected)
+      @client.stub(:tunnel).and_return(expected)
       @app.should_receive(:download).with("some/path", "/destination")
       invoke(@cli_files, :download, "some/path", "/destination")
     end
 
     context "cloud is not running" do
       it "should display error" do
-        @client.stub(:console).and_raise(Shelly::Client::ConflictException)
+        @client.stub(:tunnel).and_raise(Shelly::Client::ConflictException)
         $stdout.should_receive(:puts).with(red "Cloud foo-production wasn't deployed properly. Cannot download files.")
         lambda {
           invoke(@cli_files, :download, "some/path")

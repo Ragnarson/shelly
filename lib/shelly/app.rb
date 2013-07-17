@@ -269,7 +269,7 @@ module Shelly
     end
 
     def upload(source)
-      console_connection.tap do |conn|
+      tunnel_connection.tap do |conn|
         rsync(source, "#{conn['host']}:#{persistent_disk}", conn)
       end
     end
@@ -281,7 +281,7 @@ module Shelly
     end
 
     def download(relative_source, destination)
-      console_connection.tap do |conn|
+      tunnel_connection.tap do |conn|
         source = File.join("#{conn['host']}:#{persistent_disk}", relative_source)
         rsync(source, destination, conn)
       end
@@ -289,6 +289,10 @@ module Shelly
 
     def delete_file(remote_path)
       ssh(:command => "delete_file #{remote_path}")
+    end
+
+    def setup_tunnel(conn, local_port)
+      system "ssh #{ssh_options(conn)} -N -L #{local_port}:localhost:#{conn['service']['port']} #{conn['host']}"
     end
 
     # Public: Return databases for given Cloud in Cloudfile
@@ -351,6 +355,11 @@ module Shelly
       IO.popen(%Q{git log --no-merges --oneline --pretty=format:"#{format}" #{range}}).read.strip
     end
 
+    # Returns first at least configured virtual server
+    def tunnel_connection(service = "ssh", server = nil)
+      shelly.tunnel(code_name, service, server)
+    end
+
     private
 
     def assign_attributes(response)
@@ -373,18 +382,13 @@ module Shelly
       content["servers"].any? {|_, settings| settings.has_key?(option)}
     end
 
-    # Returns first at least configured virtual server
-    def console_connection(server = nil)
-      shelly.console(code_name, server)
-    end
-
     # Returns first at least configured virtual server if databases are configured
     def configured_db_server_connection(server = nil)
       shelly.configured_db_server(code_name, server)
     end
 
     def ssh(options = {})
-      conn = console_connection(options[:server])
+      conn = tunnel_connection("ssh", options[:server])
       system "ssh #{ssh_options(conn)} -t #{conn['host']} #{options[:command]}"
     end
 
