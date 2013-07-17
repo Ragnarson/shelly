@@ -579,7 +579,7 @@ Wait until cloud is in 'turned off' state and try again.}
                 say("Remote '#{remote}' already exists")
               else
                 say "Adding remote #{remote} #{app.git_url}", :green
-                return remote
+                break remote
               end
             end
           end
