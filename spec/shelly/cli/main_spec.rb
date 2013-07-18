@@ -444,7 +444,8 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
     context "git remote" do
       it "should add one if it doesn't exist" do
         $stdout.should_receive(:puts).with("\e[32mAdding remote shelly git@git.shellycloud.com:foooo.git\e[0m")
-        @app.should_receive(:add_git_remote)
+        @app.should_receive(:add_git_remote).with("shelly")
+
         fake_stdin(["foooo", ""]) do
           invoke(@main, :add)
         end
@@ -458,7 +459,8 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
         it "should ask if one exist and overwrite" do
           $stdout.should_receive(:print).with("Git remote shelly exists, overwrite (yes/no):  ")
           $stdout.should_receive(:puts).with(green "Adding remote shelly git@git.shellycloud.com:foooo.git")
-          @app.should_receive(:add_git_remote)
+          @app.should_receive(:add_git_remote).with("shelly")
+
           fake_stdin(["foooo", "", "yes"]) do
             invoke(@main, :add)
           end
@@ -470,8 +472,8 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
           $stdout.should_receive(:print).with("Specify remote name: ")
           $stdout.should_receive(:puts).with(green "Adding remote test git@git.shellycloud.com:foooo.git")
           $stdout.should_receive(:puts).with("  git push test master")
+          @app.should_receive(:add_git_remote).with("test")
 
-          @app.should_not_receive(:add_git_remote)
           fake_stdin(["foooo", "", "no", "test"]) do
             invoke(@main, :add)
           end

@@ -1,4 +1,9 @@
+## master
+
+* [bugfix] Specified remote name is added while creating new app.
+
 ## 0.3.5 / 2013-07-17
+
 * [feature] Create SSH tunnels to databases which allow to use third-party database tools.
 * [bugfix] Handle case when no deployment logs are available
 
