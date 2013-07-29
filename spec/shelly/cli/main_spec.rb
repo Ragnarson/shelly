@@ -1592,6 +1592,24 @@ Wait until cloud is in 'turned off' state and try again.")
       end
     end
 
+    context "when Gemfile contains 'shelly' gem" do
+      it "should show warning" do
+        Bundler::Definition.stub_chain(:build, :specs, :map).
+          and_return(["shelly"])
+        $stdout.should_receive(:puts).
+          with("  #{yellow("ϟ")} Gem 'shelly' should not be a part of Gemfile.\n    The versions of the thor gem used by shelly and Rails may be incompatible.")
+        invoke(@main, :check)
+      end
+    end
+
+    context "when Gemfile does not contains 'shelly' gem" do
+      it "should show that 'shelly' is not a part of Gemfile" do
+        $stdout.should_receive(:puts).
+          with("  #{green("✓")} Gem 'shelly' is not a part of Gemfile")
+        invoke(@main, :check)
+      end
+    end
+
     context "cloudfile" do
       before do
         cloud = mock(:code_name => "foo-staging", :cloud_databases => ["postgresql"],
