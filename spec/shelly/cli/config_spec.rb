@@ -208,12 +208,13 @@ describe Shelly::CLI::Config do
     end
 
     it "should delete configuration file" do
-      @client.should_receive(:app_delete_config).with("foo-production", "path").and_return({})
-      $stdout.should_receive(:puts).with(green "File 'path' deleted.")
+      @client.should_receive(:app_delete_config).with("foo-production", "some-path").and_return({})
+      $stdout.should_receive(:print).with("Are you sure you want to delete 'some-path' (yes/no): ")
+      $stdout.should_receive(:puts).with(green "File 'some-path' deleted.")
       $stdout.should_receive(:puts).with("To make changes to running application redeploy it using:")
       $stdout.should_receive(:puts).with("`shelly redeploy --cloud foo-production`")
       fake_stdin(["y"]) do
-        invoke(@config, :delete, "path")
+        invoke(@config, :delete, "some-path")
       end
     end
 

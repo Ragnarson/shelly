@@ -1,3 +1,7 @@
+## master
+
+* [bugfix] Show proper path when asking to delete configuration file
+
 ## 0.3.7 / 2013-07-30
 
 * [improvement] Show warning if application Gemfile contains shelly gem.
