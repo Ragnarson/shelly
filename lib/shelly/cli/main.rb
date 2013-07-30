@@ -442,6 +442,12 @@ Wait until cloud is in 'turned off' state and try again.}
           "Rakefile is missing",
           :show_fulfilled => verbose)
 
+        print_check(!structure.gem?("shelly"),
+          "Gem 'shelly' is not a part of Gemfile",
+          "Gem 'shelly' should not be a part of Gemfile.\n    The versions of the thor gem used by shelly and Rails may be incompatible.",
+          :show_fulfilled => verbose || structure.warnings?,
+          :failure_level => :warning)
+
         print_check(structure.gem?("shelly-dependencies"),
           "Gem 'shelly-dependencies' is present",
           "Gem 'shelly-dependencies' is missing, we recommend to install it\n    See more at https://shellycloud.com/documentation/requirements#shelly-dependencies",

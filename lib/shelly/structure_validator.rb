@@ -46,7 +46,7 @@ module Shelly
     # structure, these warning don't prevent from deploying
     # to shelly
     def warnings?
-      !gem?("shelly-dependencies")
+      !gem?("shelly-dependencies") || gem?("shelly")
     end
 
     private

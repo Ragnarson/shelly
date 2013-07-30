@@ -1,3 +1,7 @@
+## master
+
+* [improvement] Show warning if application Gemfile contains shelly gem.
+
 ## 0.3.6 / 2013-07-22
 
 * [bugfix] Specified remote name is added while creating new app.
