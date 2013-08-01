@@ -1,6 +1,7 @@
 ## master
 
 * [bugfix] Show proper path when asking to delete configuration file
+* [improvement] Removed `git push` from instructions given by `shelly add`
 
 ## 0.3.7 / 2013-07-30
 
