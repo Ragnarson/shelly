@@ -669,10 +669,9 @@ Wait until cloud is in 'turned off' state and try again.}
 
         def info_deploying_to_shellycloud(remote = 'shelly')
           say_new_line
-          say "When you make sure all settings are correct please issue following commands:", :green
+          say "When you make sure all settings are correct, add changes to your repository:", :green
           say "  git add ."
           say '  git commit -m "Application added to Shelly Cloud"'
-          say "  git push"
           say_new_line
           say "Deploy to your cloud using:", :green
           say "  git push #{remote} master"

@@ -496,10 +496,9 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
     end
 
     it "should display info on how to deploy to ShellyCloud" do
-      $stdout.should_receive(:puts).with("\e[32mWhen you make sure all settings are correct please issue following commands:\e[0m")
+      $stdout.should_receive(:puts).with("\e[32mWhen you make sure all settings are correct, add changes to your repository:\e[0m")
       $stdout.should_receive(:puts).with("  git add .")
       $stdout.should_receive(:puts).with('  git commit -m "Application added to Shelly Cloud"')
-      $stdout.should_receive(:puts).with("  git push")
       $stdout.should_receive(:puts).with("\e[32mDeploy to your cloud using:\e[0m")
       $stdout.should_receive(:puts).with("  git push shelly master")
       fake_stdin(["foooo", "none"]) do
@@ -509,7 +508,7 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
 
     it "should check shelly requirements" do
       $stdout.should_receive(:puts) \
-        .with("\e[32mWhen you make sure all settings are correct please issue following commands:\e[0m")
+        .with("\e[32mWhen you make sure all settings are correct, add changes to your repository:\e[0m")
       @main.should_receive(:check).with(false).and_return(true)
       fake_stdin(["foooo", "none"]) do
         invoke(@main, :add)
@@ -518,7 +517,7 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
 
     it "should abort when shelly requirements are not met" do
       $stdout.should_not_receive(:puts) \
-        .with("\e[32mWhen you make sure all settings are correct please issue following commands:\e[0m")
+        .with("\e[32mWhen you make sure all settings are correct, add changes to your repository:\e[0m")
       @main.should_receive(:check).with(false).and_return(false)
       fake_stdin(["foooo", "none"]) do
         invoke(@main, :add)
