@@ -1,6 +1,6 @@
 class InputFaker
   def initialize(strings)
-    @strings = strings
+    @strings = Array(strings)
   end
 
   def gets
