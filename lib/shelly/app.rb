@@ -9,8 +9,8 @@ module Shelly
     SERVER_SIZES = %w(small large)
 
     attr_accessor :code_name, :databases, :ruby_version, :environment,
-      :git_url, :domains, :web_server_ip, :size, :thin, :redeem_code,
-      :content, :organization, :zone_name
+      :git_url, :domains, :web_server_ip, :size, :thin, :content,
+      :organization_name, :zone_name
 
     def initialize(code_name = nil, content = nil)
       self.code_name = code_name
@@ -62,8 +62,7 @@ module Shelly
 
     def create
       attributes = {:code_name => code_name,
-                    :redeem_code => redeem_code,
-                    :organization_name => organization,
+                    :organization_name => organization_name,
                     :zone_name => zone_name}
       response = shelly.create_app(attributes)
       assign_attributes(response)
@@ -164,10 +163,6 @@ module Shelly
       shelly.deployment(code_name, deployment_id)
     end
 
-    def self.code_name_from_dir_name
-      "#{File.basename(Dir.pwd)}".downcase.dasherize
-    end
-
     def configs
       @configs ||= shelly.app_configs(code_name)
     end
@@ -253,7 +248,7 @@ module Shelly
     end
 
     def edit_billing_url
-      "#{shelly.shellyapp_url}/organizations/#{organization || code_name}/edit"
+      "#{shelly.shellyapp_url}/organizations/#{organization_name || attributes['organization']['name']}/edit"
     end
 
     def open

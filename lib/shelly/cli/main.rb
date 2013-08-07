@@ -1,4 +1,3 @@
-# encoding: utf-8
 require "shelly/cli/command"
 require "shelly/cli/user"
 require "shelly/cli/backup"
@@ -8,6 +7,9 @@ require "shelly/cli/config"
 require "shelly/cli/file"
 require "shelly/cli/organization"
 require "shelly/cli/logs"
+
+require "shelly/cli/main/add"
+require "shelly/cli/main/check"
 
 module Shelly
   module CLI
@@ -78,73 +80,6 @@ module Shelly
       rescue Errno::ENOENT => e
         say_error e, :with_exit => false
         say_error "Use ssh-keygen to generate ssh key pair"
-      end
-
-      method_option "code-name", :type => :string, :aliases => "-c",
-        :desc => "Unique code-name of your cloud"
-      method_option :databases, :type => :array, :aliases => "-d",
-        :banner => Shelly::App::DATABASE_CHOICES.join(', '),
-        :desc => "List of databases of your choice"
-      method_option :size, :type => :string, :aliases => "-s",
-        :desc => "Server size [large, small]"
-      method_option "redeem-code", :type => :string, :aliases => "-r",
-        :desc => "Redeem code for free credits"
-      method_option "organization", :type => :string, :aliases => "-o",
-        :desc => "Add cloud to existing organization"
-      method_option "skip-requirements-check", :type => :boolean,
-        :desc => "Skip Shelly Cloud requirements check"
-      method_option "default-organization", :type => :boolean,
-        :desc => "Create cloud with default organization"
-      method_option "zone", :type => :string, :hide => true,
-        :desc => "Create cloud in given zone"
-      desc "add", "Add a new cloud"
-      def add
-        check_options(options)
-        unless options["skip-requirements-check"]
-          return unless check(verbose = false)
-        end
-        app = Shelly::App.new
-        app.code_name = options["code-name"] || ask_for_code_name
-        app.databases = options["databases"] || ask_for_databases
-        app.size = options["size"] || "large"
-        app.redeem_code = options["redeem-code"]
-        unless options["default-organization"]
-          app.organization = options["organization"] || ask_for_organization(app.code_name)
-        end
-        app.zone_name = options["zone"]
-        app.create
-
-        git_remote = add_remote(app)
-
-        say "Creating Cloudfile", :green
-        app.create_cloudfile
-
-        if app.credit > 0 || !app.organization_details_present?
-          say_new_line
-          say "Billing information", :green
-          if app.credit > 0
-            say "#{app.credit.to_i} Euro credit remaining."
-          end
-          if !app.organization_details_present?
-            say "Remember to provide billing details before trial ends."
-            say app.edit_billing_url
-          end
-        end
-
-        info_adding_cloudfile_to_repository
-        info_deploying_to_shellycloud(git_remote)
-
-      rescue Client::ValidationException => e
-        e.each_error { |error| say_error error, :with_exit => false }
-        say_new_line
-        say_error "Fix erros in the below command and type it again to create your cloud" , :with_exit => false
-        say_error "shelly add --code-name=#{app.code_name.downcase.dasherize} --databases=#{app.databases.join(',')} --size=#{app.size}"
-      rescue Client::ForbiddenException
-        say_error "You have to be the owner of '#{options[:organization]}' organization to add clouds"
-      rescue Client::NotFoundException => e
-        raise unless e.resource == :organization
-        say_error "Organization '#{app.organization}' not found", :with_exit => false
-        say_error "You can list organizations you have access to with `shelly organization list`"
       end
 
       map "status" => :list
@@ -410,126 +345,6 @@ Wait until cloud is in 'turned off' state and try again.}
         say_error "Virtual Server '#{options[:server]}' not found"
       end
 
-      desc "check", "Check if application fulfills Shelly Cloud requirements"
-      # Public: Check if application fulfills shelly's requirements
-      #         and print them
-      # verbose - when true all requirements will be printed out
-      #           together with header and a summary at the end
-      #           when false only not fulfilled requirements will be
-      #           printed
-      # When any requirements is not fulfilled header and summary will
-      # be displayed regardless of verbose value
-      def check(verbose = true)
-        structure = Shelly::StructureValidator.new
-
-        if verbose or structure.invalid? or structure.warnings?
-          say "Checking Shelly Cloud requirements\n\n"
-        end
-
-        print_check(structure.gemfile?, "Gemfile is present",
-          "Gemfile is missing in git repository",
-          :show_fulfilled => verbose)
-
-        print_check(structure.gemfile_lock?, "Gemfile.lock is present",
-          "Gemfile.lock is missing in git repository",
-          :show_fulfilled => verbose)
-
-        print_check(structure.config_ru?, "config.ru is present",
-          "config.ru is missing",
-          :show_fulfilled => verbose)
-
-        print_check(structure.rakefile?, "Rakefile is present",
-          "Rakefile is missing",
-          :show_fulfilled => verbose)
-
-        print_check(!structure.gem?("shelly"),
-          "Gem 'shelly' is not a part of Gemfile",
-          "Gem 'shelly' should not be a part of Gemfile.\n    The versions of the thor gem used by shelly and Rails may be incompatible.",
-          :show_fulfilled => verbose || structure.warnings?,
-          :failure_level => :warning)
-
-        print_check(structure.gem?("shelly-dependencies"),
-          "Gem 'shelly-dependencies' is present",
-          "Gem 'shelly-dependencies' is missing, we recommend to install it\n    See more at https://shellycloud.com/documentation/requirements#shelly-dependencies",
-          :show_fulfilled => verbose || structure.warnings?, :failure_level => :warning)
-
-        print_check(structure.gem?("thin") || structure.gem?("puma"),
-          "Web server gem is present",
-          "Missing web server gem in Gemfile. Currently supported: 'thin' and 'puma'",
-          :show_fulfilled => verbose, :failure_level => :warning)
-
-        print_check(structure.gem?("rake"), "Gem 'rake' is present",
-          "Gem 'rake' is missing in the Gemfile", :show_fulfilled => verbose)
-
-        print_check(structure.task?("db:migrate"), "Task 'db:migrate' is present",
-          "Task 'db:migrate' is missing", :show_fulfilled => verbose)
-
-        print_check(structure.task?("db:setup"), "Task 'db:setup' is present",
-          "Task 'db:setup' is missing", :show_fulfilled => verbose)
-
-        cloudfile = Cloudfile.new
-        if cloudfile.present?
-          cloudfile.clouds.each do |app|
-            if app.cloud_databases.include?('postgresql')
-              print_check(structure.gem?("pg") || structure.gem?("postgres"),
-                "Postgresql driver is present for '#{app}' cloud",
-                "Postgresql driver is missing in the Gemfile for '#{app}' cloud,\n    we recommend adding 'pg' gem to Gemfile",
-                :show_fulfilled => verbose)
-            end
-
-            if app.delayed_job?
-              print_check(structure.gem?("delayed_job"),
-                "Gem 'delayed_job' is present for '#{app}' cloud",
-                "Gem 'delayed_job' is missing in the Gemfile for '#{app}' cloud",
-                :show_fulfilled => verbose)
-            end
-
-            if app.whenever?
-              print_check(structure.gem?("whenever"),
-                "Gem 'whenever' is present for '#{app}' cloud",
-                "Gem 'whenever' is missing in the Gemfile for '#{app}' cloud",
-                :show_fulfilled => verbose)
-            end
-
-            if app.sidekiq?
-              print_check(structure.gem?("sidekiq"),
-                "Gem 'sidekiq' is present for '#{app}' cloud",
-                "Gem 'sidekiq' is missing in the Gemfile for '#{app}' cloud",
-                :show_fulfilled => verbose)
-            end
-
-            if app.thin?
-              print_check(structure.gem?("thin"),
-                "Web server gem 'thin' is present",
-                "Gem 'thin' is missing in the Gemfile for '#{app}' cloud",
-                :show_fulfilled => verbose)
-            end
-
-            if app.puma?
-              print_check(structure.gem?("puma"),
-                "Web server gem 'puma' is present",
-                "Gem 'puma' is missing in the Gemfile for '#{app}' cloud",
-                :show_fulfilled => verbose)
-            end
-          end
-        end
-
-        if structure.valid?
-          if verbose
-            say "\nGreat! Your application is ready to run on Shelly Cloud"
-          end
-        else
-          say "\nFix points marked with #{red("✗")} to run your application on the Shelly Cloud"
-          say "See more about requirements on https://shellycloud.com/documentation/requirements"
-        end
-
-        structure.valid?
-      rescue Bundler::BundlerError => e
-        say_new_line
-        say_error e.message, :with_exit => false
-        say_error "Try to run `bundle install`"
-      end
-
       # FIXME: move to helpers
       no_tasks do
         # Returns valid arguments for rake, removes shelly gem arguments
@@ -614,8 +429,8 @@ Wait until cloud is in 'turned off' state and try again.}
         end
 
         def ask_for_code_name
-          default_code_name = Shelly::App.code_name_from_dir_name
-          code_name = ask("Cloud code name (#{Shelly::App.code_name_from_dir_name} - default):")
+          default_code_name = default_name_from_dir_name
+          code_name = ask("Cloud code name (#{default_name_from_dir_name} - default):")
           code_name.blank? ? default_code_name : code_name
         end
 
@@ -630,34 +445,6 @@ Wait until cloud is in 'turned off' state and try again.}
           end while not valid
 
           databases.empty? ? ["postgresql"] : databases
-        end
-
-        def ask_for_organization(default_name)
-          organizations = Shelly::User.new.organizations
-          unless organizations.blank?
-            count = organizations.count
-            option_selected = 0
-            loop do
-              say "Select organization for this cloud:"
-              say_new_line
-              say "existing organizations:"
-
-              organizations.each_with_index do |organization, i|
-                print_wrapped "#{i + 1}) #{organization.name}", :ident => 2
-              end
-              say_new_line
-              say "new organization (default as code name):"
-
-              print_wrapped "#{count + 1}) #{default_name}", :ident => 2
-
-              option_selected = ask("Option:")
-              break if ('1'..(count + 1).to_s).include?(option_selected)
-            end
-
-            if (1..count).include?(option_selected.to_i)
-              return organizations[option_selected.to_i - 1].name
-            end
-          end
         end
 
         def info_adding_cloudfile_to_repository

@@ -7,6 +7,10 @@ class Shelly::Client
     get("/organizations/#{name}")
   end
 
+  def create_organization(attributes)
+    post("/organizations", :organization => attributes)
+  end
+
   def members(name)
     get("/organizations/#{name}/memberships")
   end
