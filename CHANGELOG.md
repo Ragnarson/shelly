@@ -1,4 +1,4 @@
-## master
+## 0.4.0.pre / 2013-08-12
 
 * [feature] Added `shelly organization add` to create new organizations
 * [improvement] Create organization and cloud separately
