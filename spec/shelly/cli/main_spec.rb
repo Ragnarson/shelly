@@ -406,7 +406,7 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
     it "should create the app on shelly cloud and show credit information" do
       @app.stub(:attributes).and_return(
         "organization" => {"credit" => "40", "details_present" => false})
-      @app.stub(:organization).and_return("example")
+      @app.stub(:organization_name).and_return("example")
       @app.should_receive(:create)
       $stdout.should_receive(:puts).with(green "Billing information")
       $stdout.should_receive(:puts).with("40 Euro credit remaining.")
@@ -430,10 +430,11 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
     it "should display validation errors if they are any" do
       body = {"message" => "Validation Failed", "errors" => [["code_name", "has been already taken"]]}
       exception = Shelly::Client::ValidationException.new(body)
+      @app.stub(:organization_name).and_return("org-name")
       @app.should_receive(:create).and_raise(exception)
       $stdout.should_receive(:puts).with(red "Code name has been already taken")
       $stdout.should_receive(:puts).with(red "Fix erros in the below command and type it again to create your cloud")
-      $stdout.should_receive(:puts).with(red "shelly add --code-name=big-letters --databases=postgresql --size=large")
+      $stdout.should_receive(:puts).with(red "shelly add --code-name=big-letters --databases=postgresql --organization=org-name --size=large")
       lambda {
         fake_stdin(["BiG_LETTERS", ""]) do
           invoke(@main, :add)
@@ -545,14 +546,14 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
       end.to raise_error(SystemExit)
     end
 
-    context "organizations" do
+    context "organization" do
       before do
         @main.unstub(:ask_for_organization)
       end
 
       it "should use --organization option" do
         @main.options = {"organization" => "foo"}
-        @app.should_receive(:organization=).with("foo")
+        @app.should_receive(:organization_name=).with("foo")
         fake_stdin(["foooo", "none"]) do
           invoke(@main, :add)
         end
@@ -564,37 +565,45 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
         end
 
         it "should ask user to choose organization if present and use chosen organization" do
-          @app.should_receive(:organization=).with("aaa")
+          @app.should_receive(:organization_name=).with("aaa")
           $stdout.should_receive(:puts).with("Select organization for this cloud:")
           $stdout.should_receive(:puts).with("existing organizations:")
           $stdout.should_receive(:puts).with("  1) aaa")
-          $stdout.should_receive(:puts).with("new organization (default as code name):")
-          $stdout.should_receive(:puts).with("  2) foooo")
+          $stdout.should_receive(:puts).with("  2) provide name for new organization")
           $stdout.should_receive(:print).with("Option: ")
           fake_stdin(["foooo", "none", "1"]) do
             invoke(@main, :add)
           end
         end
 
-        it "should ask user to choose organization if present" do
-          @app.should_receive(:organization=).with(nil)
+        it "should ask user to create new organization" do
+          @main.options = {'redeem-code' => 'discount'}
+          @client.should_receive(:create_organization).
+            with({:name => "org-name", :redeem_code => 'discount'})
+          @app.should_receive(:organization_name=).with('org-name')
           $stdout.should_receive(:puts).with("Select organization for this cloud:")
           $stdout.should_receive(:puts).with("existing organizations:")
           $stdout.should_receive(:puts).with("  1) aaa")
-          $stdout.should_receive(:puts).with("new organization (default as code name):")
-          $stdout.should_receive(:puts).with("  2) foooo")
+          $stdout.should_receive(:puts).with("  2) provide name for new organization")
           $stdout.should_receive(:print).with("Option: ")
-          fake_stdin(["foooo", "none", "2"]) do
+          $stdout.should_receive(:print).with("Organization name (foo - default): ")
+          $stdout.should_receive(:puts).with(green "Organization 'org-name' created")
+          fake_stdin(["foooo", "none", "2", "org-name"]) do
             invoke(@main, :add)
           end
         end
-      end
 
-      context "default-organizaation" do
-        it "should not ask for organization" do
-          @main.options = {"default-organization" => true}
-          @app.should_not_receive(:organization=)
-          fake_stdin(["foooo", "none"]) do
+        it "should use redeem-code option" do
+          @client.should_receive(:create_organization).
+            with({:name => "org-name", :redeem_code => nil})
+          $stdout.should_receive(:puts).with("Select organization for this cloud:")
+          $stdout.should_receive(:puts).with("existing organizations:")
+          $stdout.should_receive(:puts).with("  1) aaa")
+          $stdout.should_receive(:puts).with("  2) provide name for new organization")
+          $stdout.should_receive(:print).with("Option: ")
+          $stdout.should_receive(:print).with("Organization name (foo - default): ")
+          $stdout.should_receive(:puts).with(green "Organization 'org-name' created")
+          fake_stdin(["foooo", "none", "2", "org-name"]) do
             invoke(@main, :add)
           end
         end

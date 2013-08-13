@@ -23,6 +23,17 @@ module Shelly
       say message, :yellow
     end
 
+    # Extracted into a helper so can be used when adding cloud Main#add and
+    # Organization#add
+    def create_new_organization(options = {})
+      organization = Shelly::Organization.new
+      organization.name = ask_for_organization_name
+      organization.redeem_code = options["redeem-code"]
+      organization.create
+      say "Organization '#{organization.name}' created", :green
+      organization.name
+    end
+
     def ask_for_email(options = {})
       options = {:guess_email => true}.merge(options)
       email_question = options[:guess_email] && !User.guess_email.blank? ? "Email (#{User.guess_email} - default):" : "Email:"
@@ -57,6 +68,16 @@ module Shelly
     def ask_to_reset_database
       reset_database_question = "I want to reset the database (yes/no):"
       exit 1 unless yes?(reset_database_question)
+    end
+
+    def ask_for_organization_name
+      default_name = default_name_from_dir_name
+      name = ask("Organization name (#{default_name} - default):")
+      name.blank? ? default_name : name
+    end
+
+    def default_name_from_dir_name
+      "#{File.basename(Dir.pwd)}".downcase.dasherize
     end
 
     def inside_git_repository?

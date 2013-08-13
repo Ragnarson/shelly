@@ -1,3 +1,8 @@
+## master
+
+* [feature] Added `shelly organization add` to create new organizations
+* [improvement] Create organization and cloud separately
+
 ## 0.3.8 / 2013-08-05
 
 * [bugfix] Show proper path when asking to delete configuration file
