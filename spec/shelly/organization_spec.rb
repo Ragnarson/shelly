@@ -62,6 +62,16 @@ describe Shelly::Organization do
     end
   end
 
+  describe "#create" do
+    it "should create organization via API client" do
+      @client.should_receive(:create_organization).with(
+        :name => "new-organization", :redeem_code => "discount")
+      @organization.name = "new-organization"
+      @organization.redeem_code = "discount"
+      @organization.create
+    end
+  end
+
   describe "#send_invitation" do
     it "should send invitation" do
       @client.should_receive(:send_invitation).with("foo-org", "megan@example.com", true)

@@ -1,6 +1,6 @@
 module Shelly
   class Organization < Model
-    attr_reader :name, :app_code_names
+    attr_accessor :name, :app_code_names, :redeem_code
 
     def initialize(attributes = {})
       @name           = attributes["name"]
@@ -11,6 +11,11 @@ module Shelly
       app_code_names.map do |code_name|
         Shelly::App.new(code_name)
       end
+    end
+
+    def create
+      attributes = {:name => name, :redeem_code => redeem_code}
+      shelly.create_organization(attributes)
     end
 
     def memberships

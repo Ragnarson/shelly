@@ -10,13 +10,6 @@ describe Shelly::App do
     @app = Shelly::App.new('foo-staging')
   end
 
-  describe ".code_name_from_dir_name" do
-    it "should downcase and dasherize code name" do
-      Dir.stub(:pwd).and_return("/project/FOO")
-      Shelly::App.code_name_from_dir_name.should == "foo"
-    end
-  end
-
   describe "#databases=" do
     it "should remove 'none' as possible database" do
       @app.databases = %w{none postgresql}
@@ -249,10 +242,8 @@ describe Shelly::App do
   describe "#create" do
     it "should create the app on shelly cloud via API client" do
       @app.code_name = "fooo"
-      @app.redeem_code = "foo123"
       attributes = {
         :code_name => "fooo",
-        :redeem_code => "foo123",
         :organization_name => nil,
         :zone_name => nil
       }
@@ -333,7 +324,7 @@ describe Shelly::App do
 
   describe "#edit_billing_url" do
     it "should return link to edit billing page for app" do
-      @app.stub(:organization).and_return("example")
+      @app.stub(:organization_name).and_return("example")
       @app.edit_billing_url.should == "http://shellyapp.example.com/organizations/example/edit"
     end
   end
