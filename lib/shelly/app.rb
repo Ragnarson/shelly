@@ -247,6 +247,10 @@ module Shelly
       system("git status > /dev/null 2>&1")
     end
 
+    def turned_off?
+      state == 'turned_off'
+    end
+
     def to_s
       code_name
     end
