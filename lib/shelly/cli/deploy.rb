@@ -43,12 +43,6 @@ module Shelly
           if content["bundle_install"]
             say("Starting bundle install", :green); say(content["bundle_install"])
           end
-          if content["whenever"]
-            say("Starting whenever", :green); say(content["whenever"])
-          end
-          if content["callbacks"]
-            say("Starting callbacks", :green); say(content["callbacks"])
-          end
           if content["delayed_job"]
             say("Starting delayed job", :green); say(content["delayed_job"])
           end
@@ -60,6 +54,12 @@ module Shelly
           end
           if content["puma_restart"]
             say("Starting puma", :green); say(content["puma_restart"])
+          end
+          if content["callbacks"]
+            say("Starting callbacks", :green); say(content["callbacks"])
+          end
+          if content["whenever"]
+            say("Starting whenever", :green); say(content["whenever"])
           end
         else
           say_error("There was an error and log is not available", :with_exit => false)

@@ -1,3 +1,7 @@
+## master
+
+* [improvement] Reorganised displaying deploy logs
+
 ## 0.4.0 / 2013-08-13
 
 * [feature] Added `shelly organization add` to create new organizations
