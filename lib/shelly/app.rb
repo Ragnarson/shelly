@@ -191,6 +191,10 @@ module Shelly
       shelly.app_delete_config(code_name, path)
     end
 
+    def config_exists?(path)
+      configs.any? { |config| config["path"] == path }
+    end
+
     def rake(task)
       ssh(:command => "rake_runner \"#{task}\"")
     end
