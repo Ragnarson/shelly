@@ -242,4 +242,53 @@ describe Shelly::CLI::Config do
       end
     end
   end
+
+  describe "#upload" do
+    before do
+      @config.stub(:multiple_clouds => @app)
+    end
+
+    it "should ensure user has logged in" do
+      hooks(@config, :upload).should include(:logged_in?)
+    end
+
+    it "should upload given configuration file" do
+      File.open("upload_me", "w") { |f| f << "upload_me_content" }
+      @app.stub(:config_exists? => false)
+      @app.should_receive(:create_config).with("upload_me", "upload_me_content").and_return({})
+      $stdout.should_receive(:puts).with(green "File 'upload_me' uploaded.")
+      invoke(@config, :upload, "upload_me")
+    end
+
+    context "when destination path given" do
+      it "should upload to given path" do
+        File.open("upload_me", "w") { |f| f << "upload_me_content" }
+        @app.stub(:config_exists? => false)
+        @app.should_receive(:create_config).with("put/it/here", "upload_me_content").and_return({})
+        $stdout.should_receive(:puts).with(green "File 'upload_me' uploaded.")
+        invoke(@config, :upload, "upload_me", "put/it/here")
+      end
+    end
+
+    context "when source path doesn't exist" do
+      it "should show error" do
+        @app.stub(:config_exists? => false)
+        @app.should_not_receive(:create_config)
+        $stdout.should_receive(:puts).with(red "File 'upload_me' doesn't exist.")
+        lambda { invoke(@config, :upload, "upload_me") }.should raise_error(SystemExit)
+      end
+    end
+
+    context "when destination path exists" do
+      it "should ask if overwrite" do
+        File.open("upload_me", "w") { |f| f << "upload_me_content" }
+        @app.stub(:config_exists? => true)
+        @app.should_receive(:update_config).with("upload_me", "upload_me_content").and_return({})
+        $stdout.should_receive(:puts).with(green "File 'upload_me' uploaded.")
+        fake_stdin(["y"]) do
+          invoke(@config, :upload, "upload_me")
+        end
+      end
+    end
+  end
 end
