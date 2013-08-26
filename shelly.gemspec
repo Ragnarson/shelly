@@ -10,6 +10,7 @@ Gem::Specification.new do |s|
   s.homepage    = "http://shellycloud.com"
   s.summary     = %q{Shelly Cloud command line tool}
   s.description = %q{Tool for managing applications and clouds at shellycloud.com}
+  s.license     = 'MIT'
 
   s.rubyforge_project = "shelly"
   s.add_development_dependency "rspec", "~> 2.11.0"
