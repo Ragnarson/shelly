@@ -1,5 +1,6 @@
-## master
+## 0.4.1 / 2013-08-26
 
+* [feature] Upload existing config file with `shelly config upload PATH`
 * [improvement] Reorganised displaying deploy logs
 * [improvement] Show next action depending on cloud state when adding configuration file
 
