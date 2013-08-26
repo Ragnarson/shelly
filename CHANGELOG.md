@@ -1,6 +1,7 @@
 ## master
 
 * [improvement] Reorganised displaying deploy logs
+* [improvement] Show next action depending on cloud state when adding configuration file
 
 ## 0.4.0 / 2013-08-13
 

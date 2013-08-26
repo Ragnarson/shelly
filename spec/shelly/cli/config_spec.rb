@@ -14,6 +14,7 @@ describe Shelly::CLI::Config do
     FileUtils.mkdir_p("/projects/foo")
     Dir.chdir("/projects/foo")
     @client.stub(:authorize!)
+    @client.stub(:app).and_return('state' => 'running')
     File.open("Cloudfile", 'w') {|f| f.write("foo-production:\n") }
     FileUtils.mkdir_p("/tmp")
     Dir.stub(:tmpdir).and_return("/tmp")
@@ -96,7 +97,6 @@ describe Shelly::CLI::Config do
     # multiple_clouds is tested in main_spec.rb in describe "#start" block
     it "should ensure multiple_clouds check" do
       @config.should_receive(:system).with(/vim \/tmp\/shelly-edit/).and_return(true)
-      @app = Shelly::App.new("foo-production")
       Shelly::App.stub(:new).and_return(@app)
       @client.should_receive(:app_create_config).with("foo-production", "path", "\n").and_return({})
       @config.should_receive(:multiple_clouds).and_return(@app)
@@ -109,13 +109,27 @@ describe Shelly::CLI::Config do
       lambda { invoke(@config, :create, "path") }.should raise_error(SystemExit)
     end
 
-    it "should create file" do
-      @config.should_receive(:system).with(/vim \/tmp\/shelly-edit/).and_return(true)
-      @client.should_receive(:app_create_config).with("foo-production", "path", "\n").and_return({})
-      $stdout.should_receive(:puts).with(green "File 'path' created.")
-      $stdout.should_receive(:puts).with("To make changes to running application redeploy it using:")
-      $stdout.should_receive(:puts).with("`shelly redeploy --cloud foo-production`")
-      invoke(@config, :create, "path")
+    context "cloud running" do
+      it "should create file" do
+        @config.should_receive(:system).with(/vim \/tmp\/shelly-edit/).and_return(true)
+        @client.should_receive(:app_create_config).with("foo-production", "path", "\n").and_return({})
+        $stdout.should_receive(:puts).with(green "File 'path' created.")
+        $stdout.should_receive(:puts).with("To make changes to running cloud redeploy it using:")
+        $stdout.should_receive(:puts).with("`shelly redeploy --cloud foo-production`")
+        invoke(@config, :create, "path")
+      end
+    end
+
+    context "cloud turned off" do
+      it "should print " do
+        @client.stub(:app).and_return('state' => 'turned_off')
+        @config.should_receive(:system).with(/vim \/tmp\/shelly-edit/).and_return(true)
+        @client.should_receive(:app_create_config).with("foo-production", "path", "\n").and_return({})
+        $stdout.should_receive(:puts).with(green "File 'path' created.")
+        $stdout.should_receive(:puts).with("Changes will take affect when cloud is started")
+        $stdout.should_receive(:puts).with("`shelly start --cloud foo-production`")
+        invoke(@config, :create, "path")
+      end
     end
 
     context "on validation errors" do
@@ -162,8 +176,7 @@ describe Shelly::CLI::Config do
       @config.should_receive(:system).with(/vim \/tmp\/shelly-edit/).and_return(true)
       @client.should_receive(:app_update_config).with("foo-production", "path", "example content\n").and_return({"path" => "test.rb", "content" => "example content"})
       $stdout.should_receive(:puts).with(green "File 'test.rb' updated.")
-      $stdout.should_receive(:puts).with("To make changes to running application redeploy it using:")
-      $stdout.should_receive(:puts).with("`shelly redeploy --cloud foo-production`")
+      @config.should_receive(:next_action_info)
       invoke(@config, :edit, "path")
     end
 
@@ -211,8 +224,7 @@ describe Shelly::CLI::Config do
       @client.should_receive(:app_delete_config).with("foo-production", "some-path").and_return({})
       $stdout.should_receive(:print).with("Are you sure you want to delete 'some-path' (yes/no): ")
       $stdout.should_receive(:puts).with(green "File 'some-path' deleted.")
-      $stdout.should_receive(:puts).with("To make changes to running application redeploy it using:")
-      $stdout.should_receive(:puts).with("`shelly redeploy --cloud foo-production`")
+      @config.should_receive(:next_action_info)
       fake_stdin(["y"]) do
         invoke(@config, :delete, "some-path")
       end
