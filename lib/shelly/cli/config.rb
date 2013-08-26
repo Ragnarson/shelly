@@ -6,8 +6,10 @@ module Shelly
       namespace :config
       include Helpers
 
-      before_hook :logged_in?, :only => [:list, :show, :create, :new, :edit, :update, :delete]
-      class_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
+      before_hook :logged_in?, :only => [:list, :show, :create, :new, :edit,
+        :update, :upload, :delete]
+      class_option :cloud, :type => :string, :aliases => "-c",
+        :desc => "Specify cloud"
 
       desc "list", "List configuration files"
       def list
@@ -51,8 +53,7 @@ module Shelly
         app = multiple_clouds(options[:cloud], "create #{path}")
         app.create_config(path, output)
         say "File '#{path}' created.", :green
-        say "To make changes to running application redeploy it using:"
-        say "`shelly redeploy --cloud #{app}`"
+        display_redeploy_info(app)
       rescue Client::ValidationException => e
         e.each_error { |error| say_error error, :with_exit => false }
         exit 1
@@ -67,8 +68,7 @@ module Shelly
         content = open_editor(config["path"], config["content"])
         app.update_config(path, content)
         say "File '#{config["path"]}' updated.", :green
-        say "To make changes to running application redeploy it using:"
-        say "`shelly redeploy --cloud #{app}`"
+        display_redeploy_info(app)
       rescue Client::NotFoundException => e
         raise unless e.resource == :config
         say_error "Config '#{path}' not found", :with_exit => false
@@ -84,8 +84,7 @@ module Shelly
         if yes?("Are you sure you want to delete '#{path}' (yes/no):")
           app.delete_config(path)
           say "File '#{path}' deleted.", :green
-          say "To make changes to running application redeploy it using:"
-          say "`shelly redeploy --cloud #{app}`"
+          display_redeploy_info(app)
         else
           say "File not deleted"
         end
@@ -95,7 +94,41 @@ module Shelly
         say_error "You can list available config files with `shelly config list --cloud #{app}`"
       end
 
+      desc "upload PATH [DESTINATION_PATH]", "Upload configuration file"
+      long_desc %{
+        Upload configuration file from local machine
+        PATH - Path to configuration file that will be uploaded
+        DESTINATION_PATH - Optional file path that file will be uploaded to. By default it's the same as PATH.
+      }
+      def upload(path, destination_path = nil)
+        app = multiple_clouds(options[:cloud], "config upload #{path}")
+        destination_path ||= path
+        if ::File.exists?(path)
+          content = ::File.read(path)
+        else
+          say_error "File '#{path}' doesn't exist."
+        end
+        if app.config_exists?(destination_path)
+          if yes?("Config file '#{destination_path}' exists, do you want to overwrite it (yes/no):")
+            app.update_config(destination_path, content)
+            say "File '#{path}' uploaded.", :green
+            display_redeploy_info(app)
+          else
+            say "File not overwritten."
+          end
+        else
+          app.create_config(destination_path, content)
+          say "File '#{path}' uploaded.", :green
+          display_redeploy_info(app)
+        end
+      end
+
       no_tasks do
+        def display_redeploy_info(app)
+          say "To make changes to running application redeploy it using:"
+          say "`shelly redeploy --cloud #{app}`"
+        end
+
         def print_configs(configs)
           print_table(configs.map { |config|
             [" * ", config["path"]] })

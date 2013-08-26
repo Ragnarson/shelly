@@ -97,6 +97,20 @@ describe Shelly::App do
       @client.should_receive(:app_delete_config).with("foo-staging", "path")
       @app.delete_config("path")
     end
+
+    describe "#config_exists?" do
+      before do
+        @client.stub(:app_configs => config_response)
+      end
+
+      it "should return true when config exists" do
+        @app.config_exists?("user_created").should be_true
+      end
+
+      it "should return false when config doesn't exist" do
+        @app.config_exists?("some/config").should be_false
+      end
+    end
   end
 
   describe "#attributes" do
