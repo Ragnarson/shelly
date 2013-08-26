@@ -199,6 +199,13 @@ describe Shelly::App do
     end
   end
 
+  describe "#turned_off?" do
+    it "should return true if cloud state is turned_off" do
+      @client.should_receive(:app).and_return({'state' => 'turned_off'})
+      @app.turned_off?.should be_true
+    end
+  end
+
   describe "#deploy_logs" do
     it "should list deploy_logs" do
       @client.should_receive(:deploy_logs).with("foo-staging")

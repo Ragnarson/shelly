@@ -53,7 +53,7 @@ module Shelly
         app = multiple_clouds(options[:cloud], "create #{path}")
         app.create_config(path, output)
         say "File '#{path}' created.", :green
-        display_redeploy_info(app)
+        next_action_info(app)
       rescue Client::ValidationException => e
         e.each_error { |error| say_error error, :with_exit => false }
         exit 1
@@ -68,7 +68,7 @@ module Shelly
         content = open_editor(config["path"], config["content"])
         app.update_config(path, content)
         say "File '#{config["path"]}' updated.", :green
-        display_redeploy_info(app)
+        next_action_info(app)
       rescue Client::NotFoundException => e
         raise unless e.resource == :config
         say_error "Config '#{path}' not found", :with_exit => false
@@ -84,7 +84,7 @@ module Shelly
         if yes?("Are you sure you want to delete '#{path}' (yes/no):")
           app.delete_config(path)
           say "File '#{path}' deleted.", :green
-          display_redeploy_info(app)
+          next_action_info(app)
         else
           say "File not deleted"
         end
@@ -112,21 +112,26 @@ module Shelly
           if yes?("Config file '#{destination_path}' exists, do you want to overwrite it (yes/no):")
             app.update_config(destination_path, content)
             say "File '#{path}' uploaded.", :green
-            display_redeploy_info(app)
+            next_action_info(app)
           else
             say "File not overwritten."
           end
         else
           app.create_config(destination_path, content)
           say "File '#{path}' uploaded.", :green
-          display_redeploy_info(app)
+          next_action_info(app)
         end
       end
 
       no_tasks do
-        def display_redeploy_info(app)
-          say "To make changes to running application redeploy it using:"
-          say "`shelly redeploy --cloud #{app}`"
+        def next_action_info(app)
+          if app.turned_off?
+            say "Changes will take affect when cloud is started"
+            say "`shelly start --cloud #{app}`"
+          else
+            say "To make changes to running cloud redeploy it using:"
+            say "`shelly redeploy --cloud #{app}`"
+          end
         end
 
         def print_configs(configs)
