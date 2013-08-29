@@ -1,3 +1,7 @@
+## master
+
+* [improvement] Use thor version without binaries
+
 ## 0.4.1 / 2013-08-26
 
 * [feature] Upload existing config file with `shelly config upload PATH`
