@@ -630,9 +630,14 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
     before do
       @client.stub(:token).and_return("abc")
       @client.stub(:apps).and_return([
-        {"code_name" => "abc", "state" => "running", "state_description" => "running"},
-        {"code_name" => "fooo", "state" => "deploy_failed", "state_description" => "running (last deployment failed)"},
-        {"code_name" => "bar", "state" => "configuration_failed", "state_description" => "not running (last deployment failed)"}
+        {"code_name" => "abc", "state" => "running",
+          "state_description" => "running"},
+        {"code_name" => "fooo", "state" => "deploy_failed",
+          "state_description" => "running (last deployment failed)"},
+        {"code_name" => "bar", "state" => "configuration_failed",
+          "state_description" => "not running (last deployment failed)"},
+        {"code_name" => "baz", "state" => "deploy_failed",
+          "state_description" => "admin maintenance in progress"}
       ])
     end
 
@@ -645,6 +650,12 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
       $stdout.should_receive(:puts).with(/abc\s+\|  running/)
       $stdout.should_receive(:puts).with(/fooo\s+\|  running \(last deployment failed\) \(deployment log: `shelly deploys show last -c fooo`\)/)
       $stdout.should_receive(:puts).with(/bar\s+\|  not running \(last deployment failed\) \(deployment log: `shelly deploys show last -c bar`\)/)
+      $stdout.should_receive(:puts).with(/baz\s+\|  admin maintenance in progress/)
+      invoke(@main, :list)
+    end
+
+    it "should not display `shelly deploys show last -c baz` command" do
+      $stdout.should_not_receive(:puts).with(/baz\s+\|  admin maintenance in progress \(deployment log: `shelly deploys show last -c baz`\)/)
       invoke(@main, :list)
     end
 
@@ -674,7 +685,9 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
           {"code_name" => "foo-production", "state" => "running",
             "state_description" => "running"},
           {"code_name" => "foo-staging", "state" => "no_code",
-            "state_description" => "turned off (no code pushed)"}])
+            "state_description" => "turned off (no code pushed)"},
+          {"code_name" => "foo-edge", "state" => "deploy_failed",
+            "state_description" => "admin maintenance in progress"}])
       @client.stub(:start_cloud => {"deployment" => {"id" => "DEPLOYMENT_ID"}})
       @deployment =  {"messages" => ["message1"],
         "result" => "success", "state" => "finished"}
@@ -711,6 +724,7 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
         $stdout.should_receive(:puts).with(green "You have following clouds available:")
         $stdout.should_receive(:puts).with("  foo-production  |  running")
         $stdout.should_receive(:puts).with("  foo-staging     |  turned off (no code pushed)")
+        $stdout.should_receive(:puts).with("  foo-edge        |  admin maintenance in progress")
         lambda { invoke(@main, :start) }.should raise_error(SystemExit)
       end
     end

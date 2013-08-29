@@ -251,6 +251,14 @@ module Shelly
       state == 'turned_off'
     end
 
+    def in_failed_state?
+      state == "deploy_failed" || state == "configuration_failed"
+    end
+
+    def in_admin_maintenance?
+      state_description.start_with? "admin maintenance"
+    end
+
     def to_s
       code_name
     end
