@@ -100,7 +100,7 @@ module Shelly
       desc "info", "Show basic information about cloud"
       def info
         app = multiple_clouds(options[:cloud], "info")
-        msg = if app.state == "deploy_failed" || app.state == "configuration_failed"
+        msg = if app.in_failed_state?
           " (deployment log: `shelly deploys show last -c #{app}`)"
         end
         say "Cloud #{app}:", msg.present? ? :red : :green
