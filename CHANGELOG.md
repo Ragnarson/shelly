@@ -1,3 +1,7 @@
+## master
+
+* [improvement] There is no longer configuration_failed state for apps.
+
 ## 0.4.2 / 2013-08-29
 
 * [improvement] Use thor version without binaries

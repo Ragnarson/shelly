@@ -251,6 +251,10 @@ module Shelly
       state == 'turned_off'
     end
 
+    def in_deploy_failed_state?
+      state == "deploy_failed"
+    end
+
     def to_s
       code_name
     end

@@ -206,6 +206,26 @@ describe Shelly::App do
     end
   end
 
+  describe "#in_deploy_failed_state?" do
+    context "when application is in deploy_failed state" do
+      it "should return true" do
+        @client.should_receive(:app).
+          and_return({'state' => 'deploy_failed'})
+        @app.in_deploy_failed_state?.should be_true
+      end
+    end
+
+    %w(no_billing no_code turned_off turning_off deploying running).each do |state|
+      context "when application is in #{state} state" do
+        it "should return false" do
+          @client.should_receive(:app).
+            and_return({'state' => state})
+          @app.in_deploy_failed_state?.should be_false
+        end
+      end
+    end
+  end
+
   describe "#deploy_logs" do
     it "should list deploy_logs" do
       @client.should_receive(:deploy_logs).with("foo-staging")

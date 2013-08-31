@@ -100,9 +100,7 @@ module Shelly
       desc "info", "Show basic information about cloud"
       def info
         app = multiple_clouds(options[:cloud], "info")
-        msg = if app.state == "deploy_failed" || app.state == "configuration_failed"
-          " (deployment log: `shelly deploys show last -c #{app}`)"
-        end
+        msg = info_last_deploy_logs(app) if app.in_deploy_failed_state?
         say "Cloud #{app}:", msg.present? ? :red : :green
         print_wrapped "State: #{app.state_description}#{msg}", :ident => 2
         say_new_line
@@ -143,7 +141,7 @@ module Shelly
           say_error "Not starting: no source code provided", :with_exit => false
           say_error "Push source code using:", :with_exit => false
           say       "`git push #{app} master`"
-        when "deploy_failed", "configuration_failed"
+        when "deploy_failed"
           say_error "Not starting: deployment failed", :with_exit => false
           say_error "Support has been notified", :with_exit => false
           say_error "Check `shelly deploys show last --cloud #{app}` for reasons of failure"

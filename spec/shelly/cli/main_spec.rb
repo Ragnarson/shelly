@@ -632,7 +632,6 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
       @client.stub(:apps).and_return([
         {"code_name" => "abc", "state" => "running", "state_description" => "running"},
         {"code_name" => "fooo", "state" => "deploy_failed", "state_description" => "running (last deployment failed)"},
-        {"code_name" => "bar", "state" => "configuration_failed", "state_description" => "not running (last deployment failed)"}
       ])
     end
 
@@ -644,7 +643,6 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
       $stdout.should_receive(:puts).with("\e[32mYou have following clouds available:\e[0m")
       $stdout.should_receive(:puts).with(/abc\s+\|  running/)
       $stdout.should_receive(:puts).with(/fooo\s+\|  running \(last deployment failed\) \(deployment log: `shelly deploys show last -c fooo`\)/)
-      $stdout.should_receive(:puts).with(/bar\s+\|  not running \(last deployment failed\) \(deployment log: `shelly deploys show last -c bar`\)/)
       invoke(@main, :list)
     end
 
@@ -765,15 +763,13 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
         lambda { invoke(@main, :start) }.should raise_error(SystemExit)
       end
 
-      %w{deploy_failed configuration_failed}.each do |state|
-        it "should show information that cloud #{state}" do
-          raise_conflict("state" => state)
-          $stdout.should_receive(:puts).with(red "Not starting: deployment failed")
-          $stdout.should_receive(:puts).with(red "Support has been notified")
-          $stdout.should_receive(:puts).
-            with(red "Check `shelly deploys show last --cloud foo-production` for reasons of failure")
-          lambda { invoke(@main, :start) }.should raise_error(SystemExit)
-        end
+      it "should show information that cloud is in deploy_failed state" do
+        raise_conflict("state" => "deploy_failed")
+        $stdout.should_receive(:puts).with(red "Not starting: deployment failed")
+        $stdout.should_receive(:puts).with(red "Support has been notified")
+        $stdout.should_receive(:puts).
+          with(red "Check `shelly deploys show last --cloud foo-production` for reasons of failure")
+        lambda { invoke(@main, :start) }.should raise_error(SystemExit)
       end
 
       it "should show that winnie is out of resources" do
@@ -958,26 +954,9 @@ Wait until cloud is in 'turned off' state and try again.")
         invoke(@main, :info)
       end
 
-      context "when deploy failed or configuration failed" do
+      context "when deploy failed" do
         it "should display basic information about information and command to last log" do
           @app.stub(:attributes).and_return(response({"state" => "deploy_failed", "state_description" => "running (last deployment failed)"}))
-          @main.should_receive(:multiple_clouds).and_return(@app)
-          $stdout.should_receive(:puts).with(red "Cloud foo-production:")
-          $stdout.should_receive(:puts).with("  State: running (last deployment failed) (deployment log: `shelly deploys show last -c foo-production`)")
-          $stdout.should_receive(:puts).with("  Deployed commit sha: 52e65ed2d085eaae560cdb81b2b56a7d76")
-          $stdout.should_receive(:puts).with("  Deployed commit message: Commit message")
-          $stdout.should_receive(:puts).with("  Deployed by: megan@example.com")
-          $stdout.should_receive(:puts).with("  Repository URL: git@winniecloud.net:example-cloud")
-          $stdout.should_receive(:puts).with("  Web server IP: 22.22.22.22")
-          $stdout.should_receive(:puts).with("  Statistics:")
-          $stdout.should_receive(:puts).with("    app1:")
-          $stdout.should_receive(:puts).with("      Load average: 1m: 0.04, 5m: 0.15, 15m: 0.13")
-          $stdout.should_receive(:puts).with("      CPU: 0.8%, MEM: 74.1%, SWAP: 2.8%")
-          invoke(@main, :info)
-        end
-
-        it "should display basic information about information and command to last log" do
-          @app.stub(:attributes).and_return(response({"state" => "configuration_failed", "state_description" => "running (last deployment failed)"}))
           @main.should_receive(:multiple_clouds).and_return(@app)
           $stdout.should_receive(:puts).with(red "Cloud foo-production:")
           $stdout.should_receive(:puts).with("  State: running (last deployment failed) (deployment log: `shelly deploys show last -c foo-production`)")
