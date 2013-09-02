@@ -117,6 +117,7 @@ describe Shelly::App do
     before do
       @response = {"web_server_ip" => "192.0.2.1",
                    "state" => "running",
+                   "maintenance" => false,
                    "organization" => {
                      "credit" => 23.0,
                      "details_present" => true
@@ -155,6 +156,12 @@ describe Shelly::App do
     describe "#state" do
       it "should return state of cloud" do
         @app.state.should == "running"
+      end
+    end
+
+    describe "#maintenance?" do
+      it "should return false" do
+        @app.maintenance?.should be_false
       end
     end
 

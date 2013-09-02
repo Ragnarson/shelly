@@ -1,5 +1,6 @@
 ## master
 
+* [bugfix] Do not show `shelly deploys show last` instruction if last deployment was made by admin and was failed.
 * [improvement] There is no longer configuration_failed state for apps.
 
 ## 0.4.2 / 2013-08-29

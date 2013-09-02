@@ -191,13 +191,15 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository}
 
     def apps_table(apps)
       apps.map do |app|
-        msg = info_last_deploy_logs(app) if app.in_deploy_failed_state?
+        msg = info_show_last_deploy_logs(app)
         [app.code_name, "|  #{app.state_description}#{msg}"]
       end
     end
 
-    def info_last_deploy_logs(app)
-      " (deployment log: `shelly deploys show last -c #{app}`)"
+    def info_show_last_deploy_logs(app)
+      if app.in_deploy_failed_state? && !app.maintenance?
+        " (deployment log: `shelly deploys show last -c #{app}`)"
+      end
     end
   end
 end

@@ -100,8 +100,8 @@ module Shelly
       desc "info", "Show basic information about cloud"
       def info
         app = multiple_clouds(options[:cloud], "info")
-        msg = info_last_deploy_logs(app) if app.in_deploy_failed_state?
-        say "Cloud #{app}:", msg.present? ? :red : :green
+        msg = info_show_last_deploy_logs(app)
+        say "Cloud #{app}:", app.in_deploy_failed_state? ? :red : :green
         print_wrapped "State: #{app.state_description}#{msg}", :ident => 2
         say_new_line
         print_wrapped "Deployed commit sha: #{app.git_info["deployed_commit_sha"]}", :ident => 2

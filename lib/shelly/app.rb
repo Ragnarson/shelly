@@ -231,6 +231,10 @@ module Shelly
       attributes["state"]
     end
 
+    def maintenance?
+      attributes["maintenance"]
+    end
+
     def state_description
       attributes["state_description"]
     end
