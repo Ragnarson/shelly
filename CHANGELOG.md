@@ -3,6 +3,7 @@
 * [bugfix] Do not show `shelly deploys show last` instruction if last deployment was made by admin and was failed.
 * [improvement] There is no longer configuration_failed state for apps.
 * [bugfix] Do not create new branch after running `shelly setup`
+* [bugfix] Consistent output for `shelly setup` if git remote already exists and if not
 
 ## 0.4.2 / 2013-08-29
 
