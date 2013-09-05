@@ -181,8 +181,6 @@ Wait until cloud is in 'turned off' state and try again.}
           app.add_git_remote
           say "git fetch shelly"
           app.git_fetch_remote
-          say "git checkout -b shelly --track shelly/master"
-          app.git_add_tracking_branch
         else
           loop do
             remote = ask('Specify remote name:')
@@ -193,8 +191,6 @@ Wait until cloud is in 'turned off' state and try again.}
               app.add_git_remote(remote)
               say "git fetch shelly"
               app.git_fetch_remote(remote)
-              say "git checkout -b shelly --track shelly/master"
-              app.git_add_tracking_branch(remote)
               return
             end
           end
