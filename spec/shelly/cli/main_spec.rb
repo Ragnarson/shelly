@@ -1070,11 +1070,10 @@ Wait until cloud is in 'turned off' state and try again.")
       invoke(@main, :setup)
     end
 
-    it "should show info about adding remote and branch" do
+    it "should show info about adding remote and fetching changes" do
       $stdout.should_receive(:puts).with(green "Setting up foo-staging cloud")
       $stdout.should_receive(:puts).with("git remote add shelly git_url")
       $stdout.should_receive(:puts).with("git fetch shelly")
-      $stdout.should_receive(:puts).with("git checkout -b shelly --track shelly/master")
       $stdout.should_receive(:puts).with(green "Your application is set up.")
       invoke(@main, :setup)
     end
@@ -1089,11 +1088,6 @@ Wait until cloud is in 'turned off' state and try again.")
       invoke(@main, :setup)
     end
 
-    it "should add tracking branch" do
-      @app.should_receive(:git_add_tracking_branch)
-      invoke(@main, :setup)
-    end
-
     context "when remote exists" do
       before do
         @app.stub(:git_remote_exist?).and_return(true)
@@ -1103,7 +1097,16 @@ Wait until cloud is in 'turned off' state and try again.")
         it "should overwrite remote" do
           @app.should_receive(:add_git_remote)
           @app.should_receive(:git_fetch_remote)
-          @app.should_receive(:git_add_tracking_branch)
+          fake_stdin(["yes"]) do
+            invoke(@main, :setup)
+          end
+        end
+
+        it "should show info about adding default remote and fetching changes" do
+          $stdout.should_receive(:puts).with(green "Setting up foo-staging cloud")
+          $stdout.should_receive(:puts).with("git remote add shelly git_url")
+          $stdout.should_receive(:puts).with("git fetch shelly")
+          $stdout.should_receive(:puts).with(green "Your application is set up.")
           fake_stdin(["yes"]) do
             invoke(@main, :setup)
           end
@@ -1111,18 +1114,30 @@ Wait until cloud is in 'turned off' state and try again.")
       end
 
       context "and user answers no" do
-        it "should display commands to perform manually" do
+        before do
           @app.stub(:git_remote_exist?).with('remote').and_return(false)
+        end
+
+        it "should display commands to perform manually" do
           $stdout.should_receive(:print).with("Specify remote name: ")
           @app.should_receive(:add_git_remote).with('remote')
           @app.should_receive(:git_fetch_remote).with('remote')
-          @app.should_receive(:git_add_tracking_branch).with('remote')
+          fake_stdin(["no", "remote"]) do
+            invoke(@main, :setup)
+          end
+        end
+
+        it "should show info about adding custom remote and fetching changes" do
+          $stdout.should_receive(:puts).with(green "Setting up foo-staging cloud")
+          $stdout.should_receive(:print).with("Specify remote name: ")
+          $stdout.should_receive(:puts).with("git remote add remote git_url")
+          $stdout.should_receive(:puts).with("git fetch remote")
+          $stdout.should_receive(:puts).with(green "Your application is set up.")
           fake_stdin(["no", "remote"]) do
             invoke(@main, :setup)
           end
         end
       end
-
     end
   end
 
