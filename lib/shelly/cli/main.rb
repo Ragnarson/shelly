@@ -175,14 +175,13 @@ Wait until cloud is in 'turned off' state and try again.}
       def setup
         app = multiple_clouds(options[:cloud], "setup")
         say "Setting up #{app} cloud", :green
+        say_new_line
         app.git_url = app.attributes["git_info"]["repository_url"]
         if overwrite_default_remote?(app)
           say "git remote add shelly #{app.git_url}"
           app.add_git_remote
           say "git fetch shelly"
           app.git_fetch_remote
-          say "git checkout -b shelly --track shelly/master"
-          app.git_add_tracking_branch
         else
           loop do
             remote = ask('Specify remote name:')
@@ -191,11 +190,9 @@ Wait until cloud is in 'turned off' state and try again.}
             else
               say "git remote add #{remote} #{app.git_url}"
               app.add_git_remote(remote)
-              say "git fetch shelly"
+              say "git fetch #{remote}"
               app.git_fetch_remote(remote)
-              say "git checkout -b shelly --track shelly/master"
-              app.git_add_tracking_branch(remote)
-              return
+              break
             end
           end
         end

@@ -52,10 +52,6 @@ module Shelly
       system("git fetch #{remote} > /dev/null 2>&1")
     end
 
-    def git_add_tracking_branch(remote = 'shelly')
-      system("git checkout -b #{remote} --track #{remote}/master > /dev/null 2>&1")
-    end
-
     def remove_git_remote
       system("git remote rm shelly > /dev/null 2>&1")
     end
