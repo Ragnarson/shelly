@@ -231,6 +231,10 @@ module Shelly
       attributes["state"]
     end
 
+    def maintenance?
+      attributes["maintenance"]
+    end
+
     def state_description
       attributes["state_description"]
     end
@@ -249,6 +253,10 @@ module Shelly
 
     def turned_off?
       state == 'turned_off'
+    end
+
+    def in_deploy_failed_state?
+      state == "deploy_failed"
     end
 
     def to_s

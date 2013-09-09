@@ -117,6 +117,7 @@ describe Shelly::App do
     before do
       @response = {"web_server_ip" => "192.0.2.1",
                    "state" => "running",
+                   "maintenance" => false,
                    "organization" => {
                      "credit" => 23.0,
                      "details_present" => true
@@ -155,6 +156,12 @@ describe Shelly::App do
     describe "#state" do
       it "should return state of cloud" do
         @app.state.should == "running"
+      end
+    end
+
+    describe "#maintenance?" do
+      it "should return false" do
+        @app.maintenance?.should be_false
       end
     end
 
@@ -203,6 +210,26 @@ describe Shelly::App do
     it "should return true if cloud state is turned_off" do
       @client.should_receive(:app).and_return({'state' => 'turned_off'})
       @app.turned_off?.should be_true
+    end
+  end
+
+  describe "#in_deploy_failed_state?" do
+    context "when application is in deploy_failed state" do
+      it "should return true" do
+        @client.should_receive(:app).
+          and_return({'state' => 'deploy_failed'})
+        @app.in_deploy_failed_state?.should be_true
+      end
+    end
+
+    %w(no_billing no_code turned_off turning_off deploying running).each do |state|
+      context "when application is in #{state} state" do
+        it "should return false" do
+          @client.should_receive(:app).
+            and_return({'state' => state})
+          @app.in_deploy_failed_state?.should be_false
+        end
+      end
     end
   end
 
