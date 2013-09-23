@@ -107,6 +107,13 @@ describe Shelly::CLI::Runner do
         }.should raise_error(RuntimeError)
       end
 
+      it "should re-raise netrc exception" do
+        Shelly::CLI::Main.stub(:start).and_raise(Netrc::Error.new)
+        lambda {
+          @runner.start
+        }.should raise_error(Netrc::Error)
+      end
+
       it "should re-raise unauthorized exception" do
         Shelly::CLI::Main.stub(:start).and_raise(Shelly::Client::UnauthorizedException.new)
         lambda {
@@ -134,6 +141,15 @@ describe Shelly::CLI::Runner do
         Shelly::CLI::Main.stub(:start).and_raise(RuntimeError.new)
         runner = Shelly::CLI::Runner.new(%w(version))
         $stdout.should_receive(:puts).with("Unknown error, to see debug information run command with --debug")
+        lambda {
+          runner.start
+        }.should raise_error(SystemExit)
+      end
+
+      it "should rescue netrc exception and display message" do
+        Shelly::CLI::Main.stub(:start).and_raise(Netrc::Error.new("Error"))
+        runner = Shelly::CLI::Runner.new(%w(start))
+        $stdout.should_receive(:puts).with("Error")
         lambda {
           runner.start
         }.should raise_error(SystemExit)
