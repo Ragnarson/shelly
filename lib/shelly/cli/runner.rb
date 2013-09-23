@@ -34,6 +34,9 @@ module Shelly
         raise if debug?
         say_new_line
         say_error "[canceled]"
+      rescue Netrc::Error => e
+        raise if debug?
+        say_error e.message
       rescue Client::APIException => e
         raise if debug?
         say_error "You have found a bug in the shelly gem. We're sorry.",
