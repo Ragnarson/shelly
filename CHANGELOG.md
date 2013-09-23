@@ -1,3 +1,7 @@
+## master
+
+* [improvement] Print user-friendly message for bad .netrc file permission.
+
 ## 0.4.4 / 2013-09-10
 
 * [bugfix] Do not show `shelly deploys show last` instruction if last deployment was made by admin and was failed.
