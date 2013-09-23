@@ -178,9 +178,9 @@ Wait until cloud is in 'turned off' state and try again.}
         say_new_line
         app.git_url = app.attributes["git_info"]["repository_url"]
         if overwrite_default_remote?(app)
-          say "git remote add shelly #{app.git_url}"
+          say "Running: git remote add shelly #{app.git_url}"
           app.add_git_remote
-          say "git fetch shelly"
+          say "Running: git fetch shelly"
           app.git_fetch_remote
         else
           loop do
@@ -188,9 +188,9 @@ Wait until cloud is in 'turned off' state and try again.}
             if app.git_remote_exist?(remote)
               say("Remote '#{remote}' already exists")
             else
-              say "git remote add #{remote} #{app.git_url}"
+              say "Running: git remote add #{remote} #{app.git_url}"
               app.add_git_remote(remote)
-              say "git fetch #{remote}"
+              say "Running: git fetch #{remote}"
               app.git_fetch_remote(remote)
               break
             end
@@ -386,7 +386,7 @@ Wait until cloud is in 'turned off' state and try again.}
 
         def add_remote(app)
           remote = if overwrite_default_remote?(app)
-            say "Adding remote shelly #{app.git_url}", :green
+            say "Running: git remote add shelly #{app.git_url}", :green
             "shelly"
           else
             loop do
@@ -394,7 +394,7 @@ Wait until cloud is in 'turned off' state and try again.}
               if app.git_remote_exist?(remote)
                 say("Remote '#{remote}' already exists")
               else
-                say "Adding remote #{remote} #{app.git_url}", :green
+                say "Running: git remote add #{remote} #{app.git_url}", :green
                 break remote
               end
             end
