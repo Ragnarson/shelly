@@ -130,7 +130,6 @@ module Shelly
         say "Uploading done", :green
         say "Importing database", :green
         app.import_database(kind, archive, connection["server"])
-        say "Database imported successfully", :green
       rescue Client::ConflictException => e
         say_error "Cloud #{app} wasn't deployed properly. Cannot import database."
       end
