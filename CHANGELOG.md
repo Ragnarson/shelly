@@ -1,6 +1,7 @@
 ## master
 
 * [improvement] Print user-friendly message for bad .netrc file permission.
+* [improvement] Added 'Running' prefix for commands executed by gem.
 
 ## 0.4.4 / 2013-09-10
 

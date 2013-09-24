@@ -73,6 +73,8 @@ module Shelly
       desc "pending", "Show commits which haven't been deployed yet"
       def pending
         app = multiple_clouds(options[:cloud], "deploy pending")
+        say "Running: git fetch shelly"
+        say_new_line
         app.git_fetch_remote
         if app.deployed?
           commits = app.pending_commits

@@ -137,7 +137,7 @@ module Shelly
       no_tasks do
         def compress(filename)
           archive_name = "#{::File.basename(filename)}-#{Time.now.to_i}.tar.bz2"
-          say "Compressing #{filename} into #{archive_name}", :green
+          say "Running: tar -cjf #{archive_name} #{filename}", :green
           system("tar -cjf #{archive_name} #{filename}")
           archive_name
         end
