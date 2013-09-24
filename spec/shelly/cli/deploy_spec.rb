@@ -132,6 +132,7 @@ describe Shelly::CLI::Deploy do
     end
 
     it "should fetch git references from shelly" do
+      $stdout.should_receive(:puts).with("Running: git fetch shelly")
       @app.should_receive(:git_fetch_remote)
       @app.stub(:pending_commits => "commit")
       invoke(@deploys, :pending)

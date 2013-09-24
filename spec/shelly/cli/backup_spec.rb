@@ -278,7 +278,7 @@ describe Shelly::CLI::Backup do
 
     it "should compress file" do
       @backup.should_receive(:system).with("tar -cjf dump.sql-1370879705.tar.bz2 dump.sql")
-      $stdout.should_receive(:puts).with(green "Compressing dump.sql into dump.sql-1370879705.tar.bz2")
+      $stdout.should_receive(:puts).with(green "Running: tar -cjf dump.sql-1370879705.tar.bz2 dump.sql")
       fake_stdin(["yes"]) do
         invoke(@backup, :import, "postgresql", "dump.sql")
       end
