@@ -19,8 +19,11 @@
       <%- if @puma -%>
       puma: <%= @puma %>
       <%- end -%>
-      # whenever: on
       # delayed_job: 1
+      # sidekiq: 1
+      # clockwork: on
+      # whenever: on
+      # elasticsearch: on
       databases:
         <%- if @databases.present? -%>
         <%- @databases.each do |kind| -%>
