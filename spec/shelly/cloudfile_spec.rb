@@ -120,8 +120,11 @@ foo-staging:
     app1:
       size: large
       thin: 4
-      # whenever: on
       # delayed_job: 1
+      # sidekiq: 1
+      # clockwork: on
+      # whenever: on
+      # elasticsearch: on
       databases:
         - postgresql
         - mongodb
@@ -149,8 +152,11 @@ foo-staging:
     app1:
       size: small
       thin: 2
-      # whenever: on
       # delayed_job: 1
+      # sidekiq: 1
+      # clockwork: on
+      # whenever: on
+      # elasticsearch: on
       databases:
         - postgresql
         - mongodb
