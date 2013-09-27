@@ -1,3 +1,7 @@
+## master
+
+* [improvement] List all supported services in generated Cloudfile.
+
 ## 0.4.5 / 2013-09-24
 
 * [improvement] Print user-friendly message for bad .netrc file permission.
