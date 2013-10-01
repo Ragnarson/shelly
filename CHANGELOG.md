@@ -1,4 +1,4 @@
-## master
+## 0.4.6 / 2013-10-01
 
 * [bugfix] `shelly delete` removes proper git remote.
 * [improvement] List all supported services in generated Cloudfile.
