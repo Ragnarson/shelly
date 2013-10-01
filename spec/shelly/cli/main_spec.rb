@@ -1150,6 +1150,7 @@ Wait until cloud is in 'turned off' state and try again.")
       @app.stub(:delete)
       Shelly::User.stub(:new).and_return(@user)
       Shelly::App.stub(:new).and_return(@app)
+      @client.stub(:app).and_return("git_info" => {"repository_url" => "git_url"})
     end
 
     it "should ensure user has logged in" do
@@ -1196,6 +1197,14 @@ Wait until cloud is in 'turned off' state and try again.")
             invoke(@main, :delete)
           end
         }.should raise_error(SystemExit)
+      end
+
+      it "should remove git remote" do
+        @app.should_receive(:remove_git_remote)
+        @main.options = {:cloud => "foo-staging"}
+        fake_stdin(["yes", "yes", "yes"]) do
+          invoke(@main, :delete)
+        end
       end
     end
 
