@@ -53,7 +53,16 @@ module Shelly
     end
 
     def remove_git_remote
-      system("git remote rm shelly > /dev/null 2>&1")
+      remote = git_remote_name
+      if remote.present?
+        system("git remote rm #{remote} > /dev/null 2>&1")
+      end
+    end
+
+    def git_remote_name
+      io = IO.popen("git remote -v").readlines
+      remote = io.select {|line| line.include? git_info["repository_url"]}.first
+      remote.split("\t").first unless remote.nil?
     end
 
     def create

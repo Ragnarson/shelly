@@ -34,18 +34,63 @@ describe Shelly::App do
     end
   end
 
-  describe "git_fetch_remote" do
+  describe "#git_fetch_remote" do
     it "should try to remove existing git remote" do
       @app.should_receive(:system).with("git fetch shelly > /dev/null 2>&1")
       @app.git_fetch_remote
     end
   end
 
-  describe "git_remote_exist" do
+  describe "#git_remote_exist?" do
     it "should return true if git remote exist" do
       io = mock(:read => "origin\nshelly")
       IO.should_receive(:popen).with("git remote").and_return(io)
       @app.git_remote_exist?.should be_true
+    end
+  end
+
+  describe "#remove_git_remote" do
+    context "when git remote exist" do
+      it "should remove git remote" do
+        @app.should_receive(:system).with("git remote rm remote > /dev/null 2>&1")
+        @app.should_receive(:git_remote_name).and_return("remote")
+        @app.remove_git_remote
+      end
+    end
+
+    context "when git remote does not exist" do
+      it "should invoke git remote rm" do
+        @app.should_not_receive(:system)
+        @app.should_receive(:git_remote_name).and_return(nil)
+        @app.remove_git_remote
+      end
+    end
+  end
+
+  describe "#git_remote_name" do
+    before do
+      @client.stub(:app).
+        and_return("git_info" => {"repository_url" => "git_url"})
+    end
+
+    context "when remote exist" do
+      let(:io) { mock(:readlines => ["origin\turl\n",
+                                     "shelly\tgit_url\n"]) }
+
+      it "should return remote name" do
+        IO.should_receive(:popen).with("git remote -v").and_return(io)
+        @app.git_remote_name.should == "shelly"
+      end
+    end
+
+    context "when remote does not exist" do
+      let(:io) { mock(:readlines => ["origin\turl\n",
+                                     "shelly\turl\n"]) }
+
+      it "should return nil" do
+        IO.should_receive(:popen).with("git remote -v").and_return(io)
+        @app.git_remote_name.should be_nil
+      end
     end
   end
 
