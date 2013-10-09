@@ -472,6 +472,23 @@ describe Shelly::App do
     end
   end
 
+  context "certificate" do
+    it "#show_cert should query api" do
+      @client.should_receive(:cert).with(@app.code_name)
+      @app.cert
+    end
+
+    it "#create_cert should query api" do
+      @client.should_receive(:create_cert).with(@app.code_name, 'crt', 'key')
+      @app.create_cert("crt", "key")
+    end
+
+    it "#update_cert should query api" do
+      @client.should_receive(:update_cert).with(@app.code_name, 'crt', 'key')
+      @app.update_cert("crt", "key")
+    end
+  end
+
   describe "#create_cloudfile" do
     before do
       @app.environment = "production"

@@ -200,6 +200,18 @@ module Shelly
       configs.any? { |config| config["path"] == path }
     end
 
+    def cert
+      shelly.cert(code_name)
+    end
+
+    def create_cert(content, key)
+      shelly.create_cert(code_name, content, key)
+    end
+
+    def update_cert(content, key)
+      shelly.update_cert(code_name, content, key)
+    end
+
     def rake(task)
       ssh(:command => "rake_runner \"#{task}\"")
     end

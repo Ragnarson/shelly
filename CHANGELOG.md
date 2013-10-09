@@ -1,3 +1,7 @@
+## master
+
+* [feature] Mange SSL certificate with `shelly cert`
+
 ## 0.4.6 / 2013-10-01
 
 * [bugfix] `shelly delete` removes proper git remote.
