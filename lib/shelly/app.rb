@@ -385,8 +385,12 @@ module Shelly
       self.environment = response["environment"]
     end
 
+    def username
+      "app"
+    end
+
     def persistent_disk
-      "/home/#{code_name}/disk"
+      "/home/#{username}/disk"
     end
 
     def jruby?
@@ -414,7 +418,7 @@ module Shelly
     end
 
     def ssh_options(conn)
-      "-o StrictHostKeyChecking=no -p #{conn['port']} -l #{conn['user']}"
+      "-o StrictHostKeyChecking=no -p #{conn['port']} -l #{username}"
     end
 
     def rsync(source, destination, conn)
