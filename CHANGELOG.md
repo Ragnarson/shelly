@@ -1,4 +1,4 @@
-## master
+## 0.4.7 / 2013-10-18
 
 * [feature] Mange SSL certificate with `shelly cert`
 
