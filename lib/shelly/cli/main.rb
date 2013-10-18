@@ -7,6 +7,7 @@ require "shelly/cli/config"
 require "shelly/cli/file"
 require "shelly/cli/organization"
 require "shelly/cli/logs"
+require "shelly/cli/cert"
 
 require "shelly/cli/main/add"
 require "shelly/cli/main/check"
@@ -21,7 +22,8 @@ module Shelly
       register_subcommand(Config, "config", "config <command>", "Manage application configuration files")
       register_subcommand(File, "file", "file <command>", "Upload and download files to and from persistent storage")
       register_subcommand(Organization, "organization", "organization <command>", "View organizations")
-      register_subcommand(Logs, "logs", "logs <command>", "View application logs")
+      register_subcommand(Logs, "log", "logs <command>", "View application logs")
+      register_subcommand(Cert, "cert", "cert <command>", "Mange application certificates")
 
       check_unknown_options!(:except => :rake)
 

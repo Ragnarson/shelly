@@ -393,6 +393,25 @@ describe Shelly::Client do
     end
   end
 
+  context "certificate" do
+    it "#cert should perform a get request" do
+      @client.should_receive(:get).with("/apps/staging-foo/cert")
+      @client.cert("staging-foo")
+    end
+
+    it "#create_cert should perform a post request" do
+      @client.should_receive(:post).with("/apps/staging-foo/cert",
+        :cert => {:content => 'crt', :key => 'key'})
+      @client.create_cert("staging-foo", "crt", "key")
+    end
+
+    it "#update_cert should perform a put request" do
+      @client.should_receive(:put).with("/apps/staging-foo/cert",
+        :cert => {:content => 'crt', :key => 'key'})
+      @client.update_cert("staging-foo", "crt", "key")
+    end
+  end
+
   describe "#request_parameters" do
     it "should return hash of resquest parameters" do
       expected = {
