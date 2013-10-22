@@ -41,7 +41,19 @@ module Shelly
         unless content.empty?
           say "Log for deploy done on #{content["created_at"]}", :green
           if content["bundle_install"]
-            say("Starting bundle install", :green); say(content["bundle_install"])
+            say("Bundle install", :green); say(content["bundle_install"])
+          end
+          if content["before_migrate"]
+            say("Before migrate hook", :green); say(content["before_migrate"])
+          end
+          if content["db_migrate"]
+            say("Rake db:migrate", :green); say(content["db_migrate"])
+          end
+          if content["before_symlink"]
+            say("Before symlink hook", :green); say(content["before_symlink"])
+          end
+          if content["before_restart"]
+            say("Before restart hook", :green); say(content["before_restart"])
           end
           if content["delayed_job"]
             say("Starting delayed job", :green); say(content["delayed_job"])
@@ -55,11 +67,11 @@ module Shelly
           if content["puma_restart"]
             say("Starting puma", :green); say(content["puma_restart"])
           end
-          if content["callbacks"]
-            say("Starting callbacks", :green); say(content["callbacks"])
+          if content["after_restart"]
+            say("After restart hook", :green); say(content["after_restart"])
           end
           if content["whenever"]
-            say("Starting whenever", :green); say(content["whenever"])
+            say("Whenever", :green); say(content["whenever"])
           end
         else
           say_error("There was an error and log is not available", :with_exit => false)

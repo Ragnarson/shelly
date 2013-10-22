@@ -97,12 +97,16 @@ describe Shelly::CLI::Deploy do
 
     def expected_output
       $stdout.should_receive(:puts).with(green "Log for deploy done on 2011-12-12 at 14:14:59")
-      $stdout.should_receive(:puts).with(green "Starting bundle install")
+      $stdout.should_receive(:puts).with(green "Bundle install")
       $stdout.should_receive(:puts).with("Installing gems")
-      $stdout.should_receive(:puts).with(green "Starting whenever")
-      $stdout.should_receive(:puts).with("Looking up schedule.rb")
-      $stdout.should_receive(:puts).with(green "Starting callbacks")
+      $stdout.should_receive(:puts).with(green "Before migrate hook")
+      $stdout.should_receive(:puts).with("before migrate hook")
+      $stdout.should_receive(:puts).with(green "Rake db:migrate")
       $stdout.should_receive(:puts).with("rake db:migrate")
+      $stdout.should_receive(:puts).with(green "Before symlink hook")
+      $stdout.should_receive(:puts).with("before symlink hook")
+      $stdout.should_receive(:puts).with(green "Before restart hook")
+      $stdout.should_receive(:puts).with("before restart hook")
       $stdout.should_receive(:puts).with(green "Starting delayed job")
       $stdout.should_receive(:puts).with("delayed jobs")
       $stdout.should_receive(:puts).with(green "Starting sidekiq")
@@ -111,13 +115,22 @@ describe Shelly::CLI::Deploy do
       $stdout.should_receive(:puts).with("thins up and running")
       $stdout.should_receive(:puts).with(green "Starting puma")
       $stdout.should_receive(:puts).with("pumas up and running")
+      $stdout.should_receive(:puts).with(green "After restart hook")
+      $stdout.should_receive(:puts).with("after restart hook")
+      $stdout.should_receive(:puts).with(green "Whenever")
+      $stdout.should_receive(:puts).with("Looking up schedule.rb")
+
     end
 
     def response
-      {"created_at" => "2011-12-12 at 14:14:59", "bundle_install" => "Installing gems",
+      {
+        "created_at" => "2011-12-12 at 14:14:59", "bundle_install" => "Installing gems",
         "whenever" => "Looking up schedule.rb", "thin_restart" => "thins up and running",
         "puma_restart" => "pumas up and running", "delayed_job" => "delayed jobs",
-        "sidekiq" => "sidekiq workers", "callbacks" => "rake db:migrate"}
+        "sidekiq" => "sidekiq workers", "db_migrate" => "rake db:migrate",
+        "after_restart" => "after restart hook", "before_restart" => "before restart hook",
+        "before_symlink" => "before symlink hook", "before_migrate" => "before migrate hook"
+      }
     end
   end
 
