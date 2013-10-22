@@ -442,25 +442,28 @@ describe Shelly::App do
 
   describe "#list_files" do
     it "should list files for given subpath in disk" do
-      @app.should_receive(:ssh).with(:command => "ls -l /home/foo-staging/disk/foo")
+      @app.stub(:attributes => {"system_user" => "system_user"})
+      @app.should_receive(:ssh).with(:command => "ls -l /home/system_user/disk/foo")
       @app.list_files("foo")
     end
   end
 
   describe "#upload" do
     it "should run rsync with proper parameters" do
+      @app.stub(:attributes => {"system_user" => "system_user"})
       @client.stub(:tunnel).and_return(
         {"host" => "console.example.com", "port" => "40010", "user" => "foo"})
-      @app.should_receive(:system).with("rsync -avz -e 'ssh -o StrictHostKeyChecking=no -p 40010 -l foo' --progress /path console.example.com:/home/foo-staging/disk")
+      @app.should_receive(:system).with("rsync -avz -e 'ssh -o StrictHostKeyChecking=no -p 40010 -l foo' --progress /path console.example.com:/home/system_user/disk")
       @app.upload("/path")
     end
   end
 
   describe "#download" do
     it "should run rsync with proper parameters" do
+      @app.stub(:attributes => {"system_user" => "system_user"})
       @client.stub(:tunnel).and_return(
         {"host" => "console.example.com", "port" => "40010", "user" => "foo"})
-      @app.should_receive(:system).with("rsync -avz -e 'ssh -o StrictHostKeyChecking=no -p 40010 -l foo' --progress console.example.com:/home/foo-staging/disk/. /tmp")
+      @app.should_receive(:system).with("rsync -avz -e 'ssh -o StrictHostKeyChecking=no -p 40010 -l foo' --progress console.example.com:/home/system_user/disk/. /tmp")
       @app.download(".", "/tmp")
     end
   end

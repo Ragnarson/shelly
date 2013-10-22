@@ -236,6 +236,10 @@ module Shelly
       @stats ||= shelly.statistics(code_name)
     end
 
+    def system_user
+      attributes["system_user"]
+    end
+
     def web_server_ip
       attributes["web_server_ip"]
     end
@@ -398,7 +402,7 @@ module Shelly
     end
 
     def persistent_disk
-      "/home/#{code_name}/disk"
+      "/home/#{system_user}/disk"
     end
 
     def jruby?

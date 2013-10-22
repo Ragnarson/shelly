@@ -28,6 +28,7 @@ describe Shelly::CLI::File do
 
     context "cloud is not running" do
       it "should display error" do
+        @app.stub(:attributes => {"system_user" => "system_user"})
         @client.stub(:tunnel).and_raise(Shelly::Client::ConflictException)
         $stdout.should_receive(:puts).with(red "Cloud foo-production wasn't deployed properly. Cannot list files.")
         lambda {
