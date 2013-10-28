@@ -41,19 +41,12 @@ module Shelly
 
       desc "register [EMAIL]", "Register new account"
       def register(email = nil)
-        say "Your public SSH key will be uploaded to Shelly Cloud after registration."
         say "Registering with email: #{email}" if email
         user = Shelly::User.new
         email ||= ask_for_email
         password = ask_for_password
         ask_for_acceptance_of_terms
         user.register(email, password)
-        if user.ssh_key_exists?
-          say "Uploading your public SSH key from #{user.ssh_key_path}"
-        else
-          say_error "No such file or directory - #{user.ssh_key_path}", :with_exit => false
-          say_error "Use ssh-keygen to generate ssh key pair, after that use: `shelly login`", :with_exit => false
-        end
         say "Successfully registered!", :green
         say "Check you mailbox for email address confirmation", :green
       rescue Client::ValidationException => e
@@ -70,8 +63,7 @@ module Shelly
         password = ask_for_password(:with_confirmation => false)
         user.login(email, password)
         say "Login successful", :green
-        user.upload_ssh_key
-        say "Uploading your public SSH key"
+        upload_ssh_key
         list
       rescue Client::ValidationException => e
         e.each_error { |error| say_error "#{error}", :with_exit => false }
@@ -460,6 +452,19 @@ Wait until cloud is in 'turned off' state and try again.}
           say "Deploy to your cloud using:", :green
           say "  git push #{remote} master"
           say_new_line
+        end
+
+        def upload_ssh_key
+          user = Shelly::User.new
+          if user.ssh_key_exists?
+            say "Uploading your public SSH key from #{user.ssh_key_path}"
+            user.upload_ssh_key
+          else
+            say_error "No such file or directory - #{user.ssh_key_path}", :with_exit => false
+            say_error "Use ssh-keygen to generate ssh key pair, after that use: `shelly login`", :with_exit => false
+          end
+        rescue Client::ValidationException => e
+          e.each_error { |error| say_error error, :with_exit => false }
         end
       end
     end

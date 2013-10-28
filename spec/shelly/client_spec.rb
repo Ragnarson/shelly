@@ -88,8 +88,8 @@ describe Shelly::Client do
   describe "#register_user" do
     it "should send post request with login and password" do
       @client.should_receive(:post).with("/users", {:user => {:email => "test@example.com",
-        :password => "secret", :ssh_key => "ssh-key Abb"}})
-      @client.register_user("test@example.com", "secret", "ssh-key Abb")
+        :password => "secret"}})
+      @client.register_user("test@example.com", "secret")
     end
   end
 

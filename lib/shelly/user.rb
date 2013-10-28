@@ -19,8 +19,7 @@ module Shelly
     end
 
     def register(email, password)
-      ssh_key = File.read(ssh_key_path) if ssh_key_exists?
-      shelly.register_user(email, password, ssh_key)
+      shelly.register_user(email, password)
     end
 
     def authorize!
