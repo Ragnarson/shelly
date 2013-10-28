@@ -1,3 +1,7 @@
+## master
+
+* [improvement] Show logs from after_successful_deploy deployment hook
+
 ## 0.4.8 / 2013-10-18
 
 * [improvement] Deployment log callbacks split into separate entities

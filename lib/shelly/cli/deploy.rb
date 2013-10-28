@@ -73,6 +73,10 @@ module Shelly
           if content["whenever"]
             say("Whenever", :green); say(content["whenever"])
           end
+          if content["after_successful_deploy_hook"]
+            say("Running after successful deploy hook", :green)
+            say(content["after_successful_deploy_hook"])
+          end
         else
           say_error("There was an error and log is not available", :with_exit => false)
           say_error("Please contact our support https://shellycloud.com/support")
