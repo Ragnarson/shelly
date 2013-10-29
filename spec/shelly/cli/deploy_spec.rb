@@ -119,6 +119,8 @@ describe Shelly::CLI::Deploy do
       $stdout.should_receive(:puts).with("after restart hook")
       $stdout.should_receive(:puts).with(green "Whenever")
       $stdout.should_receive(:puts).with("Looking up schedule.rb")
+      $stdout.should_receive(:puts).with(green "Running after successful deploy hook")
+      $stdout.should_receive(:puts).with("after successful deploy hook")
 
     end
 
@@ -129,7 +131,8 @@ describe Shelly::CLI::Deploy do
         "puma_restart" => "pumas up and running", "delayed_job" => "delayed jobs",
         "sidekiq" => "sidekiq workers", "db_migrate" => "rake db:migrate",
         "after_restart" => "after restart hook", "before_restart" => "before restart hook",
-        "before_symlink" => "before symlink hook", "before_migrate" => "before migrate hook"
+        "before_symlink" => "before symlink hook", "before_migrate" => "before migrate hook",
+        "after_successful_deploy_hook" => "after successful deploy hook"
       }
     end
   end
