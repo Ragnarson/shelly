@@ -30,10 +30,10 @@ module Shelly
       long_desc %{
         Add certificate to your cloud.\n
         CERT_PATH - path to certificate.\n
-        BUNDLE_PATH - optional path to certificate bundle path.\n
-        KEY_PATH - path to private key.
+        KEY_PATH - path to private key.\n
+        BUNDLE_PATH - optional path to certificate bundle path.
       }
-      def create(cert_path, bundle_path = nil, key_path)
+      def create(cert_path, key_path, bundle_path = nil)
         app = multiple_clouds(options[:cloud], "cert create CERT_PATH [BUNDLE_PATH] KEY_PATH")
 
         content = ::File.read(cert_path).strip
@@ -63,10 +63,10 @@ module Shelly
       long_desc %{
         Update current certificate.\n
         CERT_PATH - path to certificate.\n
-        BUNDLE_PATH - optional path to certificate bundle path.\n
-        KEY_PATH - path to private key.
+        KEY_PATH - path to private key.\n
+        BUNDLE_PATH - optional path to certificate bundle path.
       }
-      def update(cert_path, bundle_path = nil, key_path)
+      def update(cert_path, key_path, bundle_path = nil)
         app = multiple_clouds(options[:cloud], "cert update CERT_PATH [BUNDLE_PATH] KEY_PATH")
 
         content = ::File.read(cert_path).strip

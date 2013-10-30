@@ -54,7 +54,7 @@ describe Shelly::CLI::Cert do
       $stdout.should_receive(:puts).with("Deploying certificate on front end.")
       $stdout.should_receive(:puts).with("Point your domain to private IP address: 10.0.0.1")
 
-      invoke(@cli, :create, "crt_path", "bundle_path", "key_path")
+      invoke(@cli, :create, "crt_path", "key_path", "bundle_path")
     end
 
     it "should create certificate without bundle" do
@@ -76,7 +76,7 @@ describe Shelly::CLI::Cert do
         $stdout.should_receive(:puts).with(red "Key is invalid")
 
         lambda {
-          invoke(@cli, :create, "crt_path", "bundle_path", "key_path")
+          invoke(@cli, :create, "crt_path", "key_path", "bundle_path")
         }.should raise_error(SystemExit)
       end
     end
@@ -88,7 +88,7 @@ describe Shelly::CLI::Cert do
         $stdout.should_receive(:puts).with(red "Deployment is in progress")
 
         lambda {
-          invoke(@cli, :create, "crt_path", "bundle_path", "key_path")
+          invoke(@cli, :create, "crt_path", "key_path", "bundle_path")
         }.should raise_error(SystemExit)
       end
     end
@@ -108,7 +108,7 @@ describe Shelly::CLI::Cert do
       $stdout.should_receive(:puts).with("Deploying certificate on front end.")
       $stdout.should_receive(:puts).with("Point your domain to private IP address: 10.0.0.1")
 
-      invoke(@cli, :update, "crt_path", "bundle_path", "key_path")
+      invoke(@cli, :update, "crt_path", "key_path", "bundle_path")
     end
 
     it "should create certificate without bundle" do
@@ -130,7 +130,7 @@ describe Shelly::CLI::Cert do
         $stdout.should_receive(:puts).with(red "Key is invalid")
 
         lambda {
-          invoke(@cli, :update, "crt_path", "bundle_path", "key_path")
+          invoke(@cli, :update, "crt_path", "key_path", "bundle_path")
         }.should raise_error(SystemExit)
       end
     end
@@ -142,7 +142,7 @@ describe Shelly::CLI::Cert do
         $stdout.should_receive(:puts).with(red "Deployment is in progress")
 
         lambda {
-          invoke(@cli, :update, "crt_path", "bundle_path", "key_path")
+          invoke(@cli, :update, "crt_path", "key_path", "bundle_path")
         }.should raise_error(SystemExit)
       end
     end
