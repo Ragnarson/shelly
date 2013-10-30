@@ -24,6 +24,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency "fakeweb"
   s.add_runtime_dependency "wijet-thor", "~> 0.14.10"
   s.add_runtime_dependency "rest-client"
+  s.add_runtime_dependency "mime-types", "~> 1.16"
   s.add_runtime_dependency "json"
   s.add_runtime_dependency "progressbar"
   s.add_runtime_dependency "launchy"
