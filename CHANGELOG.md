@@ -1,3 +1,7 @@
+# 0.4.11 / 2013-10-30
+
+* internal changes
+
 # 0.4.10 / 2013-10-30
 
 * [bugfix] Certificates CLI were not Ruby 1.8 compatible
