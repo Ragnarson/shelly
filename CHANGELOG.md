@@ -1,3 +1,8 @@
+# 0.4.10 / 2013-10-30
+
+* [bugfix] Certificates CLI were not Ruby 1.8 compatible
+* [bugfix] Travis was failing due to Ruby 1.8 gems incompatibility: guard, mime-types v2.x
+
 ## 0.4.9 / 2013-10-29
 
 * [improvement] Show logs from after_successful_deploy deployment hook
