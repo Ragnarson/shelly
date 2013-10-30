@@ -13,7 +13,3 @@
 ## Running tests
 
     bundle exec rake
-
-or
-
-    guard
