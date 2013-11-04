@@ -14,6 +14,8 @@ module Shelly
       def list(path = "/")
         app = multiple_clouds(options[:cloud], "file list #{path}")
         app.list_files(path)
+      rescue Client::NotFoundException => e
+        say_error e["message"]
       rescue Client::ConflictException
         say_error "Cloud #{app} wasn't deployed properly. Cannot list files."
       end
@@ -22,6 +24,8 @@ module Shelly
       def upload(path)
         app = multiple_clouds(options[:cloud], "file upload #{path}")
         app.upload(path)
+      rescue Client::NotFoundException => e
+        say_error e["message"]
       rescue Client::ConflictException
         say_error "Cloud #{app} wasn't deployed properly. Cannot upload files."
       end
@@ -35,6 +39,8 @@ module Shelly
       def download(relative_source = ".", destination = ".")
         app = multiple_clouds(options[:cloud], "file download #{relative_source} #{destination}")
         app.download(relative_source, destination)
+      rescue Client::NotFoundException => e
+        say_error e["message"]
       rescue Client::ConflictException
         say_error "Cloud #{app} wasn't deployed properly. Cannot download files."
       end
@@ -51,6 +57,8 @@ module Shelly
         end
 
         app.delete_file(path)
+      rescue Client::NotFoundException => e
+        say_error e["message"]
       rescue Client::ConflictException
         say_error "Cloud #{app} wasn't deployed properly. Cannot delete files."
       end

@@ -37,6 +37,19 @@ describe Shelly::CLI::File do
       end
     end
 
+    context "when cloud is not deployed" do
+      it "should display error" do
+        @app.stub(:attributes => {"system_user" => "system_user"})
+        exception = Shelly::Client::NotFoundException.
+          new({"message" => "Virtual server not found or not configured"})
+        @client.stub(:tunnel).and_raise(exception)
+        $stdout.should_receive(:puts).
+          with(red "Virtual server not found or not configured")
+        lambda {
+          invoke(@cli_files, :list, "some/path")
+        }.should raise_error(SystemExit)
+      end
+    end
   end
 
   describe "#upload" do
@@ -67,6 +80,19 @@ describe Shelly::CLI::File do
         }.should raise_error(SystemExit)
       end
     end
+
+    context "when cloud is not deployed" do
+      it "should display error" do
+        exception = Shelly::Client::NotFoundException.
+          new({"message" => "Virtual server not found or not configured"})
+        @client.stub(:tunnel).and_raise(exception)
+        $stdout.should_receive(:puts).
+          with(red "Virtual server not found or not configured")
+        lambda {
+          invoke(@cli_files, :upload, "some/path")
+        }.should raise_error(SystemExit)
+      end
+    end
   end
 
   describe "#download" do
@@ -91,6 +117,19 @@ describe Shelly::CLI::File do
       it "should display error" do
         @client.stub(:tunnel).and_raise(Shelly::Client::ConflictException)
         $stdout.should_receive(:puts).with(red "Cloud foo-production wasn't deployed properly. Cannot download files.")
+        lambda {
+          invoke(@cli_files, :download, "some/path")
+        }.should raise_error(SystemExit)
+      end
+    end
+
+    context "when cloud is not deployed" do
+      it "should display error" do
+        exception = Shelly::Client::NotFoundException.
+          new({"message" => "Virtual server not found or not configured"})
+        @client.stub(:tunnel).and_raise(exception)
+        $stdout.should_receive(:puts).
+          with(red "Virtual server not found or not configured")
         lambda {
           invoke(@cli_files, :download, "some/path")
         }.should raise_error(SystemExit)
@@ -146,6 +185,19 @@ describe Shelly::CLI::File do
       it "should display error" do
         @app.stub(:delete_file).and_raise(Shelly::Client::ConflictException)
         $stdout.should_receive(:puts).with(red "Cloud foo-production wasn't deployed properly. Cannot delete files.")
+        lambda {
+          fake_stdin(["yes"]) { invoke(@cli_files, :delete, "some/path") }
+        }.should raise_error(SystemExit)
+      end
+    end
+
+    context "when cloud is not deployed" do
+      it "should display error" do
+        exception = Shelly::Client::NotFoundException.
+          new({"message" => "Virtual server not found or not configured"})
+        @app.stub(:delete_file).and_raise(exception)
+        $stdout.should_receive(:puts).
+          with(red "Virtual server not found or not configured")
         lambda {
           fake_stdin(["yes"]) { invoke(@cli_files, :delete, "some/path") }
         }.should raise_error(SystemExit)
