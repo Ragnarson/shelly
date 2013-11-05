@@ -1,3 +1,8 @@
+## master
+
+* [bugfix] Print user-friendly message if user tries to operate on files
+  on cloud which is not deployed.
+
 # 0.4.11 / 2013-10-30
 
 * internal changes
