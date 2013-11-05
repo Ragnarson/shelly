@@ -1,4 +1,4 @@
-## master
+# 0.4.12 / 2013-11-05
 
 * [bugfix] Print user-friendly message if user tries to operate on files
   on cloud which is not deployed.
