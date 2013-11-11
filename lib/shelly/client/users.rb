@@ -1,5 +1,5 @@
 class Shelly::Client
-  def register_user(email, password, ssh_key)
-    post("/users", :user => {:email => email, :password => password, :ssh_key => ssh_key})
+  def register_user(email, password)
+    post("/users", :user => {:email => email, :password => password})
   end
 end

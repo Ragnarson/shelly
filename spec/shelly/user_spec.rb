@@ -28,17 +28,8 @@ describe Shelly::User do
     end
 
     it "should register user at Shelly Cloud" do
-      @client.should_receive(:register_user).with(email, password, "dsa-key AAbbcc")
+      @client.should_receive(:register_user).with(email, password)
       @user.register(email, password)
-    end
-
-    context "when ssh key is not available" do
-      it "should register without it" do
-        FileUtils.rm_rf("~/.ssh/id_rsa.pub")
-        FileUtils.rm_rf("~/.ssh/id_dsa.pub")
-        @client.should_receive(:register_user).with(email, password, nil)
-        @user.register(email, password)
-      end
     end
   end
 

@@ -77,16 +77,7 @@ describe Shelly::CLI::Main do
       FileUtils.mkdir_p("~/.ssh")
       File.open("~/.ssh/id_rsa.pub", "w") { |f| f << "ssh-key AAbbcc" }
       user.stub(:register).with("better@example.com", "secret") { true }
-    end
-
-    it "should register user without local SSH Key and show message to create SSH Key" do
-      FileUtils.rm_rf(@key_path)
-      File.exists?(@key_path).should be_false
-      $stdout.should_receive(:puts).with(red "No such file or directory - #{@key_path}")
-      $stdout.should_receive(:puts).with(red "Use ssh-keygen to generate ssh key pair, after that use: `shelly login`")
-      fake_stdin(["better@example.com", "secret", "secret", "yes"]) do
-        invoke(@main, :register)
-      end
+      user.stub(:upload_ssh_key)
     end
 
     it "should ask for email, password and password confirmation" do
@@ -124,28 +115,6 @@ describe Shelly::CLI::Main do
             invoke(@main, :register)
           end
         }.should raise_error(SystemExit)
-      end
-    end
-
-    context "public SSH key exists" do
-      it "should register with the public SSH key" do
-        FileUtils.mkdir_p("~/.ssh")
-        File.open(@key_path, "w") { |f| f << "key" }
-        $stdout.should_receive(:puts).with("Uploading your public SSH key from #{@key_path}")
-        fake_stdin(["better@example.com", "secret", "secret", "yes"]) do
-          invoke(@main, :register)
-        end
-      end
-    end
-
-    context "public SSH key doesn't exist" do
-      it "should register user without the public SSH key" do
-        user.stub(:ssh_key_registered?)
-        FileUtils.rm_rf(@key_path)
-        $stdout.should_not_receive(:puts).with("Uploading your public SSH key from #{@key_path}")
-        fake_stdin(["better@example.com", "secret", "secret", "yes"]) do
-          invoke(@main, :register)
-        end
       end
     end
 
@@ -219,7 +188,7 @@ describe Shelly::CLI::Main do
 
       it "should upload user's public SSH key" do
         user.should_receive(:upload_ssh_key)
-        $stdout.should_receive(:puts).with("Uploading your public SSH key")
+        $stdout.should_receive(:puts).with("Uploading your public SSH key from #{@key_path}")
         fake_stdin(["megan@example.com", "secret"]) do
           invoke(@main, :login)
         end
