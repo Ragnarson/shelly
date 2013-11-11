@@ -1,3 +1,10 @@
+# 0.4.13 / 2013-11-11
+
+* [improvement] Don't upload SSH key on register,
+  it will be uploaded at login which is required anyway after register
+
+* internal changes
+
 # 0.4.12 / 2013-11-05
 
 * [bugfix] Print user-friendly message if user tries to operate on files
