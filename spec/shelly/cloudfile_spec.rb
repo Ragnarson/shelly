@@ -82,12 +82,8 @@ foo-production:
       thin: 2
 config
       File.open("/projects/foo/Cloudfile", "w") { |f| f << content }
-      cloud1 = Shelly::App.should_receive(:new).with("foo-staging",
-         {"ruby_version"=>"1.9.3",
-           "servers"=>{"app1"=>{"size"=>"small"}}})
-      cloud2 = Shelly::App.should_receive(:new).with("foo-production",
-         {"environment"=>"production",
-           "servers"=>{"app1"=>{"thin"=>2}}})
+      cloud1 = Shelly::App.should_receive(:new).with("foo-staging")
+      cloud2 = Shelly::App.should_receive(:new).with("foo-production")
 
       @cloudfile.clouds
     end

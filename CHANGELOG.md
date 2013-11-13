@@ -1,20 +1,25 @@
-# 0.4.13 / 2013-11-11
+## master
+
+* [bugfix] `shelly backups create` without specified database kind should backup
+  all possible databases, read from Cloudfile
+
+## 0.4.13 / 2013-11-11
 
 * [improvement] Don't upload SSH key on register,
   it will be uploaded at login which is required anyway after register
 
 * internal changes
 
-# 0.4.12 / 2013-11-05
+## 0.4.12 / 2013-11-05
 
 * [bugfix] Print user-friendly message if user tries to operate on files
   on cloud which is not deployed.
 
-# 0.4.11 / 2013-10-30
+## 0.4.11 / 2013-10-30
 
 * internal changes
 
-# 0.4.10 / 2013-10-30
+## 0.4.10 / 2013-10-30
 
 * [bugfix] Certificates CLI were not Ruby 1.8 compatible
 * [bugfix] Travis was failing due to Ruby 1.8 gems incompatibility: guard, mime-types v2.x

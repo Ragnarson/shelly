@@ -9,12 +9,11 @@ module Shelly
     SERVER_SIZES = %w(small large)
 
     attr_accessor :code_name, :databases, :ruby_version, :environment,
-      :git_url, :domains, :web_server_ip, :size, :thin, :content,
+      :git_url, :domains, :web_server_ip, :size, :thin,
       :organization_name, :zone_name
 
-    def initialize(code_name = nil, content = nil)
+    def initialize(code_name = nil)
       self.code_name = code_name
-      self.content = content
     end
 
     def self.from_attributes(attributes)
@@ -325,6 +324,10 @@ module Shelly
 
     def setup_tunnel(conn, local_port)
       system "ssh #{ssh_options(conn)} -N -L #{local_port}:localhost:#{conn['service']['port']} #{conn['host']}"
+    end
+
+    def content
+      @content ||= Cloudfile.new.content[code_name]
     end
 
     # Public: Return databases for given Cloud in Cloudfile

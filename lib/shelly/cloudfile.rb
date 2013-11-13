@@ -17,7 +17,7 @@ module Shelly
     # nil if there is no cloudfile
     def clouds
       content.keys.sort.map do |code_name|
-        Shelly::App.new(code_name, content[code_name.to_s])
+        Shelly::App.new(code_name)
       end if content
     end
 
