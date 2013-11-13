@@ -3,7 +3,11 @@ class Shelly::Client
     post("/ssh_keys", :ssh_key => ssh_key)
   end
 
-  def delete_ssh_key(ssh_key)
-    delete("/ssh_keys", :ssh_key => ssh_key)
+  def delete_ssh_key(fingerprint)
+    delete("/ssh_keys/#{fingerprint}")
+  end
+
+  def ssh_key(fingerprint)
+    get("/ssh_keys/#{fingerprint}")
   end
 end

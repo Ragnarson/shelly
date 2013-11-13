@@ -155,11 +155,12 @@ describe Shelly::CLI::Main do
   end
 
   describe "#login" do
+    let(:key_path) { File.expand_path("~/.ssh/id_rsa.pub") }
+
     before do
-      user.stub(:upload_ssh_key)
-      @key_path = File.expand_path("~/.ssh/id_rsa.pub")
+      user.ssh_key.stub(:upload => nil, :uploaded? => false)
       FileUtils.mkdir_p("~/.ssh")
-      File.open("~/.ssh/id_rsa.pub", "w") { |f| f << "ssh-key AAbbcc" }
+      File.open(key_path, "w") { |f| f << "ssh-rsa AAAAB3NzaC1" }
       @client.stub(:apps).and_return([
           {"code_name" => "abc", "state" => "running",
             "state_description" => "running"},
@@ -187,8 +188,8 @@ describe Shelly::CLI::Main do
       end
 
       it "should upload user's public SSH key" do
-        user.should_receive(:upload_ssh_key)
-        $stdout.should_receive(:puts).with("Uploading your public SSH key from #{@key_path}")
+        user.ssh_key.should_receive(:upload)
+        $stdout.should_receive(:puts).with("Uploading your public SSH key from #{key_path}")
         fake_stdin(["megan@example.com", "secret"]) do
           invoke(@main, :login)
         end
@@ -202,13 +203,39 @@ describe Shelly::CLI::Main do
           invoke(@main, :login)
         end
       end
+
+      context "SSH key already uploaded" do
+        it "should display message to user" do
+          user.ssh_key.stub(:uploaded? => true)
+          $stdout.should_receive(:puts).with("Your SSH key from #{key_path} is already uploaded")
+          fake_stdin(["megan@example.com", "secret"]) do
+            invoke(@main, :login)
+          end
+        end
+      end
+
+      context "SSH key taken by other user" do
+        it "should logout user" do
+          body = {"message" => "Validation Failed",
+            "errors" => [["fingerprint", "already exists. This SSH key is already in use"]]}
+          ex = Shelly::Client::ValidationException.new(body)
+          user.ssh_key.stub(:upload).and_raise(ex)
+          user.should_receive(:logout)
+          $stdout.should_receive(:puts).with(red "Fingerprint already exists. This SSH key is already in use")
+          lambda {
+            fake_stdin(["megan@example.com", "secret"]) do
+              invoke(@main, :login)
+            end
+          }.should raise_error(SystemExit)
+        end
+      end
     end
 
     context "when local ssh key doesn't exists" do
       it "should display error message and return exit with 1" do
-        FileUtils.rm_rf(@key_path)
-        File.exists?(@key_path).should be_false
-        $stdout.should_receive(:puts).with("\e[31mNo such file or directory - " + @key_path + "\e[0m")
+        FileUtils.rm_rf(key_path)
+        File.exists?(key_path).should be_false
+        $stdout.should_receive(:puts).with("\e[31mNo such file or directory - " + key_path + "\e[0m")
         $stdout.should_receive(:puts).with("\e[31mUse ssh-keygen to generate ssh key pair\e[0m")
         lambda {
           invoke(@main, :login)
@@ -1234,9 +1261,9 @@ Wait until cloud is in 'turned off' state and try again.")
     end
 
     it "should notify user that ssh key was removed" do
-      user.stub(:delete_ssh_key => true)
+      user.ssh_keys.stub(:destroy => true)
       $stdout.should_receive(:puts).with("Your public SSH key has been removed from Shelly Cloud")
-      user.should_receive(:delete_ssh_key)
+      user.ssh_keys.should_receive(:destroy)
       invoke(@main, :logout)
     end
   end

@@ -43,30 +43,16 @@ module Shelly
       shelly.forget_authorization
     end
 
+    def ssh_keys
+      @keys ||= SshKeys.new
+    end
+
+    def ssh_key
+      ssh_keys.prefered_key
+    end
+
     def delete_credentials
       File.delete(credentials_path) if credentials_exists?
-    end
-
-    def delete_ssh_key
-      shelly.delete_ssh_key(File.read(dsa_key)) if File.exists?(dsa_key)
-      shelly.delete_ssh_key(File.read(rsa_key)) if File.exists?(rsa_key)
-    end
-
-    def ssh_key_exists?
-      File.exists?(ssh_key_path)
-    end
-
-    def ssh_key_path
-      return dsa_key if File.exists?(dsa_key)
-      rsa_key
-    end
-
-    def dsa_key
-      File.expand_path("~/.ssh/id_dsa.pub")
-    end
-
-    def rsa_key
-      File.expand_path("~/.ssh/id_rsa.pub")
     end
 
     def self.guess_email
@@ -75,11 +61,6 @@ module Shelly
 
     def config_dir
       File.expand_path("~/.shelly")
-    end
-
-    def upload_ssh_key
-      key = File.read(ssh_key_path).strip
-      shelly.add_ssh_key(key)
     end
 
     protected

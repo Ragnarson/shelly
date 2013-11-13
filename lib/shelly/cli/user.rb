@@ -1,5 +1,6 @@
 require "shelly/cli/command"
 require "shelly/cli/organization"
+require "shelly/ssh_keys"
 
 module Shelly
   module CLI
