@@ -68,9 +68,12 @@ module Shelly
       rescue Client::ValidationException => e
         e.each_error { |error| say_error "#{error}", :with_exit => false }
       rescue Client::UnauthorizedException => e
-        say_error "Wrong email or password", :with_exit => false
-        say_error "You can reset password by using link:", :with_exit => false
-        say_error e[:url]
+        say_error e[:error], :with_exit => false
+        if e[:url]
+          say_error "You can reset password by using link:", :with_exit => false
+          say_error e[:url]
+        end
+        exit 1
       rescue Errno::ENOENT => e
         say_error e, :with_exit => false
         say_error "Use ssh-keygen to generate ssh key pair"

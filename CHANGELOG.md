@@ -1,5 +1,6 @@
 ## master
 
+* [bugfix] Show proper error message when login failed
 * [bugfix] `shelly backups create` without specified database kind should backup
   all possible databases, read from Cloudfile
 

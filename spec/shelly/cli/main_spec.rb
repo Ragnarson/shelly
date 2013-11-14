@@ -218,12 +218,28 @@ describe Shelly::CLI::Main do
 
     context "on unauthorized user" do
       it "should exit with 1 and display error message" do
-        response = {"message" => "Unauthorized", "url" => "https://admin.winniecloud.com/users/password/new"}
+        response = {"message" => "Unauthorized", "error" => "Wrong email or password",
+          "url" => "https://admin.winniecloud.com/users/password/new"}
         exception = Shelly::Client::UnauthorizedException.new(response)
         @client.stub(:authorize_with_email_and_password).and_raise(exception)
         $stdout.should_receive(:puts).with("\e[31mWrong email or password\e[0m")
         $stdout.should_receive(:puts).with("\e[31mYou can reset password by using link:\e[0m")
         $stdout.should_receive(:puts).with("\e[31mhttps://admin.winniecloud.com/users/password/new\e[0m")
+        lambda {
+          fake_stdin(["megan@example.com", "secret"]) do
+            invoke(@main, :login)
+          end
+        }.should raise_error(SystemExit)
+      end
+    end
+
+    context "on unconfirmed user" do
+      it "should exit with 1 and display error message" do
+        response = {"message" => "Unauthorized",
+          "error" => "Unconfirmed account"}
+        exception = Shelly::Client::UnauthorizedException.new(response)
+        @client.stub(:authorize_with_email_and_password).and_raise(exception)
+        $stdout.should_receive(:puts).with(red "Unconfirmed account")
         lambda {
           fake_stdin(["megan@example.com", "secret"]) do
             invoke(@main, :login)
