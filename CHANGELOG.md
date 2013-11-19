@@ -1,10 +1,13 @@
+## 0.4.15 / 2013-11-19
+
+* [bugfix] Deleting SSH key works even after changing user email at the end
+  of it
+
 ## 0.4.14 / 2013-11-19
 
 * [bugfix] Show proper error message when login failed
 * [bugfix] `shelly backups create` without specified database kind should
   backup all possible databases, read from Cloudfile
-* [bugfix] Deleting SSH key works even after changing user email at the end
-  of it
 
 ## 0.4.13 / 2013-11-11
 
