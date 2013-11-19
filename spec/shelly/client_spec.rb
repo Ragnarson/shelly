@@ -286,8 +286,8 @@ describe Shelly::Client do
 
   describe "#delete_ssh_key" do
     it "should send delete with given SSH key" do
-      @client.should_receive(:delete).with("/ssh_keys", {:ssh_key => "abc"})
-      @client.delete_ssh_key("abc")
+      @client.should_receive(:delete).with("/ssh_keys/f6:08:b8:46:df:6d:b2:86:48:ae:e5:7c:25:ef:cf:ad")
+      @client.delete_ssh_key("f6:08:b8:46:df:6d:b2:86:48:ae:e5:7c:25:ef:cf:ad")
     end
   end
 

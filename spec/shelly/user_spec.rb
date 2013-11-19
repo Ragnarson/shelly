@@ -5,9 +5,6 @@ describe Shelly::User do
   let(:password) { "secret" }
 
   before do
-    FileUtils.mkdir_p("~/.ssh")
-    File.open("~/.ssh/id_rsa.pub", "w") { |f| f << "rsa-key AAbbcc" }
-    File.open("~/.ssh/id_dsa.pub", "w") { |f| f << "dsa-key AAbbcc" }
     @client = mock
     Shelly::Client.stub(:new).and_return(@client)
     @user = Shelly::User.new
@@ -39,49 +36,6 @@ describe Shelly::User do
       File.open("~/.shelly/credentials", "w") { |f| f << "bob@example.com\nsecret" }
       @user.delete_credentials
       File.exists?("~/.shelly/credentials").should be_false
-    end
-  end
-
-  describe "#ssh_key_path" do
-    it "should return path to public dsa key file in the first place" do
-      @user.ssh_key_path.should == File.expand_path("~/.ssh/id_dsa.pub")
-    end
-
-    it "should return path to public rsa key file if dsa key is not present" do
-      FileUtils.rm_rf("~/.ssh/id_dsa.pub")
-      @user.ssh_key_path.should == File.expand_path("~/.ssh/id_rsa.pub")
-    end
-  end
-
-  describe "#ssh_key_exists?" do
-    it "should return true if key exists, false otherwise" do
-      @user.should be_ssh_key_exists
-      FileUtils.rm_rf("~/.ssh/id_rsa.pub")
-      @user.should be_ssh_key_exists
-      FileUtils.rm_rf("~/.ssh/id_dsa.pub")
-      @user.should_not be_ssh_key_exists
-    end
-  end
-
-  describe "#delete_ssh_key" do
-    it "should invoke logout when ssh key exists" do
-      @client.should_receive(:delete_ssh_key).with('rsa-key AAbbcc').and_return(true)
-      @client.should_receive(:delete_ssh_key).with('dsa-key AAbbcc').and_return(true)
-      @user.delete_ssh_key.should be_true
-    end
-
-    it "should not invoke logout when ssh key doesn't exist" do
-      FileUtils.rm_rf("~/.ssh/id_rsa.pub")
-      FileUtils.rm_rf("~/.ssh/id_dsa.pub")
-      @client.should_not_receive(:logout)
-      @user.delete_ssh_key.should be_false
-    end
-  end
-
-  describe "#upload_ssh_key" do
-    it "should read and upload user's public SSH key" do
-      @client.should_receive(:add_ssh_key).with("dsa-key AAbbcc")
-      @user.upload_ssh_key
     end
   end
 

@@ -58,12 +58,12 @@ module Shelly
       def login(email = nil)
         user = Shelly::User.new
         say "Your public SSH key will be uploaded to Shelly Cloud after login."
-        raise Errno::ENOENT, user.ssh_key_path unless user.ssh_key_exists?
+        raise Errno::ENOENT, user.ssh_key.path unless user.ssh_key.exists?
         email ||= ask_for_email
         password = ask_for_password(:with_confirmation => false)
         user.login(email, password)
-        say "Login successful", :green
         upload_ssh_key
+        say "Login successful", :green
         list
       rescue Client::ValidationException => e
         e.each_error { |error| say_error "#{error}", :with_exit => false }
@@ -251,7 +251,7 @@ Wait until cloud is in 'turned off' state and try again.}
       desc "logout", "Logout from Shelly Cloud"
       def logout
         user = Shelly::User.new
-        say "Your public SSH key has been removed from Shelly Cloud" if user.delete_ssh_key
+        say "Your public SSH key has been removed from Shelly Cloud" if user.ssh_keys.destroy
         say "You have been successfully logged out" if user.logout
       end
 
@@ -459,15 +459,21 @@ Wait until cloud is in 'turned off' state and try again.}
 
         def upload_ssh_key
           user = Shelly::User.new
-          if user.ssh_key_exists?
-            say "Uploading your public SSH key from #{user.ssh_key_path}"
-            user.upload_ssh_key
+          if user.ssh_key.exists?
+            if user.ssh_key.uploaded?
+              say "Your SSH key from #{user.ssh_key.path} is already uploaded"
+            else
+              say "Uploading your public SSH key from #{user.ssh_key.path}"
+              user.ssh_key.upload
+            end
           else
             say_error "No such file or directory - #{user.ssh_key_path}", :with_exit => false
             say_error "Use ssh-keygen to generate ssh key pair, after that use: `shelly login`", :with_exit => false
           end
         rescue Client::ValidationException => e
           e.each_error { |error| say_error error, :with_exit => false }
+          user.logout
+          exit 1
         end
       end
     end
