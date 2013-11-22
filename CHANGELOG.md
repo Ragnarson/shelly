@@ -1,3 +1,7 @@
+## master
+
+* [improvement] Validate kind when importing database backup
+
 ## 0.4.15 / 2013-11-19
 
 * [bugfix] Deleting SSH key works even after changing user email at the end

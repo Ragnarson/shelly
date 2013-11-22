@@ -298,7 +298,7 @@ describe Shelly::CLI::Backup do
         :server => "app1")
       $stdout.should_receive(:puts).with(green "Importing database")
       fake_stdin(["yes"]) do
-        invoke(@backup, :import, "PostgreSQL", "dump.sql")
+        invoke(@backup, :import, "postgresql", "dump.sql")
       end
     end
 
@@ -327,12 +327,23 @@ describe Shelly::CLI::Backup do
       end
     end
 
+    context "file doesn't exist" do
+      it "should exit with error" do
+        $stdout.should_receive(:puts).with(red "Kind is invalid. You can" \
+          " import backup of: postgresql, mongodb")
+        lambda {
+          invoke(@backup, :import, "wrong_kind", "dump.sql")
+        }.should raise_error(SystemExit)
+      end
+    end
+
     context "with --reset option" do
       it "should reset database first" do
         @app.unstub(:import_database)
         @backup.options = {:cloud => "foo-staging", :reset => true}
         @app.should_receive(:reset_database).with("postgresql")
-        @app.should_receive(:ssh_with_db_server).with(:command => "import_database postgresql dump.sql-1370879705.tar.bz2",
+        @app.should_receive(:ssh_with_db_server).with(
+          :command => "import_database postgresql dump.sql-1370879705.tar.bz2",
           :server => "app1")
         $stdout.should_receive(:puts).with(green "Importing database")
         fake_stdin(["yes"]) do

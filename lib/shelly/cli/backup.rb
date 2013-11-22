@@ -112,6 +112,9 @@ module Shelly
         unless ::File.exist?(filename)
           say_error "File #{filename} doesn't exist"
         end
+        unless ['postgresql', 'mongodb'].include?(kind)
+          say_error "Kind is invalid. You can import backup of: postgresql, mongodb"
+        end
         if options[:reset]
           say_warning "You are about to reset database #{kind} for cloud #{app}"
           say_warning "Next, database will be restored to state from file #{filename}"
