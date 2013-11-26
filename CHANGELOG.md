@@ -1,4 +1,4 @@
-## master
+## 0.4.16 / 2013-11-26
 
 * [improvement] Validate kind when importing database backup
 
