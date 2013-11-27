@@ -10,7 +10,7 @@ module Shelly
     end
 
     def destroy
-      shelly.delete_ssh_key(fingerprint) if exists?
+      shelly.delete_ssh_key(fingerprint) if uploaded?
     end
 
     def upload

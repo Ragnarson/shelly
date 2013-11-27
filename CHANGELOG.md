@@ -1,3 +1,5 @@
+* [bugfix] Remove ssh_key from Shelly Cloud only if it was already uploaded
+
 ## 0.4.16 / 2013-11-26
 
 * [improvement] Validate kind when importing database backup
