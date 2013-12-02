@@ -546,10 +546,10 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
     end
 
     it "should show forbidden exception" do
-      @main.options = {:organization => "foo"}
+      @main.options = {'organization' => "foobar"}
       exception = Shelly::Client::ForbiddenException.new
       @app.should_receive(:create).and_raise(exception)
-      $stdout.should_receive(:puts).with(red "You have to be the owner of 'foo' organization to add clouds")
+      $stdout.should_receive(:puts).with(red "You have to be the owner of 'foobar' organization to add clouds")
 
       expect do
         fake_stdin(["foooo", "none"]) do

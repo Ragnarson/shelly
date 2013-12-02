@@ -29,6 +29,7 @@ module Shelly
         app.size = options["size"] || "large"
         app.organization_name = options["organization"] || ask_for_organization(options)
         app.zone_name = options["zone"]
+
         app.create
         say "Cloud '#{app}' created in '#{app.organization_name}' organization", :green
         say_new_line
@@ -59,7 +60,7 @@ module Shelly
         say_error "Fix erros in the below command and type it again to create your cloud" , :with_exit => false
         say_error "shelly add --code-name=#{app.code_name.downcase.dasherize} --databases=#{app.databases.join(',')} --organization=#{app.organization_name} --size=#{app.size}"
       rescue Client::ForbiddenException
-        say_error "You have to be the owner of '#{options[:organization]}' organization to add clouds"
+        say_error "You have to be the owner of '#{app.organization_name}' organization to add clouds"
       rescue Client::NotFoundException => e
         raise unless e.resource == :organization
         say_error "Organization '#{app.organization_name}' not found", :with_exit => false
