@@ -13,13 +13,24 @@ describe Shelly::SshKey do
   end
 
   describe "#destroy?" do
-    it "should destroy key via API" do
+    it "should destroy key via API if it's uploaded" do
+      @client.should_receive(:ssh_key).with(fingerprint).and_return(true)
       @client.should_receive(:delete_ssh_key).with(fingerprint)
       ssh_key.destroy
     end
+
     context "key doesn't exist" do
       it "should not try to destroy it" do
         FileUtils.rm_rf(ssh_key.path)
+        @client.should_not_receive(:delete_ssh_key)
+        ssh_key.destroy
+      end
+    end
+
+    context "key isn't uploaded" do
+      it "should not try to destroy it" do
+        @client.should_receive(:ssh_key).with(fingerprint).
+          and_raise(Shelly::Client::NotFoundException.new)
         @client.should_not_receive(:delete_ssh_key)
         ssh_key.destroy
       end
