@@ -1,3 +1,5 @@
+## 0.4.17 / 2013-12-03
+
 * [bugfix] Remove ssh_key from Shelly Cloud only if it was already uploaded
 
 ## 0.4.16 / 2013-11-26
