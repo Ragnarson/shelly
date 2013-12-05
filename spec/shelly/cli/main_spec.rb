@@ -375,7 +375,9 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
     end
 
     it "should use database provided by user (separated by comma or space)" do
-      $stdout.should_receive(:print).with("Which database do you want to use postgresql, mongodb, redis, none (postgresql - default): ")
+      $stdout.should_receive(:print).
+        with("Which databases do you want to use " \
+             "postgresql, mongodb, redis, none (postgresql - default): ")
       @app.should_receive(:databases=).with(["postgresql", "mongodb", "redis"])
       fake_stdin(["", "postgresql  ,mongodb redis"]) do
         invoke(@main, :add)
@@ -383,8 +385,12 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
     end
 
     it "should ask again for databases if unsupported kind typed" do
-      $stdout.should_receive(:print).with("Which database do you want to use postgresql, mongodb, redis, none (postgresql - default): ")
-      $stdout.should_receive(:print).with("Unknown database kind. Supported are: postgresql, mongodb, redis, none: ")
+      $stdout.should_receive(:print).
+        with("Which databases do you want to use " \
+             "postgresql, mongodb, redis, none (postgresql - default): ")
+      $stdout.should_receive(:print).
+        with("Unknown database kind. Supported are: " \
+             "postgresql, mongodb, redis, none: ")
       fake_stdin(["", "postgresql,doesnt-exist", "none"]) do
         invoke(@main, :add)
       end

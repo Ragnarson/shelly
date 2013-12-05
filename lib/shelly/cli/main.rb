@@ -428,7 +428,8 @@ Wait until cloud is in 'turned off' state and try again.}
 
         def ask_for_databases
           kinds = Shelly::App::DATABASE_CHOICES
-          databases = ask("Which database do you want to use #{kinds.join(", ")} (postgresql - default):")
+          databases = ask("Which databases do you want to use " \
+                          "#{kinds.join(", ")} (postgresql - default):")
           begin
             databases = databases.split(/[\s,]/).reject(&:blank?)
             valid = valid_databases?(databases)
