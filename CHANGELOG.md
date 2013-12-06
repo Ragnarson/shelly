@@ -1,6 +1,7 @@
 ## master
 
 * [improvement] `shelly add` should ask about databases instead of database
+* [improvement] Improved messages displayed while deleting the application
 
 ## 0.4.17 / 2013-12-03
 

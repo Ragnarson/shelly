@@ -228,14 +228,19 @@ Wait until cloud is in 'turned off' state and try again.}
       method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
       def delete
         app = multiple_clouds(options[:cloud], "delete")
-        say "You are about to delete application: #{app}."
-        say "Press Control-C at any moment to cancel."
-        say "Please confirm each question by typing yes and pressing Enter."
+
         say_new_line
-        ask_to_delete_files
-        ask_to_delete_database
-        ask_to_delete_application
+        say "You are going to:"
+        say " * remove all files stored in the persistent storage for #{app},"
+        say " * remove all database data for #{app},"
+        say " * remove #{app} cloud from Shelly Cloud"
+        say_new_line
+        say "This action is permanent and can not be undone.", :red
+        say_new_line
+        ask_to_delete_application app
+
         app.delete
+
         say_new_line
         say "Scheduling application delete - done"
         if App.inside_git_repository?
