@@ -375,7 +375,9 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
     end
 
     it "should use database provided by user (separated by comma or space)" do
-      $stdout.should_receive(:print).with("Which database do you want to use postgresql, mongodb, redis, none (postgresql - default): ")
+      $stdout.should_receive(:print).
+        with("Which databases do you want to use " \
+             "postgresql, mongodb, redis, none (postgresql - default): ")
       @app.should_receive(:databases=).with(["postgresql", "mongodb", "redis"])
       fake_stdin(["", "postgresql  ,mongodb redis"]) do
         invoke(@main, :add)
@@ -383,8 +385,12 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
     end
 
     it "should ask again for databases if unsupported kind typed" do
-      $stdout.should_receive(:print).with("Which database do you want to use postgresql, mongodb, redis, none (postgresql - default): ")
-      $stdout.should_receive(:print).with("Unknown database kind. Supported are: postgresql, mongodb, redis, none: ")
+      $stdout.should_receive(:print).
+        with("Which databases do you want to use " \
+             "postgresql, mongodb, redis, none (postgresql - default): ")
+      $stdout.should_receive(:print).
+        with("Unknown database kind. Supported are: " \
+             "postgresql, mongodb, redis, none: ")
       fake_stdin(["", "postgresql,doesnt-exist", "none"]) do
         invoke(@main, :add)
       end
@@ -1173,7 +1179,7 @@ Wait until cloud is in 'turned off' state and try again.")
     it "should ensure multiple_clouds check" do
       @client.stub(:delete)
       @main.should_receive(:multiple_clouds).and_return(@app)
-      fake_stdin(["yes", "yes", "yes"]) do
+      fake_stdin(["foo-staging"]) do
         invoke(@main, :delete)
       end
     end
@@ -1184,37 +1190,47 @@ Wait until cloud is in 'turned off' state and try again.")
           f.write("foo-staging:\nfoo-production:\n") }
       end
 
-      it "should ask about delete application parts" do
-        $stdout.should_receive(:puts).with("You are about to delete application: foo-staging.")
-        $stdout.should_receive(:puts).with("Press Control-C at any moment to cancel.")
-        $stdout.should_receive(:puts).with("Please confirm each question by typing yes and pressing Enter.")
+      it "should display warning and ask about deleting the application" do
+        $stdout.should_receive(:puts).with("You are going to:")
+        $stdout.should_receive(:puts).
+          with(" * remove all files stored in the persistent storage for" \
+               " foo-staging,")
+        $stdout.should_receive(:puts).
+          with(" * remove all database data for foo-staging,")
+        $stdout.should_receive(:puts).
+          with(" * remove foo-staging cloud from Shelly Cloud")
         $stdout.should_receive(:puts).with("\n")
-        $stdout.should_receive(:print).with("I want to delete all files stored on Shelly Cloud (yes/no): ")
-        $stdout.should_receive(:print).with("I want to delete all database data stored on Shelly Cloud (yes/no): ")
-        $stdout.should_receive(:print).with("I want to delete the application (yes/no): ")
+        $stdout.should_receive(:puts).
+          with(red "This action is permanent and can not be undone.")
         $stdout.should_receive(:puts).with("\n")
+        $stdout.should_receive(:print).
+          with("Please confirm with the name of the cloud: ")
         $stdout.should_receive(:puts).with("Scheduling application delete - done")
         $stdout.should_receive(:puts).with("Removing git remote - done")
         @main.options = {:cloud => "foo-staging"}
-        fake_stdin(["yes", "yes", "yes"]) do
+        fake_stdin(["foo-staging"]) do
           invoke(@main, :delete)
         end
       end
 
-      it "should return exit 1 when user doesn't type 'yes'" do
-        @app.should_not_receive(:delete)
-        lambda{
-          fake_stdin(["yes", "yes", "no"]) do
-            @main.options = {:cloud => "foo-staging"}
-            invoke(@main, :delete)
-          end
-        }.should raise_error(SystemExit)
+      context 'when given code name does not match' do
+        it "should print message and return exit 1" do
+          @app.should_not_receive(:delete)
+          $stdout.should_receive(:puts).
+            with(red "The name does not match. Operation aborted.")
+          lambda{
+            fake_stdin(["foo-production"]) do
+              @main.options = {:cloud => "foo-staging"}
+              invoke(@main, :delete)
+            end
+          }.should raise_error(SystemExit)
+        end
       end
 
       it "should remove git remote" do
         @app.should_receive(:remove_git_remote)
         @main.options = {:cloud => "foo-staging"}
-        fake_stdin(["yes", "yes", "yes"]) do
+        fake_stdin(["foo-staging"]) do
           invoke(@main, :delete)
         end
       end
@@ -1229,7 +1245,7 @@ Wait until cloud is in 'turned off' state and try again.")
       it "should say that Git remote missing" do
         Shelly::App.stub(:inside_git_repository?).and_return(false)
         $stdout.should_receive(:puts).with("Missing git remote")
-        fake_stdin(["yes", "yes", "yes"]) do
+        fake_stdin(["foo-staging"]) do
           @main.options = {:cloud => "foo-staging"}
           invoke(@main, :delete)
         end
@@ -1243,17 +1259,23 @@ Wait until cloud is in 'turned off' state and try again.")
       end
 
       it "should take the cloud from Cloudfile" do
-        $stdout.should_receive(:puts).with("You are about to delete application: foo-staging.")
-        $stdout.should_receive(:puts).with("Press Control-C at any moment to cancel.")
-        $stdout.should_receive(:puts).with("Please confirm each question by typing yes and pressing Enter.")
+        $stdout.should_receive(:puts).with("You are going to:")
+        $stdout.should_receive(:puts).
+          with(" * remove all files stored in the persistent storage for" \
+               " foo-staging,")
+        $stdout.should_receive(:puts).
+          with(" * remove all database data for foo-staging,")
+        $stdout.should_receive(:puts).
+          with(" * remove foo-staging cloud from Shelly Cloud")
         $stdout.should_receive(:puts).with("\n")
-        $stdout.should_receive(:print).with("I want to delete all files stored on Shelly Cloud (yes/no): ")
-        $stdout.should_receive(:print).with("I want to delete all database data stored on Shelly Cloud (yes/no): ")
-        $stdout.should_receive(:print).with("I want to delete the application (yes/no): ")
+        $stdout.should_receive(:puts).
+          with(red "This action is permanent and can not be undone.")
         $stdout.should_receive(:puts).with("\n")
+        $stdout.should_receive(:print).
+          with("Please confirm with the name of the cloud: ")
         $stdout.should_receive(:puts).with("Scheduling application delete - done")
         $stdout.should_receive(:puts).with("Removing git remote - done")
-        fake_stdin(["yes", "y", "yes"]) do
+        fake_stdin(["foo-staging"]) do
           invoke(@main, :delete)
         end
       end

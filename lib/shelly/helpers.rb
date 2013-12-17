@@ -43,19 +43,13 @@ module Shelly
       say_error "Email can't be blank, please try again"
     end
 
-    def ask_to_delete_files
-      delete_files_question = "I want to delete all files stored on Shelly Cloud (yes/no):"
-      exit 1 unless yes?(delete_files_question)
-    end
+    def ask_to_delete_application(app)
+      code_name = ask "Please confirm with the name of the cloud:"
 
-    def ask_to_delete_database
-      delete_database_question = "I want to delete all database data stored on Shelly Cloud (yes/no):"
-      exit 1 unless yes?(delete_database_question)
-    end
-
-    def ask_to_delete_application
-      delete_application_question = "I want to delete the application (yes/no):"
-      exit 1 unless yes?(delete_application_question)
+      unless code_name == app.code_name
+        say_error "The name does not match. Operation aborted."
+        exit 1
+      end
     end
 
     def ask_for_acceptance_of_terms
