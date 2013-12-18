@@ -26,7 +26,7 @@ module Shelly
         say_error "Certificate not found"
       end
 
-      desc "create CERT_PATH [BUNDLE_PATH] KEY_PATH", "Add certificate to your cloud"
+      desc "create CERT_PATH KEY_PATH [BUNDLE_PATH]", "Add certificate to your cloud"
       long_desc %{
         Add certificate to your cloud.\n
         CERT_PATH - path to certificate.\n
@@ -59,7 +59,7 @@ module Shelly
         say_error e[:message]
       end
 
-      desc "update CERT_PATH [BUNDLE_PATH] key", "Update current certificate"
+      desc "update CERT_PATH KEY_PATH [BUNDLE_PATH]", "Update current certificate"
       long_desc %{
         Update current certificate.\n
         CERT_PATH - path to certificate.\n

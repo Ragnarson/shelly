@@ -1,3 +1,7 @@
+## master
+
+* [bugfix] shelly cert arguments inline help reorderd
+
 ## 0.4.18 / 2013-12-17
 
 * [improvement] `shelly add` should ask about databases instead of database
