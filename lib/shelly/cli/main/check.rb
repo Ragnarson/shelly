@@ -27,6 +27,37 @@ module Shelly
           "Gemfile.lock is missing in git repository",
           :show_fulfilled => verbose)
 
+        if structure.gemfile_ruby_version?
+          if structure.gemfile_engine == 'ruby'
+            print_check(!['1.8.7', '2.1.0'].include?(structure.gemfile_ruby_version),
+              "#{structure.gemfile_engine} #{structure.gemfile_ruby_version} is supported",
+              "#{structure.gemfile_engine} #{structure.gemfile_ruby_version} is currently unsupported\n    See more at https://shellycloud.com/documentation/requirements#ruby_versions",
+              :show_fulfilled => verbose)
+          end
+
+          if structure.gemfile_ruby_patchlevel
+            print_check(false, "",
+              "Remove Ruby patchlevel from Gemfile\n    Shelly Cloud takes care of upgrading Rubies whenever they are released\n    See more at https://shellycloud.com/documentation/requirements#ruby_versions",
+              :show_fulfilled => verbose)
+          end
+
+          supported_jruby = '1.7.8'
+          if structure.gemfile_engine == 'jruby'
+            print_check(!(structure.gemfile_ruby_version == '1.8.7' ||
+                structure.gemfile_engine_version != supported_jruby),
+              "jruby #{supported_jruby} (1.9 mode) is supported",
+              "Only jruby #{supported_jruby} (1.9 mode) is currently supported\n    See more at https://shellycloud.com/documentation/requirements#ruby_versions",
+              :show_fulfilled => verbose)
+          end
+
+          # other platforms: rbx, mingw, mswin show instant error
+          unless ['jruby', 'ruby'].include?(structure.gemfile_engine)
+            print_check(false, "",
+              "Your ruby engine: #{structure.gemfile_engine} is currently unsupported\n    See more at https://shellycloud.com/documentation/requirements#ruby_versions",
+              :show_fulfilled => verbose)
+          end
+        end
+
         print_check(structure.config_ru?, "config.ru is present",
           "config.ru is missing",
           :show_fulfilled => verbose)
@@ -93,14 +124,14 @@ module Shelly
 
             if app.thin?
               print_check(structure.gem?("thin"),
-                "Web server gem 'thin' is present",
+                "Web server gem 'thin' is present for '#{app}' cloud",
                 "Gem 'thin' is missing in the Gemfile for '#{app}' cloud",
                 :show_fulfilled => verbose)
             end
 
             if app.puma?
               print_check(structure.gem?("puma"),
-                "Web server gem 'puma' is present",
+                "Web server gem 'puma' is present for '#{app}' cloud",
                 "Gem 'puma' is missing in the Gemfile for '#{app}' cloud",
                 :show_fulfilled => verbose)
             end

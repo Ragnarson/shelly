@@ -373,14 +373,6 @@ describe Shelly::App do
         @app.ruby_version.should == 'jruby'
       end
 
-      it "should return ree-1.8.7 if ruby version is set to 1.8.7" do
-        Bundler::Definition.stub_chain(:build, :ruby_version).
-          and_return(mock(:engine => 'ruby', :version => '1.8.7'))
-
-        @app.create
-        @app.ruby_version.should == 'ree-1.8.7'
-      end
-
       it "should return ruby_version from gemfile" do
         Bundler::Definition.stub_chain(:build, :ruby_version).
           and_return(mock(:engine => 'ruby', :version => '1.9.3'))

@@ -415,8 +415,6 @@ module Shelly
 
       if ruby_version.engine == 'jruby'
         'jruby'
-      elsif ruby_version.version == '1.8.7'
-        'ree-1.8.7'
       else
         ruby_version.version
       end

@@ -15,6 +15,30 @@ module Shelly
       repo_paths.include?(@gemfile_lock_path)
     end
 
+    def gemfile_ruby_version?
+      return false unless gemfile? && gemfile_lock?
+      definition.ruby_version
+    end
+
+    def gemfile_ruby_version
+      definition.ruby_version.version
+    end
+
+    # patchlevel is supported since bundler 1.4.0.rc
+    def gemfile_ruby_patchlevel
+      if definition.ruby_version.respond_to?(:patchlevel)
+        definition.ruby_version.patchlevel
+      end
+    end
+
+    def gemfile_engine
+      definition.ruby_version.engine
+    end
+
+    def gemfile_engine_version
+      definition.ruby_version.engine_version
+    end
+
     def config_ru?
       repo_paths.include?("config.ru")
     end
@@ -53,9 +77,12 @@ module Shelly
 
     def gems
       return [] unless gemfile? && gemfile_lock?
-      definition = Bundler::Definition.build(@gemfile_path,
-        @gemfile_lock_path, nil)
       @gems ||= definition.specs.map(&:name)
+    end
+
+    def definition
+      @definition ||= Bundler::Definition.build(@gemfile_path,
+        @gemfile_lock_path, nil)
     end
 
     def tasks
