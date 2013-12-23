@@ -1564,6 +1564,8 @@ Wait until cloud is in 'turned off' state and try again.")
       Shelly::App.stub(:inside_git_repository?).and_return(true)
       Bundler::Definition.stub_chain(:build, :specs, :map) \
         .and_return(["thin", "pg", "delayed_job", "whenever", "sidekiq"])
+        Bundler::Definition.stub_chain(:build, :ruby_version).
+          and_return(mock(:engine => 'ruby', :version => '1.9.3'))
       Shelly::StructureValidator.any_instance.stub(:repo_paths) \
         .and_return(["config.ru", "Gemfile", "Gemfile.lock", "Rakefile"])
       Shelly::StructureValidator.any_instance.stub(:tasks).and_return(["rake db:migrate"])
@@ -1624,6 +1626,80 @@ Wait until cloud is in 'turned off' state and try again.")
         it "should show that necessary gem doesn't exist" do
           Bundler::Definition.stub_chain(:build, :specs, :map).and_return([])
           $stdout.should_receive(:puts).with("  #{red("✗")} Missing web server gem in Gemfile. Currently supported: 'thin' and 'puma'")
+          invoke(@main, :check)
+        end
+      end
+    end
+
+    context "gemfile ruby version" do
+      context "ruby engine" do
+        context "supported version" do
+          it "should show checked message" do
+            Bundler::Definition.stub_chain(:build, :ruby_version).
+              and_return(mock(:engine => 'ruby', :version => '1.9.2'))
+
+            $stdout.should_receive(:puts).with("  #{green("✓")} ruby 1.9.2 is supported")
+            invoke(@main, :check)
+          end
+        end
+
+        context "unsupported version" do
+          it "should show error message" do
+            Bundler::Definition.stub_chain(:build, :ruby_version).
+              and_return(mock(:engine => 'ruby', :version => '1.8.7'))
+
+            $stdout.should_receive(:puts).with("  #{red("✗")} ruby 1.8.7 is currently unsupported\n    See more at https://shellycloud.com/documentation/requirements#ruby_versions")
+            invoke(@main, :check)
+          end
+        end
+      end
+
+      context "jruby engine" do
+        context "supported version" do
+          it "should show checked message" do
+            Bundler::Definition.stub_chain(:build, :ruby_version).
+              and_return(mock(:engine => 'jruby', :version => '1.9.3', :engine_version => '1.7.8'))
+
+            $stdout.should_receive(:puts).with("  #{green("✓")} jruby 1.7.8 (1.9 mode) is supported")
+            invoke(@main, :check)
+          end
+        end
+
+        context "unsupported version" do
+          it "should show error message - ruby version" do
+            Bundler::Definition.stub_chain(:build, :ruby_version).
+              and_return(mock(:engine => 'jruby', :version => '1.8.7', :engine_version => '1.7.8'))
+
+            $stdout.should_receive(:puts).with("  #{red("✗")} Only jruby 1.7.8 (1.9 mode) is currently supported\n    See more at https://shellycloud.com/documentation/requirements#ruby_versions")
+            invoke(@main, :check)
+          end
+
+          it "should show error message - engine version" do
+            Bundler::Definition.stub_chain(:build, :ruby_version).
+              and_return(mock(:engine => 'jruby', :version => '1.9.3', :engine_version => '1.7.3'))
+
+            $stdout.should_receive(:puts).with("  #{red("✗")} Only jruby 1.7.8 (1.9 mode) is currently supported\n    See more at https://shellycloud.com/documentation/requirements#ruby_versions")
+            invoke(@main, :check)
+          end
+        end
+      end
+
+      context "patchlevel version" do
+        it "should show unsupported error message" do
+          Bundler::Definition.stub_chain(:build, :ruby_version).
+            and_return(mock(:engine => 'ruby', :version => '1.9.3', :patchlevel => '111'))
+
+          $stdout.should_receive(:puts).with("  #{red("✗")} Remove Ruby patchlevel from Gemfile\n    Shelly Cloud takes care of upgrading Rubies whenever they are released\n    See more at https://shellycloud.com/documentation/requirements#ruby_versions")
+          invoke(@main, :check)
+        end
+      end
+
+      context "other engines" do
+        it "should show unsupported error message" do
+          Bundler::Definition.stub_chain(:build, :ruby_version).
+            and_return(mock(:engine => 'rbx', :version => '1.9.2'))
+
+          $stdout.should_receive(:puts).with("  #{red("✗")} Your ruby engine: rbx is currently unsupported\n    See more at https://shellycloud.com/documentation/requirements#ruby_versions")
           invoke(@main, :check)
         end
       end
@@ -1770,7 +1846,7 @@ Wait until cloud is in 'turned off' state and try again.")
 
         it "should show that necessary gem exists" do
           Bundler::Definition.stub_chain(:build, :specs, :map).and_return(["thin"])
-          $stdout.should_receive(:puts).with("  #{green("✓")} Web server gem 'thin' is present")
+          $stdout.should_receive(:puts).with("  #{green("✓")} Web server gem 'thin' is present for 'foo-staging' cloud")
           invoke(@main, :check)
         end
       end
@@ -1784,7 +1860,7 @@ Wait until cloud is in 'turned off' state and try again.")
 
         it "should show that necessary gem exists" do
           Bundler::Definition.stub_chain(:build, :specs, :map).and_return(["puma"])
-          $stdout.should_receive(:puts).with("  #{green("✓")} Web server gem 'puma' is present")
+          $stdout.should_receive(:puts).with("  #{green("✓")} Web server gem 'puma' is present for 'foo-staging' cloud")
           invoke(@main, :check)
         end
       end

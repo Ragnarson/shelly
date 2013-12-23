@@ -400,8 +400,24 @@ module Shelly
     def assign_attributes(response)
       self.git_url = response["git_url"]
       self.domains = response["domains"]
-      self.ruby_version = jruby? ? 'jruby' : response["ruby_version"]
+      self.ruby_version = detect_ruby_version || response["ruby_version"]
       self.environment = response["environment"]
+    end
+
+    def detect_ruby_version
+      jruby? ? 'jruby' : gemfile_ruby_version
+    end
+
+    def gemfile_ruby_version
+      ruby_version = Bundler::Definition.build("Gemfile", "Gemfile.lock",
+        nil).ruby_version
+      return unless ruby_version
+
+      if ruby_version.engine == 'jruby'
+        'jruby'
+      else
+        ruby_version.version
+      end
     end
 
     def persistent_disk

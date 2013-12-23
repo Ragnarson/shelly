@@ -325,8 +325,11 @@ describe Shelly::App do
   end
 
   describe "#create" do
+    before { @app.stub(:gemfile_ruby_version) }
+
     it "should create the app on shelly cloud via API client" do
       @app.code_name = "fooo"
+
       attributes = {
         :code_name => "fooo",
         :organization_name => nil,
@@ -348,12 +351,35 @@ describe Shelly::App do
       @app.environment.should == "production"
     end
 
-    it "should assign jruby as ruby_version if gem is running under jruby" do
-      @client.stub(:create_app).and_return("git_url" => nil,
-        "domains" => nil, "environment" => nil, "ruby_version" => "1.9.2")
-      stub_const('RUBY_PLATFORM', 'java')
-      @app.create
-      @app.ruby_version.should == "jruby"
+    context "ruby version" do
+      before do
+        @app.unstub(:gemfile_ruby_version)
+        stub_const('RUBY_PLATFORM', 'i686-linux')
+        @client.stub(:create_app).and_return("git_url" => "git@git.example.com:fooo.git",
+          "domains" => ["fooo.shellyapp.com"], "ruby_version" => "1.9.2", "environment" => "production")
+      end
+
+      it "should assign jruby as ruby_version if gem is running under jruby" do
+        stub_const('RUBY_PLATFORM', 'java')
+        @app.create
+        @app.ruby_version.should == "jruby"
+      end
+
+      it "should return jruby if engine is set to jruby" do
+        Bundler::Definition.stub_chain(:build, :ruby_version).
+          and_return(mock(:engine => 'jruby'))
+
+        @app.create
+        @app.ruby_version.should == 'jruby'
+      end
+
+      it "should return ruby_version from gemfile" do
+        Bundler::Definition.stub_chain(:build, :ruby_version).
+          and_return(mock(:engine => 'ruby', :version => '1.9.3'))
+
+        @app.create
+        @app.ruby_version.should == "1.9.3"
+      end
     end
   end
 

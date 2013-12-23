@@ -1,6 +1,8 @@
 ## master
 
 * [bugfix] `shelly delete` fixed remove git remote when deleting cloud
+* [improvement] `shelly check` makes sure Ruby defined in Gemfile is supported
+* [improvement] use Ruby defined in Gemfile to create Cloudfile
 * [bugfix] shelly cert arguments inline help reorderd
 
 ## 0.4.18 / 2013-12-17
