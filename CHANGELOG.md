@@ -1,5 +1,6 @@
 ## master
 
+* [bugfix] `shelly delete` fixed remove git remote when deleting cloud
 * [bugfix] shelly cert arguments inline help reorderd
 
 ## 0.4.18 / 2013-12-17

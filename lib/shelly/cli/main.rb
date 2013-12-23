@@ -238,6 +238,8 @@ Wait until cloud is in 'turned off' state and try again.}
         say "This action is permanent and can not be undone.", :red
         say_new_line
         ask_to_delete_application app
+        # load git info so remote can be removed later on
+        app.git_info
 
         app.delete
 
