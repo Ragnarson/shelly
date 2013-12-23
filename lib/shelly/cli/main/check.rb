@@ -49,7 +49,7 @@ module Shelly
         print_check(structure.gem?("thin") || structure.gem?("puma"),
           "Web server gem is present",
           "Missing web server gem in Gemfile. Currently supported: 'thin' and 'puma'",
-          :show_fulfilled => verbose, :failure_level => :warning)
+          :show_fulfilled => verbose)
 
         print_check(structure.gem?("rake"), "Gem 'rake' is present",
           "Gem 'rake' is missing in the Gemfile", :show_fulfilled => verbose)
@@ -115,6 +115,7 @@ module Shelly
           say "\nFix points marked with #{red("✗")} to run your application on the Shelly Cloud"
           say "See more about requirements on https://shellycloud.com/documentation/requirements"
         end
+        say_new_line
 
         structure.valid?
       rescue Bundler::BundlerError => e

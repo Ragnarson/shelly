@@ -1623,7 +1623,7 @@ Wait until cloud is in 'turned off' state and try again.")
       context "when neither thin nor puma present in Gemfile" do
         it "should show that necessary gem doesn't exist" do
           Bundler::Definition.stub_chain(:build, :specs, :map).and_return([])
-          $stdout.should_receive(:puts).with("  #{yellow("ϟ")} Missing web server gem in Gemfile. Currently supported: 'thin' and 'puma'")
+          $stdout.should_receive(:puts).with("  #{red("✗")} Missing web server gem in Gemfile. Currently supported: 'thin' and 'puma'")
           invoke(@main, :check)
         end
       end
