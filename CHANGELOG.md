@@ -1,4 +1,4 @@
-## master
+## 0.4.19 / 2013-12-26
 
 * [bugfix] `shelly delete` fixed remove git remote when deleting cloud
 * [improvement] `shelly check` makes sure Ruby defined in Gemfile is supported
