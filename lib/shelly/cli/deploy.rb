@@ -55,6 +55,9 @@ module Shelly
           if content["before_restart"]
             say("Before restart hook", :green); say(content["before_restart"])
           end
+          if content["on_restart"]
+            say("On restart hook", :green); say(content["on_restart"])
+          end
           if content["delayed_job"]
             say("Starting delayed job", :green); say(content["delayed_job"])
           end

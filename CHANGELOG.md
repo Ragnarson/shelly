@@ -1,3 +1,7 @@
+## master
+
+* [improvement] `shelly deploy show` will show output of the on_restart hook
+
 ## 0.4.19 / 2013-12-26
 
 * [bugfix] `shelly delete` fixed remove git remote when deleting cloud

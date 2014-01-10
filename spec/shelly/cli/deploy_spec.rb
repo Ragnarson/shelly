@@ -107,6 +107,8 @@ describe Shelly::CLI::Deploy do
       $stdout.should_receive(:puts).with("before symlink hook")
       $stdout.should_receive(:puts).with(green "Before restart hook")
       $stdout.should_receive(:puts).with("before restart hook")
+      $stdout.should_receive(:puts).with(green "On restart hook")
+      $stdout.should_receive(:puts).with("on restart hook")
       $stdout.should_receive(:puts).with(green "Starting delayed job")
       $stdout.should_receive(:puts).with("delayed jobs")
       $stdout.should_receive(:puts).with(green "Starting sidekiq")
@@ -132,7 +134,8 @@ describe Shelly::CLI::Deploy do
         "sidekiq" => "sidekiq workers", "db_migrate" => "rake db:migrate",
         "after_restart" => "after restart hook", "before_restart" => "before restart hook",
         "before_symlink" => "before symlink hook", "before_migrate" => "before migrate hook",
-        "after_successful_deploy_hook" => "after successful deploy hook"
+        "after_successful_deploy_hook" => "after successful deploy hook",
+        "on_restart" => "on restart hook"
       }
     end
   end
