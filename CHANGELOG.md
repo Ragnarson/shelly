@@ -1,4 +1,4 @@
-## master
+## 0.4.20 / 2014-01-14
 
 * [improvement] add 2.1.0 and rbx to supported ruby versions
 * [improvement] `shelly deploy show` will show output of the on_restart hook
