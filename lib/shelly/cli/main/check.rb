@@ -29,7 +29,7 @@ module Shelly
 
         if structure.gemfile_ruby_version?
           if structure.gemfile_engine == 'ruby'
-            print_check(!['1.8.7', '2.1.0'].include?(structure.gemfile_ruby_version),
+            print_check(!['1.8.7'].include?(structure.gemfile_ruby_version),
               "#{structure.gemfile_engine} #{structure.gemfile_ruby_version} is supported",
               "#{structure.gemfile_engine} #{structure.gemfile_ruby_version} is currently unsupported\n    See more at https://shellycloud.com/documentation/requirements#ruby_versions",
               :show_fulfilled => verbose)
@@ -41,7 +41,7 @@ module Shelly
               :show_fulfilled => verbose)
           end
 
-          supported_jruby = '1.7.8'
+          supported_jruby = '1.7.10'
           if structure.gemfile_engine == 'jruby'
             print_check(!(structure.gemfile_ruby_version == '1.8.7' ||
                 structure.gemfile_engine_version != supported_jruby),
@@ -50,8 +50,8 @@ module Shelly
               :show_fulfilled => verbose)
           end
 
-          # other platforms: rbx, mingw, mswin show instant error
-          unless ['jruby', 'ruby'].include?(structure.gemfile_engine)
+          # other platforms: mingw, mswin show instant error
+          unless ['jruby', 'ruby', 'rbx'].include?(structure.gemfile_engine)
             print_check(false, "",
               "Your ruby engine: #{structure.gemfile_engine} is currently unsupported\n    See more at https://shellycloud.com/documentation/requirements#ruby_versions",
               :show_fulfilled => verbose)

@@ -1658,9 +1658,9 @@ Wait until cloud is in 'turned off' state and try again.")
         context "supported version" do
           it "should show checked message" do
             Bundler::Definition.stub_chain(:build, :ruby_version).
-              and_return(mock(:engine => 'jruby', :version => '1.9.3', :engine_version => '1.7.8'))
+              and_return(mock(:engine => 'jruby', :version => '1.9.3', :engine_version => '1.7.10'))
 
-            $stdout.should_receive(:puts).with("  #{green("✓")} jruby 1.7.8 (1.9 mode) is supported")
+            $stdout.should_receive(:puts).with("  #{green("✓")} jruby 1.7.10 (1.9 mode) is supported")
             invoke(@main, :check)
           end
         end
@@ -1668,9 +1668,9 @@ Wait until cloud is in 'turned off' state and try again.")
         context "unsupported version" do
           it "should show error message - ruby version" do
             Bundler::Definition.stub_chain(:build, :ruby_version).
-              and_return(mock(:engine => 'jruby', :version => '1.8.7', :engine_version => '1.7.8'))
+              and_return(mock(:engine => 'jruby', :version => '1.8.7', :engine_version => '1.7.10'))
 
-            $stdout.should_receive(:puts).with("  #{red("✗")} Only jruby 1.7.8 (1.9 mode) is currently supported\n    See more at https://shellycloud.com/documentation/requirements#ruby_versions")
+            $stdout.should_receive(:puts).with("  #{red("✗")} Only jruby 1.7.10 (1.9 mode) is currently supported\n    See more at https://shellycloud.com/documentation/requirements#ruby_versions")
             invoke(@main, :check)
           end
 
@@ -1678,7 +1678,7 @@ Wait until cloud is in 'turned off' state and try again.")
             Bundler::Definition.stub_chain(:build, :ruby_version).
               and_return(mock(:engine => 'jruby', :version => '1.9.3', :engine_version => '1.7.3'))
 
-            $stdout.should_receive(:puts).with("  #{red("✗")} Only jruby 1.7.8 (1.9 mode) is currently supported\n    See more at https://shellycloud.com/documentation/requirements#ruby_versions")
+            $stdout.should_receive(:puts).with("  #{red("✗")} Only jruby 1.7.10 (1.9 mode) is currently supported\n    See more at https://shellycloud.com/documentation/requirements#ruby_versions")
             invoke(@main, :check)
           end
         end
@@ -1697,9 +1697,9 @@ Wait until cloud is in 'turned off' state and try again.")
       context "other engines" do
         it "should show unsupported error message" do
           Bundler::Definition.stub_chain(:build, :ruby_version).
-            and_return(mock(:engine => 'rbx', :version => '1.9.2'))
+            and_return(mock(:engine => 'mswin', :version => '1.9.2'))
 
-          $stdout.should_receive(:puts).with("  #{red("✗")} Your ruby engine: rbx is currently unsupported\n    See more at https://shellycloud.com/documentation/requirements#ruby_versions")
+          $stdout.should_receive(:puts).with("  #{red("✗")} Your ruby engine: mswin is currently unsupported\n    See more at https://shellycloud.com/documentation/requirements#ruby_versions")
           invoke(@main, :check)
         end
       end
