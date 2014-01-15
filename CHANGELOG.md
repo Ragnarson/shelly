@@ -1,3 +1,8 @@
+## master
+
+* [improvement] destination path when uploading files to Shelly Cloud
+  `shelly files upload source destination`
+
 ## 0.4.20 / 2014-01-14
 
 * [improvement] add 2.1.0 and rbx to supported ruby versions

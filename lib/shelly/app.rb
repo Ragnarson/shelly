@@ -299,9 +299,9 @@ module Shelly
       ssh(:command => "ls -l #{persistent_disk}/#{path}")
     end
 
-    def upload(source)
+    def upload(source, destination)
       tunnel_connection.tap do |conn|
-        rsync(source, "#{conn['host']}:#{persistent_disk}", conn)
+        rsync(source, "#{conn['host']}:#{persistent_disk}/#{destination}", conn, "--relative")
       end
     end
 
@@ -452,8 +452,8 @@ module Shelly
       "-o StrictHostKeyChecking=no -p #{conn['port']} -l #{conn['user']}"
     end
 
-    def rsync(source, destination, conn)
-      system "rsync -avz -e 'ssh #{ssh_options(conn)}' --progress #{source} #{destination}"
+    def rsync(source, destination, conn, options = "")
+      system "rsync --archive --verbose --compress #{options} -e 'ssh #{ssh_options(conn)}' --progress #{source} #{destination}"
     end
   end
 end

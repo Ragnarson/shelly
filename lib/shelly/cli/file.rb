@@ -20,10 +20,10 @@ module Shelly
         say_error "Cloud #{app} wasn't deployed properly. Cannot list files."
       end
 
-      desc "upload PATH", "Upload files to persistent data storage"
-      def upload(path)
-        app = multiple_clouds(options[:cloud], "file upload #{path}")
-        app.upload(path)
+      desc "upload SOURCE_PATH [DEST_PATH]", "Upload files to persistent data storage"
+      def upload(source, destination = ".")
+        app = multiple_clouds(options[:cloud], "file upload #{source} #{destination}")
+        app.upload(source, destination)
       rescue Client::NotFoundException => e
         say_error e["message"]
       rescue Client::ConflictException

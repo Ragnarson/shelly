@@ -60,7 +60,7 @@ describe Shelly::CLI::File do
     it "should upload files" do
       expected = {"host" => "console.example.com", "port" => "40010", "user" => "foo"}
       @client.stub(:tunnel).and_return(expected)
-      @app.should_receive(:upload).with("some/path")
+      @app.should_receive(:upload).with("some/path", ".")
       invoke(@cli_files, :upload, "some/path")
     end
 
