@@ -20,7 +20,7 @@ Gem::Specification.new do |s|
     s.add_development_dependency "ruby_gntp"
     s.add_development_dependency "rb-fsevent"
   end
-  s.add_development_dependency "fakefs"
+  s.add_development_dependency "fakefs", "~> 0.4.3"
   s.add_development_dependency "fakeweb"
   s.add_runtime_dependency "wijet-thor", "~> 0.14.10"
   s.add_runtime_dependency "rest-client"
