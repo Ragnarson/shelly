@@ -1,4 +1,4 @@
-## master
+## 0.4.21 / 2014-01-15
 
 * [improvement] destination path when uploading files to Shelly Cloud
   `shelly files upload source destination`
