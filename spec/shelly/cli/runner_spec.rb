@@ -56,13 +56,13 @@ describe Shelly::CLI::Runner do
       Shelly::CLI::Main.stub(:start).and_raise(Shelly::Client::GemVersionException.new(
         {"required_version" => "0.0.48"}))
       runner = Shelly::CLI::Runner.new(%w(login))
+      runner.should_receive(:system).with("gem install shelly")
       $stdout.should_receive(:puts).with("Required shelly gem version: 0.0.48")
       $stdout.should_receive(:puts).with("Your version: #{Shelly::VERSION}")
-      $stdout.should_receive(:puts).with("Update shelly gem with `gem install shelly`")
-      $stdout.should_receive(:puts).with("or `bundle update shelly` when using bundler")
-      lambda {
+      $stdout.should_receive(:print).with("Update shelly gem? ")
+      fake_stdin(["yes"]) do
         runner.start
-      }.should raise_error(SystemExit)
+      end
     end
 
     describe "API exception handling" do

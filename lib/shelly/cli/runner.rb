@@ -28,8 +28,11 @@ module Shelly
         raise if debug?
         say "Required shelly gem version: #{e.body["required_version"]}"
         say "Your version: #{VERSION}"
-        say "Update shelly gem with `gem install shelly`"
-        say_error "or `bundle update shelly` when using bundler"
+        if yes? "Update shelly gem?"
+          system "gem install shelly"
+        else
+          say_error "Update shelly gem with `gem install shelly`"
+        end
       rescue Interrupt
         raise if debug?
         say_new_line
