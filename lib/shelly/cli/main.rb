@@ -54,15 +54,15 @@ module Shelly
         exit 1
       end
 
-      desc "login [EMAIL]", "Log into Shelly Cloud"
-      def login(email = nil)
+      desc "login [EMAIL] [PATH_TO_KEY]", "Log into Shelly Cloud"
+      def login(email = nil, given_key_path = nil)
         user = Shelly::User.new
         say "Your public SSH key will be uploaded to Shelly Cloud after login."
         raise Errno::ENOENT, user.ssh_key.path unless user.ssh_key.exists?
         email ||= ask_for_email
         password = ask_for_password(:with_confirmation => false)
         user.login(email, password)
-        upload_ssh_key
+        upload_ssh_key(given_key_path)
         say "Login successful", :green
         list
       rescue Client::ValidationException => e
@@ -465,17 +465,18 @@ Wait until cloud is in 'turned off' state and try again.}
           say_new_line
         end
 
-        def upload_ssh_key
+        def upload_ssh_key(given_key_path = nil)
           user = Shelly::User.new
-          if user.ssh_key.exists?
-            if user.ssh_key.uploaded?
-              say "Your SSH key from #{user.ssh_key.path} is already uploaded"
+          ssh_key = [Shelly::SshKey.new(given_key_path || ''), user.ssh_key].find{|k| k.exists?}
+          if ssh_key.exists?
+            if ssh_key.uploaded?
+              say "Your SSH key from #{ssh_key.path} is already uploaded"
             else
-              say "Uploading your public SSH key from #{user.ssh_key.path}"
-              user.ssh_key.upload
+              say "Uploading your public SSH key from #{ssh_key.path}"
+              ssh_key.upload
             end
           else
-            say_error "No such file or directory - #{user.ssh_key_path}", :with_exit => false
+            say_error "No such file or directory - #{ssh_key_path}", :with_exit => false
             say_error "Use ssh-keygen to generate ssh key pair, after that use: `shelly login`", :with_exit => false
           end
         rescue Client::ValidationException => e
