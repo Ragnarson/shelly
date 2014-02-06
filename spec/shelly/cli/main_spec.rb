@@ -154,120 +154,80 @@ describe Shelly::CLI::Main do
     end
   end
 
-  describe "#login" do
-    context "with default keys in place" do
-      let(:key_path) { File.expand_path("~/.ssh/id_rsa.pub") }
+  shared_examples "login" do
+    before do
+      Shelly::SshKey.any_instance.stub(:upload => nil, :uploaded? => false)
+      FileUtils.mkdir_p("~/.ssh")
+      File.open(key_path, "w") { |f| f << "ssh-rsa AAAAB3NzaC1" }
+      @main.options = main_options
+      @client.stub(:apps).and_return([
+          {"code_name" => "abc", "state" => "running",
+            "state_description" => "running"},
+          {"code_name" => "fooo", "state" => "no_code",
+            "state_description" => "turned off (no code pushed)"},])
+    end
 
+    context "on successful login" do
       before do
-        user.ssh_key.stub(:upload => nil, :uploaded? => false)
-        FileUtils.mkdir_p("~/.ssh")
-        File.open(key_path, "w") { |f| f << "ssh-rsa AAAAB3NzaC1" }
-        @client.stub(:apps).and_return([
-            {"code_name" => "abc", "state" => "running",
-              "state_description" => "running"},
-            {"code_name" => "fooo", "state" => "no_code",
-              "state_description" => "turned off (no code pushed)"},])
+        user.stub(:login).with("megan@example.com", "secret") { true }
       end
 
-      context "on successful login" do
-        before do
-          user.stub(:login).with("megan@example.com", "secret") { true }
+      it "should display message about successful login" do
+        $stdout.should_receive(:puts).with(green "Login successful")
+        fake_stdin(["megan@example.com", "secret"]) do
+          invoke(@main, :login)
         end
+      end
 
-        it "should display message about successful login" do
-          $stdout.should_receive(:puts).with(green "Login successful")
+      it "should accept email as parameter" do
+        $stdout.should_receive(:puts).with(green "Login successful")
+        fake_stdin(["secret"]) do
+          invoke(@main, :login, "megan@example.com")
+        end
+      end
+
+      it "should accept given path to specific key as parameter" do
+        $stdout.should_receive(:puts).with(green "Login successful")
+        fake_stdin(["secret"]) do
+          invoke(@main, :login, "megan@example.com")
+        end
+      end
+
+      it "should upload user's public SSH key" do
+        Shelly::SshKey.any_instance.should_receive(:upload)
+        $stdout.should_receive(:puts).with("Uploading your public SSH key from #{key_path}")
+        fake_stdin(["megan@example.com", "secret"]) do
+          invoke(@main, :login)
+        end
+      end
+
+      it "should display list of applications to which user has access" do
+        $stdout.should_receive(:puts).with("\e[32mYou have following clouds available:\e[0m")
+        $stdout.should_receive(:puts).with(/  abc\s+\|  running/)
+        $stdout.should_receive(:puts).with(/  fooo\s+\|  turned off \(no code pushed\)/)
+        fake_stdin(["megan@example.com", "secret"]) do
+          invoke(@main, :login)
+        end
+      end
+
+      context "SSH key already uploaded" do
+        it "should display message to user" do
+          Shelly::SshKey.any_instance.stub(:uploaded? => true)
+          $stdout.should_receive(:puts).with("Your SSH key from #{key_path} is already uploaded")
           fake_stdin(["megan@example.com", "secret"]) do
             invoke(@main, :login)
           end
         end
-
-        it "should accept email as parameter" do
-          $stdout.should_receive(:puts).with(green "Login successful")
-          fake_stdin(["secret"]) do
-            invoke(@main, :login, "megan@example.com")
-          end
-        end
-
-        it "should upload user's public SSH key" do
-          user.ssh_key.should_receive(:upload)
-          $stdout.should_receive(:puts).with("Uploading your public SSH key from #{key_path}")
-          fake_stdin(["megan@example.com", "secret"]) do
-            invoke(@main, :login)
-          end
-        end
-
-        it "should display list of applications to which user has access" do
-          $stdout.should_receive(:puts).with("\e[32mYou have following clouds available:\e[0m")
-          $stdout.should_receive(:puts).with(/  abc\s+\|  running/)
-          $stdout.should_receive(:puts).with(/  fooo\s+\|  turned off \(no code pushed\)/)
-          fake_stdin(["megan@example.com", "secret"]) do
-            invoke(@main, :login)
-          end
-        end
-
-        context "SSH key already uploaded" do
-          it "should display message to user" do
-            user.ssh_key.stub(:uploaded? => true)
-            $stdout.should_receive(:puts).with("Your SSH key from #{key_path} is already uploaded")
-            fake_stdin(["megan@example.com", "secret"]) do
-              invoke(@main, :login)
-            end
-          end
-        end
-
-        context "SSH key taken by other user" do
-          it "should logout user" do
-            body = {"message" => "Validation Failed",
-              "errors" => [["fingerprint", "already exists. This SSH key is already in use"]]}
-            ex = Shelly::Client::ValidationException.new(body)
-            user.ssh_key.stub(:upload).and_raise(ex)
-            user.should_receive(:logout)
-            $stdout.should_receive(:puts).with(red "Fingerprint already exists. This SSH key is already in use")
-            lambda {
-              fake_stdin(["megan@example.com", "secret"]) do
-                invoke(@main, :login)
-              end
-            }.should raise_error(SystemExit)
-          end
-        end
       end
 
-      context "when local ssh key doesn't exists" do
-        it "should display error message and return exit with 1" do
-          FileUtils.rm_rf(key_path)
-          File.exists?(key_path).should be_false
-          $stdout.should_receive(:puts).with("\e[31mNo such file or directory - " + key_path + "\e[0m")
-          $stdout.should_receive(:puts).with("\e[31mUse ssh-keygen to generate ssh key pair\e[0m")
-          lambda {
-            invoke(@main, :login)
-          }.should raise_error(SystemExit)
-        end
-      end
-
-      context "on unauthorized user" do
-        it "should exit with 1 and display error message" do
-          response = {"message" => "Unauthorized", "error" => "Wrong email or password",
-            "url" => "https://admin.winniecloud.com/users/password/new"}
-          exception = Shelly::Client::UnauthorizedException.new(response)
-          @client.stub(:authorize_with_email_and_password).and_raise(exception)
-          $stdout.should_receive(:puts).with("\e[31mWrong email or password\e[0m")
-          $stdout.should_receive(:puts).with("\e[31mYou can reset password by using link:\e[0m")
-          $stdout.should_receive(:puts).with("\e[31mhttps://admin.winniecloud.com/users/password/new\e[0m")
-          lambda {
-            fake_stdin(["megan@example.com", "secret"]) do
-              invoke(@main, :login)
-            end
-          }.should raise_error(SystemExit)
-        end
-      end
-
-      context "on unconfirmed user" do
-        it "should exit with 1 and display error message" do
-          response = {"message" => "Unauthorized",
-            "error" => "Unconfirmed account"}
-          exception = Shelly::Client::UnauthorizedException.new(response)
-          @client.stub(:authorize_with_email_and_password).and_raise(exception)
-          $stdout.should_receive(:puts).with(red "Unconfirmed account")
+      context "SSH key taken by other user" do
+        it "should logout user" do
+          body = {"message" => "Validation Failed",
+            "errors" => [["fingerprint", "already exists. This SSH key is already in use"]]}
+          ex = Shelly::Client::ValidationException.new(body)
+          Shelly::SshKey.any_instance.stub(:upload).and_raise(ex)
+          user.should_receive(:logout)
+          $stdout.should_receive(:puts).with(red "Fingerprint already exists. This SSH key is already in use")
           lambda {
             fake_stdin(["megan@example.com", "secret"]) do
               invoke(@main, :login)
@@ -277,138 +237,64 @@ describe Shelly::CLI::Main do
       end
     end
 
-    context "with given path to specific key", wip: true do
+    context "when local ssh key doesn't exists" do
+      it "should display error message and return exit with 1" do
+        FileUtils.rm_rf(key_path)
+        File.exists?(key_path).should be_false
+        $stdout.should_receive(:puts).with("\e[31mNo such file or directory - " + key_path + "\e[0m")
+        $stdout.should_receive(:puts).with("\e[31mUse ssh-keygen to generate ssh key pair\e[0m")
+        lambda {
+          invoke(@main, :login)
+        }.should raise_error(SystemExit)
+      end
+    end
+
+    context "on unauthorized user" do
+      it "should exit with 1 and display error message" do
+        response = {"message" => "Unauthorized", "error" => "Wrong email or password",
+          "url" => "https://admin.winniecloud.com/users/password/new"}
+        exception = Shelly::Client::UnauthorizedException.new(response)
+        @client.stub(:authorize_with_email_and_password).and_raise(exception)
+        $stdout.should_receive(:puts).with("\e[31mWrong email or password\e[0m")
+        $stdout.should_receive(:puts).with("\e[31mYou can reset password by using link:\e[0m")
+        $stdout.should_receive(:puts).with("\e[31mhttps://admin.winniecloud.com/users/password/new\e[0m")
+        lambda {
+          fake_stdin(["megan@example.com", "secret"]) do
+            invoke(@main, :login)
+          end
+        }.should raise_error(SystemExit)
+      end
+    end
+
+    context "on unconfirmed user" do
+      it "should exit with 1 and display error message" do
+        response = {"message" => "Unauthorized",
+          "error" => "Unconfirmed account"}
+        exception = Shelly::Client::UnauthorizedException.new(response)
+        @client.stub(:authorize_with_email_and_password).and_raise(exception)
+        $stdout.should_receive(:puts).with(red "Unconfirmed account")
+        lambda {
+          fake_stdin(["megan@example.com", "secret"]) do
+            invoke(@main, :login)
+          end
+        }.should raise_error(SystemExit)
+      end
+    end
+  end
+
+  describe "#login" do
+    context "with default keys in place" do
+      let(:key_path) { File.expand_path("~/.ssh/id_rsa.pub") }
+      let(:main_options) { {} }
+
+      it_behaves_like "login"
+    end
+
+    context "with given path to specific key" do
       let(:key_path) { File.expand_path("~/.ssh/specific.pub") }
+      let(:main_options) { {:key => "~/.ssh/specific.pub"} }
 
-      before do
-        # user.ssh_key.stub(:upload => nil, :uploaded? => false)
-        Shelly::SshKey.any_instance.stub(:upload => nil, :uploaded? => false)
-        FileUtils.mkdir_p("~/.ssh")
-        File.open(key_path, "w") { |f| f << "ssh-rsa AAAAB3NzaC1" }
-        @main.options = {:key => "~/.ssh/specific.pub"}
-        @client.stub(:apps).and_return([
-            {"code_name" => "abc", "state" => "running",
-              "state_description" => "running"},
-            {"code_name" => "fooo", "state" => "no_code",
-              "state_description" => "turned off (no code pushed)"},])
-      end
-
-      context "on successful login" do
-        before do
-          user.stub(:login).with("megan@example.com", "secret") { true }
-        end
-
-        it "should display message about successful login" do
-          $stdout.should_receive(:puts).with(green "Login successful")
-          fake_stdin(["megan@example.com", "secret"]) do
-            invoke(@main, :login)
-          end
-        end
-
-        it "should accept email as parameter" do
-          $stdout.should_receive(:puts).with(green "Login successful")
-          fake_stdin(["secret"]) do
-            invoke(@main, :login, "megan@example.com")
-          end
-        end
-
-        it "should accept given path to specific key as parameter" do
-          $stdout.should_receive(:puts).with(green "Login successful")
-          fake_stdin(["secret"]) do
-            invoke(@main, :login, "megan@example.com")
-          end
-        end
-
-        it "should upload user's public SSH key" do
-          # user.ssh_key.should_receive(:upload)
-          Shelly::SshKey.any_instance.should_receive(:upload)
-          $stdout.should_receive(:puts).with("Uploading your public SSH key from #{key_path}")
-          fake_stdin(["megan@example.com", "secret"]) do
-            invoke(@main, :login)
-          end
-        end
-
-        it "should display list of applications to which user has access" do
-          $stdout.should_receive(:puts).with("\e[32mYou have following clouds available:\e[0m")
-          $stdout.should_receive(:puts).with(/  abc\s+\|  running/)
-          $stdout.should_receive(:puts).with(/  fooo\s+\|  turned off \(no code pushed\)/)
-          fake_stdin(["megan@example.com", "secret"]) do
-            invoke(@main, :login)
-          end
-        end
-
-        context "SSH key already uploaded" do
-          it "should display message to user" do
-            # user.ssh_key.stub(:uploaded? => true)
-            Shelly::SshKey.any_instance.stub(:uploaded? => true)
-            $stdout.should_receive(:puts).with("Your SSH key from #{key_path} is already uploaded")
-            fake_stdin(["megan@example.com", "secret"]) do
-              invoke(@main, :login)
-            end
-          end
-        end
-
-        context "SSH key taken by other user" do
-          it "should logout user" do
-            body = {"message" => "Validation Failed",
-              "errors" => [["fingerprint", "already exists. This SSH key is already in use"]]}
-            ex = Shelly::Client::ValidationException.new(body)
-            # user.ssh_key.stub(:upload).and_raise(ex)
-            Shelly::SshKey.any_instance.stub(:upload).and_raise(ex)
-            user.should_receive(:logout)
-            $stdout.should_receive(:puts).with(red "Fingerprint already exists. This SSH key is already in use")
-            lambda {
-              fake_stdin(["megan@example.com", "secret"]) do
-                invoke(@main, :login)
-              end
-            }.should raise_error(SystemExit)
-          end
-        end
-      end
-
-      context "when local ssh key doesn't exists" do
-        it "should display error message and return exit with 1" do
-          FileUtils.rm_rf(key_path)
-          File.exists?(key_path).should be_false
-          $stdout.should_receive(:puts).with("\e[31mNo such file or directory - " + key_path + "\e[0m")
-          $stdout.should_receive(:puts).with("\e[31mUse ssh-keygen to generate ssh key pair\e[0m")
-          lambda {
-            invoke(@main, :login)
-          }.should raise_error(SystemExit)
-        end
-      end
-
-      context "on unauthorized user" do
-        it "should exit with 1 and display error message" do
-          response = {"message" => "Unauthorized", "error" => "Wrong email or password",
-            "url" => "https://admin.winniecloud.com/users/password/new"}
-          exception = Shelly::Client::UnauthorizedException.new(response)
-          @client.stub(:authorize_with_email_and_password).and_raise(exception)
-          $stdout.should_receive(:puts).with("\e[31mWrong email or password\e[0m")
-          $stdout.should_receive(:puts).with("\e[31mYou can reset password by using link:\e[0m")
-          $stdout.should_receive(:puts).with("\e[31mhttps://admin.winniecloud.com/users/password/new\e[0m")
-          lambda {
-            fake_stdin(["megan@example.com", "secret"]) do
-              invoke(@main, :login)
-            end
-          }.should raise_error(SystemExit)
-        end
-      end
-
-      context "on unconfirmed user" do
-        it "should exit with 1 and display error message" do
-          response = {"message" => "Unauthorized",
-            "error" => "Unconfirmed account"}
-          exception = Shelly::Client::UnauthorizedException.new(response)
-          @client.stub(:authorize_with_email_and_password).and_raise(exception)
-          $stdout.should_receive(:puts).with(red "Unconfirmed account")
-          lambda {
-            fake_stdin(["megan@example.com", "secret"]) do
-              invoke(@main, :login)
-            end
-          }.should raise_error(SystemExit)
-        end
-      end
+      it_behaves_like "login"
     end
   end
 
