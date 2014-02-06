@@ -54,15 +54,23 @@ module Shelly
         exit 1
       end
 
-      desc "login [EMAIL] [PATH_TO_KEY]", "Log into Shelly Cloud"
-      def login(email = nil, given_key_path = nil)
+      desc "login [EMAIL]", "Log into Shelly Cloud"
+      method_option :key, :alias => :k, :desc => "Path to specific SSH key", :default => nil
+      def login(email = nil)
         user = Shelly::User.new
-        say "Your public SSH key will be uploaded to Shelly Cloud after login."
-        raise Errno::ENOENT, user.ssh_key.path unless user.ssh_key.exists?
+
+        if options[:key]
+          given_key = Shelly::SshKey.new(options[:key])
+          say "Your given SSH key (#{given_key.path}) will be uploaded to Shelly Cloud after login."
+          raise Errno::ENOENT, given_key.path unless given_key.exists?
+        else
+          say "Your public SSH key will be uploaded to Shelly Cloud after login."
+          raise Errno::ENOENT, user.ssh_key.path unless user.ssh_key.exists?
+        end
         email ||= ask_for_email
         password = ask_for_password(:with_confirmation => false)
         user.login(email, password)
-        upload_ssh_key(given_key_path)
+        upload_ssh_key(options[:key])
         say "Login successful", :green
         list
       rescue Client::ValidationException => e
@@ -467,7 +475,8 @@ Wait until cloud is in 'turned off' state and try again.}
 
         def upload_ssh_key(given_key_path = nil)
           user = Shelly::User.new
-          ssh_key = [Shelly::SshKey.new(given_key_path || ''), user.ssh_key].find{|k| k.exists?}
+          ssh_key = given_key_path ? Shelly::SshKey.new(given_key_path) : user.ssh_key
+
           if ssh_key.exists?
             if ssh_key.uploaded?
               say "Your SSH key from #{ssh_key.path} is already uploaded"
