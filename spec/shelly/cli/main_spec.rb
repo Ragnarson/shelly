@@ -154,13 +154,12 @@ describe Shelly::CLI::Main do
     end
   end
 
-  describe "#login" do
-    let(:key_path) { File.expand_path("~/.ssh/id_rsa.pub") }
-
+  shared_examples "login" do
     before do
-      user.ssh_key.stub(:upload => nil, :uploaded? => false)
+      Shelly::SshKey.any_instance.stub(:upload => nil, :uploaded? => false)
       FileUtils.mkdir_p("~/.ssh")
       File.open(key_path, "w") { |f| f << "ssh-rsa AAAAB3NzaC1" }
+      @main.options = main_options
       @client.stub(:apps).and_return([
           {"code_name" => "abc", "state" => "running",
             "state_description" => "running"},
@@ -187,8 +186,15 @@ describe Shelly::CLI::Main do
         end
       end
 
+      it "should accept given path to specific key as parameter" do
+        $stdout.should_receive(:puts).with(green "Login successful")
+        fake_stdin(["secret"]) do
+          invoke(@main, :login, "megan@example.com")
+        end
+      end
+
       it "should upload user's public SSH key" do
-        user.ssh_key.should_receive(:upload)
+        Shelly::SshKey.any_instance.should_receive(:upload)
         $stdout.should_receive(:puts).with("Uploading your public SSH key from #{key_path}")
         fake_stdin(["megan@example.com", "secret"]) do
           invoke(@main, :login)
@@ -206,7 +212,7 @@ describe Shelly::CLI::Main do
 
       context "SSH key already uploaded" do
         it "should display message to user" do
-          user.ssh_key.stub(:uploaded? => true)
+          Shelly::SshKey.any_instance.stub(:uploaded? => true)
           $stdout.should_receive(:puts).with("Your SSH key from #{key_path} is already uploaded")
           fake_stdin(["megan@example.com", "secret"]) do
             invoke(@main, :login)
@@ -219,7 +225,7 @@ describe Shelly::CLI::Main do
           body = {"message" => "Validation Failed",
             "errors" => [["fingerprint", "already exists. This SSH key is already in use"]]}
           ex = Shelly::Client::ValidationException.new(body)
-          user.ssh_key.stub(:upload).and_raise(ex)
+          Shelly::SshKey.any_instance.stub(:upload).and_raise(ex)
           user.should_receive(:logout)
           $stdout.should_receive(:puts).with(red "Fingerprint already exists. This SSH key is already in use")
           lambda {
@@ -273,6 +279,22 @@ describe Shelly::CLI::Main do
           end
         }.should raise_error(SystemExit)
       end
+    end
+  end
+
+  describe "#login" do
+    context "with default keys in place" do
+      let(:key_path) { File.expand_path("~/.ssh/id_rsa.pub") }
+      let(:main_options) { {} }
+
+      it_behaves_like "login"
+    end
+
+    context "with given path to specific key" do
+      let(:key_path) { File.expand_path("~/.ssh/specific.pub") }
+      let(:main_options) { {:key => "~/.ssh/specific.pub"} }
+
+      it_behaves_like "login"
     end
   end
 
