@@ -1,6 +1,8 @@
-## master
+## 0.4.22 / 2014-02-07
 
 * [improvement] Update shelly after confirmation
+* [improvement] User can specify SSH public key to be
+  uploaded with `shelly login --key PATH` (Done by https://github.com/we5)
 
 ## 0.4.21 / 2014-01-15
 
