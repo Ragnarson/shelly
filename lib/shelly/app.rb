@@ -440,12 +440,12 @@ module Shelly
 
     def ssh(options = {})
       conn = tunnel_connection("ssh", options[:server])
-      system "ssh #{ssh_options(conn)} -t #{conn['host']} #{options[:command]}"
+      system "ssh #{ssh_options(conn)} -t -t #{conn['host']} #{options[:command]}"
     end
 
     def ssh_with_db_server(options = {})
       conn = configured_db_server_connection(options[:server])
-      system "ssh #{ssh_options(conn)} -t #{conn['host']} #{options[:command]}"
+      system "ssh #{ssh_options(conn)} -t -t #{conn['host']} #{options[:command]}"
     end
 
     def ssh_options(conn)
