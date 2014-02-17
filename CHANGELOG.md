@@ -1,3 +1,8 @@
+## 0.4.23.pre / 2014-02-17
+
+* [improvement] Force pseudo-tty allocation when connection via ssh - fixes ssh
+  connection on jruby
+
 ## 0.4.22 / 2014-02-07
 
 * [improvement] Update shelly after confirmation
