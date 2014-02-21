@@ -30,6 +30,10 @@ class Shelly::Client
     get("/apps/#{code_name}/statistics")
   end
 
+  def usage(code_name)
+    get("/apps/#{code_name}/usage")
+  end
+
   def command(cloud, body, type)
     post("/apps/#{cloud}/command", {:body => body, :type => type})
   end
