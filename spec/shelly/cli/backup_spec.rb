@@ -158,6 +158,17 @@ describe Shelly::CLI::Backup do
       hooks(@backup, :create).should include(:logged_in?)
     end
 
+    context "for aliases" do
+      it "should respond to 'new' alias" do
+        @app.should_receive(:request_backup)
+        invoke(@backup, :new)
+      end
+
+      it "should ensure user has logged in for 'new' alias" do
+        hooks(@backup, :new).should include(:logged_in?)
+      end
+    end
+
     # multiple_clouds is tested in main_spec.rb in describe "#start" block
     it "should ensure multiple_clouds check" do
       @app.stub(:request_backup)
