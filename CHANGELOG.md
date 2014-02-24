@@ -1,3 +1,8 @@
+## master
+
+* [improvement] Show recent information about filesystem, database and traffic
+  usage in `shelly info` output
+
 ## 0.4.23 / 2014-02-17
 
 * [improvement] Force pseudo-tty allocation when connection via ssh - fixes ssh

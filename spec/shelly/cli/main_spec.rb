@@ -974,7 +974,22 @@ Wait until cloud is in 'turned off' state and try again.")
                       "swap" => {"kilobyte" => "44332", "percent" => "2.8"},
                       "cpu" => {"wait" => "0.8", "system" => "0.0", "user" => "0.1"},
                       "load" => {"avg15" => "0.13", "avg05" => "0.15", "avg01" => "0.04"}}]
+      @usage = {
+        "filesystem" => {
+          "avg"     => "32 KiB",
+          "current" => "64 KiB"
+        },
+        "database" => {
+          "avg"     => "64 KiB",
+          "current" => "128 KiB"
+        },
+        "traffic" => {
+          "incoming"  => "32 KiB",
+          "outgoing"  => "64 KiB"
+        }
+      }
       @app.stub(:statistics).and_return(@statistics)
+      @app.stub(:usage).and_return(@usage)
     end
 
     it "should ensure user has logged in" do
@@ -997,6 +1012,16 @@ Wait until cloud is in 'turned off' state and try again.")
         $stdout.should_receive(:puts).with("  Deployed by: megan@example.com")
         $stdout.should_receive(:puts).with("  Repository URL: git@winniecloud.net:example-cloud")
         $stdout.should_receive(:puts).with("  Web server IP: 22.22.22.22")
+        $stdout.should_receive(:puts).with("  Usage:")
+        $stdout.should_receive(:puts).with("    Filesystem:")
+        $stdout.should_receive(:puts).with("      Average: 32 KiB")
+        $stdout.should_receive(:puts).with("      Current: 64 KiB")
+        $stdout.should_receive(:puts).with("    Database:")
+        $stdout.should_receive(:puts).with("      Average: 64 KiB")
+        $stdout.should_receive(:puts).with("      Current: 128 KiB")
+        $stdout.should_receive(:puts).with("    Traffic:")
+        $stdout.should_receive(:puts).with("      Incoming: 32 KiB")
+        $stdout.should_receive(:puts).with("      Outgoing: 64 KiB")
         $stdout.should_receive(:puts).with("  Statistics:")
         $stdout.should_receive(:puts).with("    app1:")
         $stdout.should_receive(:puts).with("      Load average: 1m: 0.04, 5m: 0.15, 15m: 0.13")
@@ -1019,6 +1044,16 @@ Wait until cloud is in 'turned off' state and try again.")
             $stdout.should_receive(:puts).with("  Deployed by: megan@example.com")
             $stdout.should_receive(:puts).with("  Repository URL: git@winniecloud.net:example-cloud")
             $stdout.should_receive(:puts).with("  Web server IP: 22.22.22.22")
+            $stdout.should_receive(:puts).with("  Usage:")
+            $stdout.should_receive(:puts).with("    Filesystem:")
+            $stdout.should_receive(:puts).with("      Average: 32 KiB")
+            $stdout.should_receive(:puts).with("      Current: 64 KiB")
+            $stdout.should_receive(:puts).with("    Database:")
+            $stdout.should_receive(:puts).with("      Average: 64 KiB")
+            $stdout.should_receive(:puts).with("      Current: 128 KiB")
+            $stdout.should_receive(:puts).with("    Traffic:")
+            $stdout.should_receive(:puts).with("      Incoming: 32 KiB")
+            $stdout.should_receive(:puts).with("      Outgoing: 64 KiB")
             $stdout.should_receive(:puts).with("  Statistics:")
             $stdout.should_receive(:puts).with("    app1:")
             $stdout.should_receive(:puts).with("      Load average: 1m: 0.04, 5m: 0.15, 15m: 0.13")
@@ -1041,6 +1076,16 @@ Wait until cloud is in 'turned off' state and try again.")
             $stdout.should_receive(:puts).with("  Deployed by: megan@example.com")
             $stdout.should_receive(:puts).with("  Repository URL: git@winniecloud.net:example-cloud")
             $stdout.should_receive(:puts).with("  Web server IP: 22.22.22.22")
+            $stdout.should_receive(:puts).with("  Usage:")
+            $stdout.should_receive(:puts).with("    Filesystem:")
+            $stdout.should_receive(:puts).with("      Average: 32 KiB")
+            $stdout.should_receive(:puts).with("      Current: 64 KiB")
+            $stdout.should_receive(:puts).with("    Database:")
+            $stdout.should_receive(:puts).with("      Average: 64 KiB")
+            $stdout.should_receive(:puts).with("      Current: 128 KiB")
+            $stdout.should_receive(:puts).with("    Traffic:")
+            $stdout.should_receive(:puts).with("      Incoming: 32 KiB")
+            $stdout.should_receive(:puts).with("      Outgoing: 64 KiB")
             $stdout.should_receive(:puts).with("  Statistics:")
             $stdout.should_receive(:puts).with("    app1:")
             $stdout.should_receive(:puts).with("      Load average: 1m: 0.04, 5m: 0.15, 15m: 0.13")
