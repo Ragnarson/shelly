@@ -5,6 +5,7 @@
 * [improvement] Add `add` alias for `shelly config create`
 * [improvement] Add `new` and `create` aliases for `shelly user add`
 * [improvement] Add `new` alias for `shelly backup create`
+* [improvement] Add `new` and `create` aliases for `shelly organization add`
 
 ## 0.4.24 / 2014-02-25
 
