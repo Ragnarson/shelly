@@ -117,6 +117,21 @@ describe Shelly::CLI::User do
       hooks(@cli_user, :add).should include(:logged_in?)
     end
 
+    context "for aliases" do
+      [:new, :create].each do |a|
+        it "should respond to '#{a}' alias" do
+          @client.should_receive(:send_invitation)
+          fake_stdin(["yes"]) do
+            invoke(@cli_user, a, "megan@example.com")
+          end
+        end
+
+        it "should ensure user has logged in for '#{a}' alias" do
+          hooks(@cli_user, a).should include(:logged_in?)
+        end
+      end
+    end
+
     context "on success" do
       before do
         @client.should_receive(:send_invitation).with("foo-org", "megan@example.com", true)

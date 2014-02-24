@@ -3,6 +3,7 @@
 * [bugfix] Print user-friendly message if user tries to open console on non
  application virtual server
 * [improvement] Add `add` alias for `shelly config create`
+* [improvement] Add `new` and `create` aliases for `shelly user add`
 
 ## 0.4.24 / 2014-02-25
 
