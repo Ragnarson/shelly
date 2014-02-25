@@ -1,3 +1,8 @@
+# master
+
+* [bugfix] Print user-friendly message if user tries to open console on non
+ application virtual server
+
 ## 0.4.24 / 2014-02-25
 
 * [improvement] Show recent information about filesystem, database and traffic

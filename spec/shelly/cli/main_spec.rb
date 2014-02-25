@@ -1543,7 +1543,7 @@ Wait until cloud is in 'turned off' state and try again.")
         ex = Shelly::Client::NotFoundException.new("resource" => "virtual_server")
         @client.stub(:tunnel).and_raise(ex)
         @main.options = {:server => "foobar"}
-        $stdout.should_receive(:puts).with(red "Virtual Server 'foobar' not found")
+        $stdout.should_receive(:puts).with(red "Virtual server 'foobar' not found or not configured for running console")
         lambda {
           invoke(@main, :console)
         }.should raise_error(SystemExit)

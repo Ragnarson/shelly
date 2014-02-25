@@ -360,7 +360,7 @@ Wait until cloud is in 'turned off' state and try again.}
         say_error "Cloud #{app} is not running. Cannot run console."
       rescue Client::NotFoundException => e
         raise unless e.resource == :virtual_server
-        say_error "Virtual Server '#{options[:server]}' not found"
+        say_error "Virtual server '#{options[:server]}' not found or not configured for running console"
       end
 
       # FIXME: move to helpers
