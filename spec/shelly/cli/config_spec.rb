@@ -90,8 +90,18 @@ describe Shelly::CLI::Config do
       hooks(@config, :create).should include(:logged_in?)
     end
 
-    it "should ensure user has logged in" do
-      hooks(@config, :new).should include(:logged_in?)
+    context "for aliases" do
+      [:add, :new].each do |a|
+        it "should respond to '#{a}' alias" do
+          @config.should_receive(:system).and_return(true)
+          @client.should_receive(:app_create_config)
+          invoke(@config, a, "path")
+        end
+
+        it "should ensure user has logged in for #{a}" do
+          hooks(@config, a).should include(:logged_in?)
+        end
+      end
     end
 
     # multiple_clouds is tested in main_spec.rb in describe "#start" block

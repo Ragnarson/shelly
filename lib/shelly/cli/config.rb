@@ -6,7 +6,7 @@ module Shelly
       namespace :config
       include Helpers
 
-      before_hook :logged_in?, :only => [:list, :show, :create, :new, :edit,
+      before_hook :logged_in?, :only => [:list, :show, :create, :new, :add, :edit,
         :update, :upload, :delete]
       class_option :cloud, :type => :string, :aliases => "-c",
         :desc => "Specify cloud"
@@ -46,6 +46,7 @@ module Shelly
         say_error "You can list available config files with `shelly config list --cloud #{app}`"
       end
 
+      map "add" => :create
       map "new" => :create
       desc "create PATH", "Create configuration file"
       def create(path)

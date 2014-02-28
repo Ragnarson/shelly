@@ -6,7 +6,7 @@ module Shelly
       namespace :organization
       include Helpers
 
-      before_hook :logged_in?, :only => [:list, :add]
+      before_hook :logged_in?, :only => [:list, :add, :create, :new]
 
       desc "list", "Lists organizations"
       def list
@@ -27,6 +27,8 @@ module Shelly
       method_option "redeem-code", :type => :string, :aliases => "-r",
         :desc => "Redeem code for free credits"
       desc "add", "Add a new organization"
+      map "create" => :add
+      map "new" => :add
       def add
         create_new_organization(options)
       rescue Client::ValidationException => e

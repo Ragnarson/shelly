@@ -8,7 +8,7 @@ module Shelly
       namespace :user
       include Helpers
 
-      before_hook :logged_in?, :only => [:list, :add, :delete]
+      before_hook :logged_in?, :only => [:list, :add, :new, :create, :delete]
 
       method_option :organization, :type => :string, :aliases => "-o", :desc => "Specify organization"
       desc "list", "List users with access to organizations"
@@ -38,6 +38,8 @@ module Shelly
 
       method_option :organization, :type => :string, :aliases => "-o", :desc => "Specify organization"
       desc "add [EMAIL]", "Add new developer to organization"
+      map "new" => :add
+      map "create" => :add
       def add(email = nil)
         organization = organization_present?(options[:organization], "user add [EMAIL]")
 

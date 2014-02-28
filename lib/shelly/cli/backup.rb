@@ -9,7 +9,7 @@ module Shelly
       namespace :backup
       include Helpers
 
-      before_hook :logged_in?, :only => [:list, :get, :create, :restore, :import]
+      before_hook :logged_in?, :only => [:list, :get, :create, :new, :restore, :import]
 
       class_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
 
@@ -64,6 +64,7 @@ module Shelly
         Create backup of given database.
         If database kind is not specified, Cloudfile must be present to backup all configured databases.
       }
+      map "new" => :create
       def create(kind = nil)
         app = multiple_clouds(options[:cloud], "backup create [DB_KIND]")
         cloudfile = Cloudfile.new

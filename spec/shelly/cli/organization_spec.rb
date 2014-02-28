@@ -53,6 +53,21 @@ describe Shelly::CLI::Organization do
       hooks(@cli, :add).should include(:logged_in?)
     end
 
+    context "for aliases" do
+      [:new, :create].each do |a|
+        it "should respond to '#{a}' alias" do
+          @organization.should_receive(:create)
+          fake_stdin("org-name") do
+            invoke(@cli, a)
+          end
+        end
+
+        it "should ensure user has logged in for '#{a}' alias" do
+          hooks(@cli, a).should include(:logged_in?)
+        end
+      end
+    end
+
     it "should create new organization" do
       @organization.should_receive(:create)
       $stdout.should_receive(:print).with("Organization name (foo - default): ")
