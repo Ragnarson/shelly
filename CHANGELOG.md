@@ -1,4 +1,4 @@
-## master
+## 0.4.26 / 2014-03-05
 
 * [feature] Removed monitoring_email from Cloudfile
 
