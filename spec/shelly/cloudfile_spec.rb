@@ -16,7 +16,6 @@ describe Shelly::Cloudfile do
 foo-staging:
   ruby_version: 1.9.3
   environment: production
-  monitoring_email: bob@example.com
   domains:
     - foo-staging.winniecloud.com
   servers:
@@ -32,7 +31,6 @@ config
       @cloudfile.content.should == {"foo-staging" => {
         "ruby_version" => "1.9.3",
         "environment" => "production",
-        "monitoring_email" => "bob@example.com",
         "domains" => ["foo-staging.winniecloud.com"],
         "servers" => { "app1" =>
             {"size" => "small",
@@ -108,7 +106,6 @@ config
 foo-staging:
   ruby_version: 1.9.3 # 2.1.0, 2.0.0, jruby, rbx, 1.9.3, 1.9.2 or ree-1.8.7
   environment: production # RAILS_ENV
-  monitoring_email: bob@example.com
   domains:
     - foo-staging.winniecloud.com
     - "*.foo.example.com"
@@ -140,7 +137,6 @@ config
 foo-staging:
   ruby_version: 1.9.3 # 2.1.0, 2.0.0, jruby, rbx, 1.9.3, 1.9.2 or ree-1.8.7
   environment: production # RAILS_ENV
-  monitoring_email: bob@example.com
   domains:
     - foo-staging.winniecloud.com
     - "*.foo.example.com"

@@ -1,3 +1,7 @@
+## master
+
+* [feature] Removed monitoring_email from Cloudfile
+
 ## 0.4.25 / 2014-02-28
 
 * [bugfix] Print user-friendly message if user tries to open console on non

@@ -24,7 +24,6 @@ module Shelly
     # Public: Generate example Cloudfile based on object attributes
     # Returns the generated Cloudfile as String
     def generate
-      @email = current_user.email
       template = File.read(template_path)
       cloudfile = ERB.new(template, nil, "%<>-")
       cloudfile.result(binding)
