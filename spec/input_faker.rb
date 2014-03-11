@@ -10,6 +10,10 @@ class InputFaker
     next_string
   end
 
+  def noecho
+    @strings.shift
+  end
+
   def self.with_fake_input(strings)
     $stdin = new(strings)
     yield

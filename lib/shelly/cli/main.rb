@@ -431,11 +431,11 @@ Wait until cloud is in 'turned off' state and try again.}
           options = {:with_confirmation => true}.merge(options)
           loop do
             say "Password: "
-            password = echo_disabled { $stdin.gets.strip }
+            password = $stdin.noecho(&:gets).strip
             say_new_line
             return password unless options[:with_confirmation]
             say "Password confirmation: "
-            password_confirmation = echo_disabled { $stdin.gets.strip }
+            password_confirmation = $stdin.noecho(&:gets).strip
             say_new_line
             if password.present?
               return password if password == password_confirmation
