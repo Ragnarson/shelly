@@ -468,10 +468,22 @@ describe Shelly::Client do
       expected = {
         :method => :get,
         :url => "#{@client.api_url}/account",
-        :headers => @client.headers,
-        :payload => {}.to_json
+        :headers => @client.headers
       }
       @client.request_parameters("/account", :get).should == expected
+    end
+
+    [:get, :head].each do |method|
+      it "should not include payload when method is #{method}" do
+        expected = {
+          :method   => method,
+          :url      => "#{@client.api_url}/account",
+          :headers  => @client.headers,
+          :user     => "bob@example.com",
+          :password => "123123"
+        }
+        @client.request_parameters("/account", method, :name => "bob").should == expected
+      end
     end
   end
 

@@ -22,6 +22,7 @@ Gem::Specification.new do |s|
   end
   s.add_development_dependency "fakefs", "~> 0.4.3"
   s.add_development_dependency "fakeweb"
+  s.add_development_dependency "pry"
   s.add_runtime_dependency "wijet-thor", "~> 0.14.10"
   s.add_runtime_dependency "rest-client"
   s.add_runtime_dependency "mime-types", "~> 1.16"
@@ -35,4 +36,3 @@ Gem::Specification.new do |s|
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.require_paths = ["lib"]
 end
-

@@ -91,11 +91,15 @@ module Shelly
     end
 
     def request_parameters(path, method, params = {})
-      {:method   => method,
-       :url      => "#{api_url}#{path}",
-       :headers  => headers,
-       :payload  => params.to_json
+      parameters = {
+        :method   => method,
+        :url      => "#{api_url}#{path}",
+        :headers  => headers
       }.merge(http_basic_auth_options)
+      unless [:get, :head].include?(method)
+        parameters = parameters.merge(:payload => params.to_json)
+      end
+      parameters
     end
 
     def process_response(response)
