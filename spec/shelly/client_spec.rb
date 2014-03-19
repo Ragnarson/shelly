@@ -352,6 +352,7 @@ describe Shelly::Client do
       @url = "https://#{CGI.escape(email)}:#{api_key}@backup.example.com/file.gz"
       response = Net::HTTPResponse.new('', '', '')
       # Streaming
+      response.stub(:to_hash).and_return({'file-size' => ['1000']})
       response.stub(:read_body).and_yield("aaa").and_yield("bbbbb").and_yield("dddf")
       FakeWeb.register_uri(:get, @url, :response => response)
     end
@@ -363,11 +364,11 @@ describe Shelly::Client do
 
     it "should execute progress_callback with size of every chunk" do
       progress = mock(:update => true)
-      progress.should_receive(:update).with(3)
-      progress.should_receive(:update).with(5)
-      progress.should_receive(:update).with(4)
+      progress.should_receive(:update).with(3, 1000)
+      progress.should_receive(:update).with(5, 1000)
+      progress.should_receive(:update).with(4, 1000)
 
-      callback = lambda { |size| progress.update(size) }
+      callback = lambda { |size, total| progress.update(size, total) }
 
       @client.download_file("foo", @filename, @url, callback)
     end

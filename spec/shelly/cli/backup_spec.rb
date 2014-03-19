@@ -69,7 +69,7 @@ describe Shelly::CLI::Backup do
     describe "#get" do
       before do
         @client.stub(:download_file)
-        @bar = mock(:progress_callback => @callback)
+        @bar = mock(:progress_callback => @callback, :finish => true)
         Shelly::DownloadProgressBar.stub(:new).and_return(@bar)
         @client.stub(:database_backup).and_return({"filename" => "better.tar.gz", "size" => 12345})
         @client.stub(:download_backup_url).with("foo-staging", "better.tar.gz").

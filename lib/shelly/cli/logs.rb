@@ -33,13 +33,13 @@ module Shelly
 
       map "download" => :get
       desc "get [DATE]", "Download log file from a specific date"
-      def get(date = "yesterday")
+      def get(date = "today")
         app = multiple_clouds(options[:cloud], "logs get #{date}")
 
         attributes = app.download_application_logs_attributes({:date => date})
-        bar = Shelly::DownloadProgressBar.new(attributes["size"])
-
+        bar = Shelly::DownloadProgressBar.new
         app.download_application_logs(attributes, bar.progress_callback)
+        bar.finish
 
         say_new_line
         say "Log file saved to #{attributes["filename"]}", :green

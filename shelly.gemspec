@@ -27,7 +27,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency "rest-client"
   s.add_runtime_dependency "mime-types", "~> 1.16"
   s.add_runtime_dependency "json"
-  s.add_runtime_dependency "progressbar"
+  s.add_runtime_dependency "ruby-progressbar"
   s.add_runtime_dependency "launchy"
   s.add_runtime_dependency "netrc"
   s.add_runtime_dependency "childprocess"
