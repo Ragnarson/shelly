@@ -1,4 +1,4 @@
-## master
+## 0.4.27 / 2014-03-19
 
 * [bugfix] Don't send body with GET and HEAD requests
 * [bugfix] Disable echo when providing password for JRuby users
