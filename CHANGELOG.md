@@ -1,3 +1,7 @@
+## master / 2014-03-20
+
+* [improvement] Show clockwork output in deployment logs
+
 ## 0.4.27 / 2014-03-19
 
 * [bugfix] Don't send body with GET and HEAD requests

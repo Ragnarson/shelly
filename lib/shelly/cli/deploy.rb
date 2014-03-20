@@ -64,6 +64,9 @@ module Shelly
           if content["sidekiq"]
             say("Starting sidekiq", :green); say(content["sidekiq"])
           end
+          if content["clockwork"]
+            say("Starting clockwork", :green); say(content["clockwork"])
+          end
           if content["thin_restart"]
             say("Starting thin", :green); say(content["thin_restart"])
           end
