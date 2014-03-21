@@ -1,5 +1,6 @@
 ## master / 2014-03-20
 
+* [feature] Support for `shelly ssh` command
 * [improvement] Show clockwork output in deployment logs
 
 ## 0.4.27 / 2014-03-19
