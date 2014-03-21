@@ -1,3 +1,7 @@
+## master
+
+* [feature] Support for `shelly ssh` command
+
 ## 0.4.28 / 2014-03-25
 
 * [bugfix] Fix password no_echo input on Ruby 1.9

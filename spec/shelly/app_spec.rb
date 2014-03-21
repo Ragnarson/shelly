@@ -429,7 +429,7 @@ describe Shelly::App do
     it "should return result of dbconsole" do
       @client.stub(:configured_db_server).and_return(
         {"host" => "console.example.com", "port" => "40010", "user" => "foo"})
-      @app.should_receive(:system).with("ssh -o StrictHostKeyChecking=no -p 40010 -l foo -t -t console.example.com dbconsole")
+      @app.should_receive(:system).with("ssh -o StrictHostKeyChecking=no -p 40010 -l foo -t -t console.example.com start_dbconsole")
       @app.dbconsole
     end
   end
@@ -438,7 +438,7 @@ describe Shelly::App do
     it "should return result of mongoconsole" do
       @client.stub(:configured_db_server).and_return(
         {"host" => "console.example.com", "port" => "40010", "user" => "foo"})
-      @app.should_receive(:system).with("ssh -o StrictHostKeyChecking=no -p 40010 -l foo -t -t console.example.com mongo")
+      @app.should_receive(:system).with("ssh -o StrictHostKeyChecking=no -p 40010 -l foo -t -t console.example.com start_mongodb")
       @app.mongoconsole
     end
   end
@@ -447,7 +447,7 @@ describe Shelly::App do
     it "should return result of redis-cli" do
       @client.stub(:configured_db_server).and_return(
         {"host" => "console.example.com", "port" => "40010", "user" => "foo"})
-      @app.should_receive(:system).with("ssh -o StrictHostKeyChecking=no -p 40010 -l foo -t -t console.example.com redis-cli")
+      @app.should_receive(:system).with("ssh -o StrictHostKeyChecking=no -p 40010 -l foo -t -t console.example.com start_redis")
       @app.redis_cli
     end
   end
@@ -474,11 +474,28 @@ describe Shelly::App do
     end
   end
 
-  describe "#console" do
+  describe "#ssh_console" do
     it "should run ssh with all parameters" do
       @client.stub(:tunnel).and_return(
         {"host" => "console.example.com", "port" => "40010", "user" => "foo"})
       @app.should_receive(:system).with("ssh -o StrictHostKeyChecking=no -p 40010 -l foo -t -t console.example.com ")
+      @app.ssh_console
+    end
+
+    context "when server passed" do
+      it "should request console on given server" do
+        @client.should_receive(:tunnel).with("foo-staging", "ssh", "app1").and_return({})
+        @app.stub(:system)
+        @app.console("app1")
+      end
+    end
+  end
+
+  describe "#console" do
+    it "should run ssh with all parameters" do
+      @client.stub(:tunnel).and_return(
+        {"host" => "console.example.com", "port" => "40010", "user" => "foo"})
+      @app.should_receive(:system).with("ssh -o StrictHostKeyChecking=no -p 40010 -l foo -t -t console.example.com start_console")
       @app.console
     end
 
