@@ -32,7 +32,7 @@ module Shelly
       # FIXME: it should be possible to pass single symbol, instead of one element array
       before_hook :logged_in?, :only => [:add, :status, :list, :start, :stop,
         :delete, :info, :ip, :logout, :execute, :rake, :setup, :console,
-        :dbconsole, :mongoconsole, :redis_cli]
+        :dbconsole, :mongoconsole, :redis_cli, :ssh]
       before_hook :inside_git_repository?, :only => [:add, :setup, :check]
 
       map %w(-v --version) => :version
@@ -363,6 +363,20 @@ Wait until cloud is in 'turned off' state and try again.}
       rescue Client::NotFoundException => e
         raise unless e.resource == :virtual_server
         say_error "Virtual server '#{options[:server]}' not found or not configured for running console"
+      end
+
+      desc "ssh", "Log into virtual server"
+      method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
+      method_option :server, :type => :string, :aliases => "-s",
+        :desc => "Specify virtual server, it's random by default"
+      def ssh
+        app = multiple_clouds(options[:cloud], "ssh")
+        app.ssh_console(options[:server])
+      rescue Client::ConflictException
+        say_error "Cloud #{app} is not running. Cannot run ssh console."
+      rescue Client::NotFoundException => e
+        raise unless e.resource == :virtual_server
+        say_error "Virtual server '#{options[:server]}' not found or not configured for running ssh console"
       end
 
       # FIXME: move to helpers
