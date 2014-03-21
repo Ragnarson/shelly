@@ -3,6 +3,7 @@
 * [bugfix] Use childprocess to start ssh related commands. Fixes tty issue
   when using `shelly console` on JRuby
 * [bugfix] Capture password without echo only if terminal is present
+* [feature] Support for `shelly ssh` command
 
 ## 0.4.28 / 2014-03-25
 

@@ -220,15 +220,15 @@ module Shelly
     end
 
     def dbconsole
-      ssh_with_db_server(:command => "dbconsole")
+      ssh_with_db_server(:command => "start_dbconsole")
     end
 
     def mongoconsole
-      ssh_with_db_server(:command => "mongo")
+      ssh_with_db_server(:command => "start_mongodb")
     end
 
     def redis_cli
-      ssh_with_db_server(:command => "redis-cli")
+      ssh_with_db_server(:command => "start_redis")
     end
 
     def attributes
@@ -299,8 +299,12 @@ module Shelly
       Launchy.open("http://#{attributes["domain"]}")
     end
 
-    def console(server = nil)
+    def ssh_console(server = nil)
       ssh(:server => server)
+    end
+
+    def console(server = nil)
+      ssh(:command => "start_console", :server => server)
     end
 
     def list_files(path)
