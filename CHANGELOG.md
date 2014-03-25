@@ -1,5 +1,6 @@
-## master / 2014-03-20
+## 0.4.28 / 2014-03-25
 
+* [bugfix] Fix password no_echo input on Ruby 1.9
 * [improvement] Show clockwork output in deployment logs
 
 ## 0.4.27 / 2014-03-19

@@ -12,6 +12,8 @@ require "shelly/cli/cert"
 require "shelly/cli/main/add"
 require "shelly/cli/main/check"
 
+require "io/console"
+
 module Shelly
   module CLI
     class Main < Command
