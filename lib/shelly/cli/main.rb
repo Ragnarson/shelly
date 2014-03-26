@@ -433,11 +433,11 @@ Wait until cloud is in 'turned off' state and try again.}
           options = {:with_confirmation => true}.merge(options)
           loop do
             say "Password: "
-            password = $stdin.noecho(&:gets).strip
+            password = capture_input_without_echo_if_tty
             say_new_line
             return password unless options[:with_confirmation]
             say "Password confirmation: "
-            password_confirmation = $stdin.noecho(&:gets).strip
+            password_confirmation = capture_input_without_echo_if_tty
             say_new_line
             if password.present?
               return password if password == password_confirmation
@@ -505,6 +505,10 @@ Wait until cloud is in 'turned off' state and try again.}
           e.each_error { |error| say_error error, :with_exit => false }
           user.logout
           exit 1
+        end
+
+        def capture_input_without_echo_if_tty
+          $stdin.tty? ? $stdin.noecho(&:gets).strip : $stdin.gets.strip
         end
       end
     end

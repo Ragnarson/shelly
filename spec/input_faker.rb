@@ -14,6 +14,10 @@ class InputFaker
     @strings.shift
   end
 
+  def tty?
+    true
+  end
+
   def self.with_fake_input(strings)
     $stdin = new(strings)
     yield
