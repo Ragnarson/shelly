@@ -1,4 +1,4 @@
-## master
+## 0.4.29 / 2014-03-27
 
 * [bugfix] Use childprocess to start ssh related commands. Fixes tty issue
   when using `shelly console` on JRuby
