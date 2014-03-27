@@ -51,6 +51,7 @@ describe Shelly::CLI::Main do
       out.should include("shelly organization <command>  # View organizations")
       out.should include("shelly rake TASK               # Run rake task")
       out.should include("shelly redeploy                # Redeploy application")
+      out.should include("shelly ssh                     # Log into virtual server")
       out.should include("shelly redis-cli               # Run redis-cli")
       out.should include("shelly register [EMAIL]        # Register new account")
       out.should include("shelly setup                   # Set up git remotes for deployment on Shelly Cloud")
@@ -1621,6 +1622,43 @@ Wait until cloud is in 'turned off' state and try again.")
         $stdout.should_receive(:puts).with(red "Cloud foo-production wasn't deployed properly. Can not run redis-cli.")
         lambda {
           invoke(@main, :redis_cli)
+        }.should raise_error(SystemExit)
+      end
+    end
+  end
+
+  describe "#ssh" do
+    before do
+      setup_project
+    end
+
+    it "should ensure user has logged in" do
+      hooks(@main, :ssh).should include(:logged_in?)
+    end
+
+    it "should execute ssh command" do
+      @app.should_receive(:ssh_console)
+      invoke(@main, :ssh)
+    end
+
+    context "virtual servers are not running" do
+      it "should display error" do
+        @client.stub(:tunnel).and_raise(Shelly::Client::ConflictException)
+        $stdout.should_receive(:puts).with(red "Cloud foo-production is not running. Cannot run ssh console.")
+        lambda {
+          invoke(@main, :ssh)
+        }.should raise_error(SystemExit)
+      end
+    end
+
+    context "virtual server not found" do
+      it "should display error" do
+        ex = Shelly::Client::NotFoundException.new("resource" => "virtual_server")
+        @client.stub(:tunnel).and_raise(ex)
+        @main.options = {:server => "foobar"}
+        $stdout.should_receive(:puts).with(red "Virtual server 'foobar' not found or not configured for running ssh console")
+        lambda {
+          invoke(@main, :ssh)
         }.should raise_error(SystemExit)
       end
     end
