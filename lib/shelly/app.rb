@@ -1,9 +1,13 @@
 require 'erb'
 require 'launchy'
+require 'childprocess'
+require 'shellwords'
 require 'shelly/backup'
 
 module Shelly
   class App < Model
+    include ::Shellwords
+
     DATABASE_KINDS = %w(postgresql mongodb redis)
     DATABASE_CHOICES = DATABASE_KINDS + %w(none)
     SERVER_SIZES = %w(small large)
@@ -444,12 +448,12 @@ module Shelly
 
     def ssh(options = {})
       conn = tunnel_connection("ssh", options[:server])
-      system "ssh #{ssh_options(conn)} -t -t #{conn['host']} #{options[:command]}"
+      childprocess("ssh #{ssh_options(conn)} -t -t #{conn['host']} #{options[:command]}")
     end
 
     def ssh_with_db_server(options = {})
       conn = configured_db_server_connection(options[:server])
-      system "ssh #{ssh_options(conn)} -t -t #{conn['host']} #{options[:command]}"
+      childprocess("ssh #{ssh_options(conn)} -t -t #{conn['host']} #{options[:command]}")
     end
 
     def ssh_options(conn)
@@ -458,6 +462,14 @@ module Shelly
 
     def rsync(source, destination, conn, options = "")
       system "rsync --archive --verbose --compress #{options} -e 'ssh #{ssh_options(conn)}' --progress #{source} #{destination}"
+    end
+
+    def childprocess(command)
+      ChildProcess.posix_spawn = true
+      process = ::ChildProcess.build(*shellwords(command))
+      process.io.inherit!
+      process.start
+      process.wait
     end
   end
 end
