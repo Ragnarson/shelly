@@ -1,3 +1,8 @@
+# master
+
+* [feature] `shelly config create` will check if config already exists in
+  specified path
+
 ## 0.4.29 / 2014-03-27
 
 * [bugfix] Use childprocess to start ssh related commands. Fixes tty issue

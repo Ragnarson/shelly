@@ -86,6 +86,10 @@ describe Shelly::CLI::Config do
   end
 
   describe "#create" do
+    before do
+      @config.stub(:multiple_clouds => @app)
+    end
+
     it "should ensure user has logged in" do
       hooks(@config, :create).should include(:logged_in?)
     end
@@ -94,6 +98,7 @@ describe Shelly::CLI::Config do
       [:add, :new].each do |a|
         it "should respond to '#{a}' alias" do
           @config.should_receive(:system).and_return(true)
+          @app.stub(:config_exists? => false)
           @client.should_receive(:app_create_config)
           invoke(@config, a, "path")
         end
@@ -108,19 +113,29 @@ describe Shelly::CLI::Config do
     it "should ensure multiple_clouds check" do
       @config.should_receive(:system).with(/vim \/tmp\/shelly-edit/).and_return(true)
       Shelly::App.stub(:new).and_return(@app)
+      @app.stub(:config_exists? => false)
       @client.should_receive(:app_create_config).with("foo-production", "path", "\n").and_return({})
       @config.should_receive(:multiple_clouds).and_return(@app)
       invoke(@config, :create, "path")
     end
 
+    it "should warn that config file already exists in specified path" do
+      Shelly::App.stub(:new).and_return(@app)
+      @app.stub(:config_exists? => true)
+      $stdout.should_receive(:puts).with(red "File 'new_config' already exists. Use `shelly config edit new_config --cloud ` to update it.")
+      invoke(@config, :create, "new_config")
+    end
+
     it "should ask to set EDITOR environment variable if not set" do
       @config.stub(:system) {false}
+      @app.stub(:config_exists? => false)
       $stdout.should_receive(:puts).with(red "Please set EDITOR environment variable")
       lambda { invoke(@config, :create, "path") }.should raise_error(SystemExit)
     end
 
     context "cloud running" do
       it "should create file" do
+        @app.stub(:config_exists? => false)
         @config.should_receive(:system).with(/vim \/tmp\/shelly-edit/).and_return(true)
         @client.should_receive(:app_create_config).with("foo-production", "path", "\n").and_return({})
         $stdout.should_receive(:puts).with(green "File 'path' created.")
@@ -132,6 +147,7 @@ describe Shelly::CLI::Config do
 
     context "cloud turned off" do
       it "should print " do
+        @app.stub(:config_exists? => false)
         @client.stub(:app).and_return('state' => 'turned_off')
         @config.should_receive(:system).with(/vim \/tmp\/shelly-edit/).and_return(true)
         @client.should_receive(:app_create_config).with("foo-production", "path", "\n").and_return({})
@@ -144,6 +160,7 @@ describe Shelly::CLI::Config do
 
     context "on validation errors" do
       it "should display validation errors" do
+        @app.stub(:config_exists? => false)
         exception = Shelly::Client::ValidationException.new({"errors" => [["path", "is already taken"]]})
         @config.should_receive(:system).with(/vim \/tmp\/shelly-edit/).and_return(true)
         @client.stub(:app_create_config).and_raise(exception)

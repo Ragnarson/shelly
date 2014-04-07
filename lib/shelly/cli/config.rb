@@ -50,11 +50,15 @@ module Shelly
       map "new" => :create
       desc "create PATH", "Create configuration file"
       def create(path)
-        output = open_editor(path)
         app = multiple_clouds(options[:cloud], "create #{path}")
-        app.create_config(path, output)
-        say "File '#{path}' created.", :green
-        next_action_info(app)
+        if app.config_exists?(path)
+          say "File '#{path}' already exists. Use `shelly config edit #{path} --cloud #{options[:cloud]}` to update it.", :red
+        else
+          output = open_editor(path)
+          app.create_config(path, output)
+          say "File '#{path}' created.", :green
+          next_action_info(app)
+        end
       rescue Client::ValidationException => e
         e.each_error { |error| say_error error, :with_exit => false }
         exit 1
