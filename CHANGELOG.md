@@ -1,3 +1,8 @@
+# master
+
+* [bugfix] With multiple clouds in `Cloudfile`, `shelly config create`
+  should not open the editor if no cloud is specified
+
 ## 0.4.29 / 2014-03-27
 
 * [bugfix] Use childprocess to start ssh related commands. Fixes tty issue

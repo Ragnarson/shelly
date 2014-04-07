@@ -50,8 +50,8 @@ module Shelly
       map "new" => :create
       desc "create PATH", "Create configuration file"
       def create(path)
-        output = open_editor(path)
         app = multiple_clouds(options[:cloud], "create #{path}")
+        output = open_editor(path)
         app.create_config(path, output)
         say "File '#{path}' created.", :green
         next_action_info(app)
