@@ -126,6 +126,20 @@ describe Shelly::CLI::Config do
       invoke(@config, :create, "new_config")
     end
 
+    context "when multiple clouds in Cloudfile" do
+      before do
+        File.open("Cloudfile", 'w') {|f|
+          f.write("foo-staging:\nfoo-production:\n") }
+      end
+
+      it "should not open the editor if no cloud is specified" do
+        @config.unstub(:multiple_clouds)
+        @config.should_not_receive(:system)
+        $stdout.should_receive(:puts).with(red "You have multiple clouds in Cloudfile.")
+        lambda { invoke(@config, :create, "path") }.should raise_error(SystemExit)
+      end
+    end
+
     it "should ask to set EDITOR environment variable if not set" do
       @config.stub(:system) {false}
       @app.stub(:config_exists? => false)
