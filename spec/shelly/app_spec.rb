@@ -229,31 +229,6 @@ describe Shelly::App do
     end
   end
 
-  describe "#usage" do
-    before do
-      @response = {
-        "filesystem"  => {
-          "avg"     => "32 KiB",
-          "current" => "64 KiB"
-        },
-        "database" => {
-          "avg"     => "64 KiB",
-          "current" => "128 KiB"
-        },
-        "traffic" => {
-          "incoming"  => "32 KiB",
-          "outgoing"  => "64 KiB"
-        }
-      }
-      @client.stub(:usage).and_return(@response)
-    end
-
-    it "should fetch app usage from API and cache them" do
-      @client.should_receive(:usage).with("foo-staging").exactly(:once).and_return(@response)
-      2.times { @app.usage }
-    end
-  end
-
   describe "#start & #stop" do
     it "should start cloud" do
       @client.should_receive(:start_cloud).with("foo-staging").

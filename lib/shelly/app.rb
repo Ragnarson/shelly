@@ -239,10 +239,6 @@ module Shelly
       @stats ||= shelly.statistics(code_name)
     end
 
-    def usage
-      @usage ||= shelly.usage(code_name)
-    end
-
     def system_user
       attributes["system_user"]
     end

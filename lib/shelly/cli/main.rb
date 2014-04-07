@@ -118,17 +118,6 @@ module Shelly
         print_wrapped "Repository URL: #{app.git_info["repository_url"]}", :ident => 2
         print_wrapped "Web server IP: #{app.web_server_ip}", :ident => 2
         say_new_line
-        print_wrapped "Usage:", :ident => 2
-        print_wrapped "Filesystem:", :ident => 4
-        print_wrapped "Current: #{app.usage['filesystem']['current']}", :ident => 6
-        print_wrapped "Average: #{app.usage['filesystem']['avg']}", :ident => 6
-        print_wrapped "Database:", :ident => 4
-        print_wrapped "Current: #{app.usage['database']['current']}", :ident => 6
-        print_wrapped "Average: #{app.usage['database']['avg']}", :ident => 6
-        print_wrapped "Traffic:", :ident => 4
-        print_wrapped "Incoming: #{app.usage['traffic']['incoming']}", :ident => 6
-        print_wrapped "Outgoing: #{app.usage['traffic']['outgoing']}", :ident => 6
-        say_new_line
         if app.statistics.present?
           print_wrapped "Statistics:", :ident => 2
           app.statistics.each do |stat|
