@@ -1002,6 +1002,17 @@ Wait until cloud is in 'turned off' state and try again.")
         $stdout.should_receive(:puts).with("    app1:")
         $stdout.should_receive(:puts).with("      Load average: 1m: 0.04, 5m: 0.15, 15m: 0.13")
         $stdout.should_receive(:puts).with("      CPU: 0.8%, MEM: 74.1%, SWAP: 2.8%")
+        $stdout.should_receive(:puts).with("  Usage:")
+        $stdout.should_receive(:puts).with("    Filesystem:")
+        $stdout.should_receive(:puts).with("      Current: 2.04 GiB")
+        $stdout.should_receive(:puts).with("      Average: 182.39 MiB")
+        $stdout.should_receive(:puts).with("    Database:")
+        $stdout.should_receive(:puts).with("      Current: 1.19 MiB")
+        $stdout.should_receive(:puts).with("      Average: 18.24 MiB")
+        $stdout.should_receive(:puts).with("    Traffic:")
+        $stdout.should_receive(:puts).with("      Incoming: 11.54 GiB")
+        $stdout.should_receive(:puts).with("      Outgoing: 1.15 GiB")
+        $stdout.should_receive(:puts).with("      Total: 12.69 GiB")
         invoke(@main, :info)
       end
 
@@ -1024,6 +1035,17 @@ Wait until cloud is in 'turned off' state and try again.")
             $stdout.should_receive(:puts).with("    app1:")
             $stdout.should_receive(:puts).with("      Load average: 1m: 0.04, 5m: 0.15, 15m: 0.13")
             $stdout.should_receive(:puts).with("      CPU: 0.8%, MEM: 74.1%, SWAP: 2.8%")
+            $stdout.should_receive(:puts).with("  Usage:")
+            $stdout.should_receive(:puts).with("    Filesystem:")
+            $stdout.should_receive(:puts).with("      Current: 2.04 GiB")
+            $stdout.should_receive(:puts).with("      Average: 182.39 MiB")
+            $stdout.should_receive(:puts).with("    Database:")
+            $stdout.should_receive(:puts).with("      Current: 1.19 MiB")
+            $stdout.should_receive(:puts).with("      Average: 18.24 MiB")
+            $stdout.should_receive(:puts).with("    Traffic:")
+            $stdout.should_receive(:puts).with("      Incoming: 11.54 GiB")
+            $stdout.should_receive(:puts).with("      Outgoing: 1.15 GiB")
+            $stdout.should_receive(:puts).with("      Total: 12.69 GiB")
             invoke(@main, :info)
           end
         end
@@ -1046,6 +1068,17 @@ Wait until cloud is in 'turned off' state and try again.")
             $stdout.should_receive(:puts).with("    app1:")
             $stdout.should_receive(:puts).with("      Load average: 1m: 0.04, 5m: 0.15, 15m: 0.13")
             $stdout.should_receive(:puts).with("      CPU: 0.8%, MEM: 74.1%, SWAP: 2.8%")
+            $stdout.should_receive(:puts).with("  Usage:")
+            $stdout.should_receive(:puts).with("    Filesystem:")
+            $stdout.should_receive(:puts).with("      Current: 2.04 GiB")
+            $stdout.should_receive(:puts).with("      Average: 182.39 MiB")
+            $stdout.should_receive(:puts).with("    Database:")
+            $stdout.should_receive(:puts).with("      Current: 1.19 MiB")
+            $stdout.should_receive(:puts).with("      Average: 18.24 MiB")
+            $stdout.should_receive(:puts).with("    Traffic:")
+            $stdout.should_receive(:puts).with("      Incoming: 11.54 GiB")
+            $stdout.should_receive(:puts).with("      Outgoing: 1.15 GiB")
+            $stdout.should_receive(:puts).with("      Total: 12.69 GiB")
             invoke(@main, :info)
           end
         end
@@ -1074,12 +1107,31 @@ Wait until cloud is in 'turned off' state and try again.")
       { "code_name" => "foo-production",
         "state" => "running",
         "state_description" => "running",
-        "git_info" =>
-        {
+        "git_info" => {
           "deployed_commit_message" => "Commit message",
           "deployed_commit_sha" => "52e65ed2d085eaae560cdb81b2b56a7d76",
           "repository_url" => "git@winniecloud.net:example-cloud",
           "deployed_push_author" => "megan@example.com"
+        },
+        "billing" => {
+          "current_month_costs" => {
+            "usage" => [
+              {
+                "kind"    => "filesystem",
+                "avg"     => 191248000,
+                "current" => 2191248000
+              }, {
+                "kind"     => "database",
+                "avg"      => 19128000,
+                "current"  => 1248000
+              }
+            ],
+            "traffic" => {
+              "incoming"   => 12391283291,
+              "outgoing"   => 1239123843,
+              "total"      => 12391283291 + 1239123843
+            }
+          }
         },
         "web_server_ip" => "22.22.22.22"}.merge(options)
     end

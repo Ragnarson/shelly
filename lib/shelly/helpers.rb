@@ -1,6 +1,8 @@
 # encoding: utf-8
 module Shelly
   module Helpers
+    UNITS = %W(B KiB MiB GiB TiB).freeze
+
     def say_new_line
       say "\n"
     end
@@ -187,6 +189,20 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository}
       if app.in_deploy_failed_state? && !app.maintenance?
         " (deployment log: `shelly deploys show last -c #{app}`)"
       end
+    end
+
+    def number_to_human_size(number)
+      if number.to_i < 1024
+        exponent = 0
+      else
+        max_exp  = UNITS.size - 1
+        exponent = (Math.log(number) / Math.log( 1024 )).to_i
+        exponent = max_exp if exponent > max_exp
+
+        number /= 1024.to_f ** exponent
+      end
+
+      "#{number.round(2)} #{UNITS[exponent]}"
     end
   end
 end
