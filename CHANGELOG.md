@@ -1,3 +1,10 @@
+# master
+
+* [feature] `shelly config create` will check if config already exists in
+  specified path
+* [bugfix] With multiple clouds in `Cloudfile`, `shelly config create`
+  should not open the editor if no cloud is specified
+
 ## 0.4.29 / 2014-03-27
 
 * [bugfix] Use childprocess to start ssh related commands. Fixes tty issue
