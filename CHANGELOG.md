@@ -1,4 +1,4 @@
-# master
+## 0.4.30 / 2014-04-14
 
 * [feature] `shelly config create` will check if config already exists in
   specified path
