@@ -243,44 +243,6 @@ describe Shelly::Client do
     end
   end
 
-  describe "#usage" do
-    before do
-      FakeWeb.register_uri(:get,
-                           api_url("apps/staging-foo/usage"),
-                           :body => {
-                             :filesystem => {
-                               :avg     => "32 KiB",
-                               :current => "64 KiB"
-                             },
-                             :database => {
-                               :avg     => "64 KiB",
-                               :current => "128 KiB"
-                             },
-                             :traffic    => {
-                               :incoming => "32 KiB",
-                               :outgoing => "64 KiB"
-                             }
-                           }.to_json)
-    end
-
-    it "should fetch application usage from API" do
-      expect(@client.usage("staging-foo")).to eq({
-        "filesystem" => {
-          "avg"     => "32 KiB",
-          "current" => "64 KiB"
-        },
-        "database" => {
-          "avg"     => "64 KiB",
-          "current" => "128 KiB"
-        },
-        "traffic" => {
-          "incoming"  => "32 KiB",
-          "outgoing"  => "64 KiB"
-        }
-      })
-    end
-  end
-
   describe "#command" do
     it "should send post request with app code_name, body and type" do
       @client.should_receive(:post).with("/apps/staging-foo/command",

@@ -14,7 +14,7 @@ module Shelly
 
     attr_accessor :code_name, :databases, :ruby_version, :environment,
       :git_url, :domains, :web_server_ip, :size, :thin,
-      :organization_name, :zone_name
+      :organization_name, :zone_name, :usage, :traffic
 
     def initialize(code_name = nil)
       self.code_name = code_name
@@ -240,7 +240,11 @@ module Shelly
     end
 
     def usage
-      @usage ||= shelly.usage(code_name)
+      attributes["billing"]["current_month_costs"]["usage"]
+    end
+
+    def traffic
+      attributes["billing"]["current_month_costs"]["traffic"]
     end
 
     def system_user

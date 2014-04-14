@@ -4,6 +4,7 @@
   specified path
 * [bugfix] With multiple clouds in `Cloudfile`, `shelly config create`
   should not open the editor if no cloud is specified
+* [bugfix] Fixed wrong usage values given by `shelly info`
 
 ## 0.4.29 / 2014-03-27
 
