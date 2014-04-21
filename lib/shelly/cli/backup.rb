@@ -50,6 +50,7 @@ module Shelly
         backup = app.database_backup(handler)
         bar = Shelly::DownloadProgressBar.new(backup.size)
         backup.download(bar.progress_callback)
+        bar.finish
 
         say_new_line
         say "Backup file saved to #{backup.filename}", :green

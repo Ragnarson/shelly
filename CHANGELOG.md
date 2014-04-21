@@ -1,3 +1,8 @@
+## master
+
+* [improvement] Let users download logs for current day with
+  `shelly logs download`
+
 ## 0.4.30 / 2014-04-14
 
 * [feature] `shelly config create` will check if config already exists in

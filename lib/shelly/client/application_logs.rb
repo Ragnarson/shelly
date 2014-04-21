@@ -15,12 +15,6 @@ class Shelly::Client
   end
 
   def download_application_logs_attributes(code_name, options)
-    attributes = get("/apps/#{code_name}/application_logs/download#{query(options)}")
-    headers = RestClient::Request.execute({
-      :method => :get,
-      :url => "#{attributes["url"]}/headers"
-    }.merge(http_basic_auth_options)).headers
-
-    attributes.merge("size" => headers[:content_lenght].to_i)
+    get("/apps/#{code_name}/application_logs/download#{query(options)}")
   end
 end

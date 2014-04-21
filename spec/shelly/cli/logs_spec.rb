@@ -66,7 +66,7 @@ describe Shelly::CLI::Logs do
 
   describe "#get" do
     before do
-      @bar = mock(:progress_callback => @callback)
+      @bar = mock(:progress_callback => @callback, :finish => true)
       Shelly::DownloadProgressBar.stub(:new).and_return(@bar)
       @client.stub(:download_application_logs_attributes).
         with("foo-production", {:date => "2013-05-31"}).
@@ -100,7 +100,7 @@ describe Shelly::CLI::Logs do
       @client.should_receive(:download_file).
         with("foo-production", "foo-production.log.20130531.gz",
              "http://example.com/foo-production/20130531", @callback)
-      Shelly::DownloadProgressBar.should_receive(:new).with(12345).and_return(@bar)
+      Shelly::DownloadProgressBar.should_receive(:new).and_return(@bar)
       invoke(@cli_logs, :get, "2013-05-31")
     end
 

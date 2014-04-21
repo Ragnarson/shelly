@@ -52,9 +52,13 @@ module Shelly
     def download_file(cloud, filename, url, progress_callback = nil)
       File.open(filename, "wb") do |out|
         process_response = lambda do |response|
+
+          total_size = response.to_hash['file-size'].first.to_i if response.to_hash['file-size']
           response.read_body do |chunk|
             out.write(chunk)
-            progress_callback.call(chunk.size) if progress_callback
+
+            progress_callback.call(chunk.size,
+              total_size) if progress_callback
           end
         end
 
