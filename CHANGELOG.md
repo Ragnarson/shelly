@@ -1,4 +1,4 @@
-## master
+## 0.4.31 / 2014-04-21
 
 * [improvement] Let users download logs for current day with
   `shelly logs download`
