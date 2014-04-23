@@ -160,7 +160,7 @@ module Shelly
         when "no_code"
           say_error "Not starting: no source code provided", :with_exit => false
           say_error "Push source code using:", :with_exit => false
-          say       "`git push #{app} master`"
+          say       "`git push #{app.git_remote_name} master`"
         when "deploy_failed"
           say_error "Not starting: deployment failed", :with_exit => false
           say_error "Support has been notified", :with_exit => false

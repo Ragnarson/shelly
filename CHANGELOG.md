@@ -1,3 +1,7 @@
+## master
+
+* [bugfix] Use proper remote name if user starts cloud without pushed code
+
 ## 0.4.31 / 2014-04-21
 
 * [improvement] Let users download logs for current day with

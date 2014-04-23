@@ -807,10 +807,11 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
       end
 
       it "should show information that cloud has no code" do
+        @app.stub(:git_remote_name).and_return('shelly')
         raise_conflict("state" => "no_code")
         $stdout.should_receive(:puts).with(red "Not starting: no source code provided")
         $stdout.should_receive(:puts).with(red "Push source code using:")
-        $stdout.should_receive(:puts).with("`git push foo-production master`")
+        $stdout.should_receive(:puts).with("`git push shelly master`")
         lambda { invoke(@main, :start) }.should raise_error(SystemExit)
       end
 
