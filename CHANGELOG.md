@@ -1,4 +1,4 @@
-## master
+## 0.4.32 / 2014-04-29
 
 * [bugfix] Use proper remote name if user starts cloud without pushed code
 
