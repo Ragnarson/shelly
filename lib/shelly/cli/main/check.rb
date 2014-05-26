@@ -29,7 +29,7 @@ module Shelly
 
         if structure.gemfile_ruby_version?
           if structure.gemfile_engine == 'ruby'
-            print_check(!['1.8.7'].include?(structure.gemfile_ruby_version),
+            print_check(!['1.8.7', '1.9.2'].include?(structure.gemfile_ruby_version),
               "#{structure.gemfile_engine} #{structure.gemfile_ruby_version} is supported",
               "#{structure.gemfile_engine} #{structure.gemfile_ruby_version} is currently unsupported\n    See more at https://shellycloud.com/documentation/requirements#ruby_versions",
               :show_fulfilled => verbose)

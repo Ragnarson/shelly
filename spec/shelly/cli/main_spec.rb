@@ -1749,9 +1749,9 @@ Wait until cloud is in 'turned off' state and try again.")
         context "supported version" do
           it "should show checked message" do
             Bundler::Definition.stub_chain(:build, :ruby_version).
-              and_return(mock(:engine => 'ruby', :version => '1.9.2'))
+              and_return(mock(:engine => 'ruby', :version => '1.9.3'))
 
-            $stdout.should_receive(:puts).with("  #{green("✓")} ruby 1.9.2 is supported")
+            $stdout.should_receive(:puts).with("  #{green("✓")} ruby 1.9.3 is supported")
             invoke(@main, :check)
           end
         end
@@ -1759,9 +1759,9 @@ Wait until cloud is in 'turned off' state and try again.")
         context "unsupported version" do
           it "should show error message" do
             Bundler::Definition.stub_chain(:build, :ruby_version).
-              and_return(mock(:engine => 'ruby', :version => '1.8.7'))
+              and_return(mock(:engine => 'ruby', :version => '1.9.2'))
 
-            $stdout.should_receive(:puts).with("  #{red("✗")} ruby 1.8.7 is currently unsupported\n    See more at https://shellycloud.com/documentation/requirements#ruby_versions")
+            $stdout.should_receive(:puts).with("  #{red("✗")} ruby 1.9.2 is currently unsupported\n    See more at https://shellycloud.com/documentation/requirements#ruby_versions")
             invoke(@main, :check)
           end
         end

@@ -104,7 +104,7 @@ config
         FakeFS.deactivate!
         expected = <<-config
 foo-staging:
-  ruby_version: 1.9.3 # 2.1.0, 2.0.0, jruby, rbx, 1.9.3, 1.9.2 or ree-1.8.7
+  ruby_version: 1.9.3 # 2.1.2, 2.1.1, 2.1.0, 2.0.0, 1.9.3, jruby or rbx
   environment: production # RAILS_ENV
   domains:
     - foo-staging.winniecloud.com
@@ -135,7 +135,7 @@ config
         @cloudfile.thin = 2
         expected = <<-config
 foo-staging:
-  ruby_version: 1.9.3 # 2.1.0, 2.0.0, jruby, rbx, 1.9.3, 1.9.2 or ree-1.8.7
+  ruby_version: 1.9.3 # 2.1.2, 2.1.1, 2.1.0, 2.0.0, 1.9.3, jruby or rbx
   environment: production # RAILS_ENV
   domains:
     - foo-staging.winniecloud.com
