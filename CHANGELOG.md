@@ -1,5 +1,6 @@
-## master
+## 0.4.33 / 2014-05-27
 
+* [bugfix] Show info about Windows support
 * [improvement] Remove REE/1.8.7 and 1.9.2 support, add 2.1.2.
 
 ## 0.4.32 / 2014-04-29
