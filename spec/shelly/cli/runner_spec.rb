@@ -65,6 +65,18 @@ describe Shelly::CLI::Runner do
       end
     end
 
+    describe "windows development" do
+      it "should show warning message" do
+        Gem.stub(:win_platform?).and_return(true)
+        $stdout.should_receive(:puts).with("shelly gem does not support Windows. More info at:")
+        $stdout.should_receive(:puts).with("https://shellycloud.com/documentation/faq#windows")
+        $stdout.should_receive(:puts).with("\n")
+        $stdout.should_receive(:puts).with("shelly version #{Shelly::VERSION}")
+
+        Shelly::CLI::Runner.new(%w(version --debug)).start
+      end
+    end
+
     describe "API exception handling" do
       before do
         @client = mock

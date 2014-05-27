@@ -204,5 +204,11 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository}
 
       "#{number.round(2)} #{UNITS[exponent]}"
     end
+
+    def show_windows_warning
+      say_warning "shelly gem does not support Windows. More info at:"
+      say_warning "https://shellycloud.com/documentation/faq#windows"
+      say_new_line
+    end
   end
 end

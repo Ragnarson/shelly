@@ -16,6 +16,8 @@ module Shelly
       end
 
       def start
+        show_windows_warning if Gem.win_platform?
+
         Shelly::CLI::Main.start(args)
       rescue SystemExit; raise
       rescue Client::UnauthorizedException
