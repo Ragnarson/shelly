@@ -475,7 +475,7 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
       @app.should_receive(:create).and_raise(exception)
       $stdout.should_receive(:puts).with(red "Code name has been already taken")
       $stdout.should_receive(:puts).with(red "Fix erros in the below command and type it again to create your cloud")
-      $stdout.should_receive(:puts).with(red "shelly add --code-name=big-letters --databases=postgresql --organization=org-name --size=large")
+      $stdout.should_receive(:puts).with(red "shelly add --code-name=big-letters --databases=postgresql --organization=org-name --size=small")
       lambda {
         fake_stdin(["BiG_LETTERS", ""]) do
           invoke(@main, :add)

@@ -26,7 +26,7 @@ module Shelly
         app = Shelly::App.new
         app.code_name = options["code-name"] || ask_for_code_name
         app.databases = options["databases"] || ask_for_databases
-        app.size = options["size"] || "large"
+        app.size = options["size"] || "small"
         app.organization_name = options["organization"] || ask_for_organization(options)
         app.zone_name = options["zone"]
 
