@@ -5,6 +5,7 @@ require "thor/group"
 require "thor/options"
 require "thor/arguments"
 require "thor/basic"
+require "shelly/cli/errors"
 
 module Shelly
   module CLI
@@ -15,6 +16,7 @@ module Shelly
 
       def initialize(*)
         super
+        check_for_home
         if options[:help]
           help(self.class.send(:retrieve_task_name, ARGV.dup))
           exit(0)

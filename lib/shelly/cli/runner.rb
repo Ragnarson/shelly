@@ -42,6 +42,9 @@ module Shelly
       rescue Netrc::Error => e
         raise if debug?
         say_error e.message
+      rescue HomeNotSetError
+        raise if debug?
+        say_error "Please set HOME environment variable."
       rescue Client::APIException => e
         raise if debug?
         say_error "You have found a bug in the shelly gem. We're sorry.",

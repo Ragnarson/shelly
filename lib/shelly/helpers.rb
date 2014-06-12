@@ -210,5 +210,9 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository}
       say_warning "https://shellycloud.com/documentation/faq#windows"
       say_new_line
     end
+
+    def check_for_home
+      raise Shelly::CLI::HomeNotSetError if ENV['HOME'].nil? || ENV['HOME'].empty?
+    end
   end
 end

@@ -1,3 +1,7 @@
+## master
+
+* [improvement] Check if ENV['HOME'] is set on start
+
 ## 0.4.33 / 2014-05-27
 
 * [bugfix] Show info about Windows support
