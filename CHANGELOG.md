@@ -1,7 +1,7 @@
 ## 0.4.34 / 2014-06-12
 
 * [improvement] Check if ENV['HOME'] is set on start
-* internal changes
+* [improvement] Create Cloudfile with a small server as a default size
 
 ## 0.4.33 / 2014-05-27
 
