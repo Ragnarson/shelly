@@ -275,7 +275,7 @@ module Shelly
       attributes["state"]
     end
 
-    def maintenance?
+    def admin_maintenance_in_progress?
       attributes["maintenance"]
     end
 

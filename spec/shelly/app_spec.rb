@@ -196,9 +196,9 @@ describe Shelly::App do
       end
     end
 
-    describe "#maintenance?" do
+    describe "#admin_maintenance_in_progress?" do
       it "should return false" do
-        @app.maintenance?.should be_false
+        @app.admin_maintenance_in_progress?.should be_false
       end
     end
 

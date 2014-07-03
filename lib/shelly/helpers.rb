@@ -186,7 +186,7 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository}
     end
 
     def info_show_last_deploy_logs(app)
-      if app.in_deploy_failed_state? && !app.maintenance?
+      if app.in_deploy_failed_state? && !app.admin_maintenance_in_progress?
         " (deployment log: `shelly deploys show last -c #{app}`)"
       end
     end
