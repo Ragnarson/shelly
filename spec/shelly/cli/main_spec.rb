@@ -46,6 +46,7 @@ describe Shelly::CLI::Main do
       out.should include("shelly login [EMAIL]           # Log into Shelly Cloud")
       out.should include("shelly logout                  # Logout from Shelly Cloud")
       out.should include("shelly logs <command>          # View application logs")
+      out.should include("shelly maintenance <command>   # Mange application maintenance events")
       out.should include("shelly mongoconsole            # Run MongoDB console")
       out.should include("shelly open                    # Open application page in browser")
       out.should include("shelly organization <command>  # View organizations")

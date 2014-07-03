@@ -32,7 +32,13 @@ class Shelly::Client
 
     def each_error
       errors.each do |field, message|
-        yield [field.gsub('_',' ').capitalize, message].join(" ")
+        error = if field == 'base'
+          message
+        else
+          [field.gsub('_',' ').capitalize, message].join(" ")
+        end
+
+        yield error
       end
     end
   end

@@ -243,6 +243,29 @@ describe Shelly::App do
     end
   end
 
+  describe "#maintenances" do
+    it 'should return application maintenances' do
+      @client.should_receive(:maintenances).with('foo-staging')
+      @app.maintenances
+    end
+  end
+
+  describe "#start_maintenance" do
+    it 'should start maintenance for application' do
+      @client.should_receive(:start_maintenance).with('foo-staging', {
+        description: 'Maintenance'
+      })
+      @app.start_maintenance({description: 'Maintenance'})
+    end
+  end
+
+  describe "#finish_maintenance" do
+    it 'should finish maintenance for application' do
+      @client.should_receive(:finish_maintenance).with('foo-staging')
+      @app.finish_maintenance
+    end
+  end
+
   describe "#turned_off?" do
     it "should return true if cloud state is turned_off" do
       @client.should_receive(:app).and_return({'state' => 'turned_off'})
