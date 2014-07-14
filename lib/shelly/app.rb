@@ -162,6 +162,18 @@ module Shelly
       shelly.stop_cloud(code_name)["deployment"]["id"]
     end
 
+    def maintenances
+      shelly.maintenances(code_name)
+    end
+
+    def start_maintenance(options)
+      shelly.start_maintenance(code_name, options)
+    end
+
+    def finish_maintenance
+      shelly.finish_maintenance(code_name)
+    end
+
     # returns the id of created deployment
     def redeploy
       shelly.redeploy(code_name)["deployment"]["id"]
@@ -263,7 +275,7 @@ module Shelly
       attributes["state"]
     end
 
-    def maintenance?
+    def admin_maintenance_in_progress?
       attributes["maintenance"]
     end
 

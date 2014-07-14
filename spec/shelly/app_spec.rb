@@ -196,9 +196,9 @@ describe Shelly::App do
       end
     end
 
-    describe "#maintenance?" do
+    describe "#admin_maintenance_in_progress?" do
       it "should return false" do
-        @app.maintenance?.should be_false
+        @app.admin_maintenance_in_progress?.should be_false
       end
     end
 
@@ -240,6 +240,29 @@ describe Shelly::App do
       @client.should_receive(:stop_cloud).with("foo-staging").
         and_return("deployment" => {"id" => "DEPLOYMENT_ID"})
       @app.stop.should == "DEPLOYMENT_ID"
+    end
+  end
+
+  describe "#maintenances" do
+    it 'should return application maintenances' do
+      @client.should_receive(:maintenances).with('foo-staging')
+      @app.maintenances
+    end
+  end
+
+  describe "#start_maintenance" do
+    it 'should start maintenance for application' do
+      @client.should_receive(:start_maintenance).with('foo-staging', {
+        description: 'Maintenance'
+      })
+      @app.start_maintenance({description: 'Maintenance'})
+    end
+  end
+
+  describe "#finish_maintenance" do
+    it 'should finish maintenance for application' do
+      @client.should_receive(:finish_maintenance).with('foo-staging')
+      @app.finish_maintenance
     end
   end
 

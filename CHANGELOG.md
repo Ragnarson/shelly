@@ -1,3 +1,7 @@
+## master
+
+* [improvement] allow user to turn on/off maintenance mode for cloud
+
 ## 0.4.34 / 2014-06-12
 
 * [improvement] Check if ENV['HOME'] is set on start

@@ -19,6 +19,7 @@ module Shelly
     require 'shelly/client/organizations'
     require 'shelly/client/auth'
     require 'shelly/client/cert'
+    require 'shelly/client/maintenance'
 
     def api_url
       ENV["SHELLY_URL"] || "https://api.shellycloud.com/apiv2"

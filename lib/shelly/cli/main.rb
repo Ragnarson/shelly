@@ -8,6 +8,7 @@ require "shelly/cli/file"
 require "shelly/cli/organization"
 require "shelly/cli/logs"
 require "shelly/cli/cert"
+require "shelly/cli/maintenance"
 
 require "shelly/cli/main/add"
 require "shelly/cli/main/check"
@@ -26,6 +27,7 @@ module Shelly
       register_subcommand(Organization, "organization", "organization <command>", "View organizations")
       register_subcommand(Logs, "log", "logs <command>", "View application logs")
       register_subcommand(Cert, "cert", "cert <command>", "Mange application certificates")
+      register_subcommand(Maintenance, "maintenance", "maintenance <command>", "Mange application maintenance events")
 
       check_unknown_options!(:except => :rake)
 

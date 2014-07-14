@@ -216,6 +216,44 @@ describe Shelly::Client do
     end
   end
 
+  describe '#maintenances' do
+    it 'should fetch list of maintenances from API' do
+      FakeWeb.register_uri(:get, api_url('apps/staging-foo/maintenances'),
+        :body => [{"description"=>"Short maintenance",
+          "user"=>"user@example.com",
+          "created_at"=>"2014-06-30T21:28:35+02:00",
+          "updated_at"=>"2014-06-30T21:28:49+02:00",
+          "finished"=>true
+        }].to_json
+      )
+      response = @client.maintenances('staging-foo')
+      response.should == [{
+        "description"=>"Short maintenance",
+        "user"=>"user@example.com",
+        "created_at"=>"2014-06-30T21:28:35+02:00",
+        "updated_at"=>"2014-06-30T21:28:49+02:00",
+        "finished"=>true
+      }]
+    end
+  end
+
+  describe '#start_maintenance' do
+    it 'should post a new maintenance' do
+      @client.should_receive(:post).with('/apps/staging-foo/maintenances',
+        :maintenance => {:description => 'Short maintenance'})
+      @client.start_maintenance('staging-foo',
+        :description => 'Short maintenance')
+    end
+  end
+
+  describe '#finish_maintenance' do
+    it 'should update the last maintenance' do
+      @client.should_receive(:put).with('/apps/staging-foo/maintenances/last',
+        :maintenance => {:finished => true})
+      @client.finish_maintenance('staging-foo')
+    end
+  end
+
   describe "#app" do
     it "should fetch app from API" do
       FakeWeb.register_uri(:get, api_url("apps/staging-foo"),
