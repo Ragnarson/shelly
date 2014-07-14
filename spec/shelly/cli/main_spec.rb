@@ -1018,6 +1018,35 @@ Wait until cloud is in 'turned off' state and try again.")
         invoke(@main, :info)
       end
 
+      context "when usage and traffic is not present" do
+        before do
+          @app.stub(:attributes).and_return(response({
+            "billing" => {
+              "current_month_costs" => {
+                "usage" => [],
+                "traffic" => {
+                  "incoming"   => nil,
+                  "outgoing"   => nil,
+                  "total"      => nil
+                }
+              }
+            },
+          }))
+        end
+
+        it "should print 0.0 B usage" do
+          @main.should_receive(:multiple_clouds).and_return(@app)
+          $stdout.should_receive(:puts).with("  Usage:")
+          $stdout.should_not_receive(:puts).with("    Filesystem:")
+          $stdout.should_not_receive(:puts).with("    Database:")
+          $stdout.should_receive(:puts).with("    Traffic:")
+          $stdout.should_receive(:puts).with("      Incoming: 0.0 B")
+          $stdout.should_receive(:puts).with("      Outgoing: 0.0 B")
+          $stdout.should_receive(:puts).with("      Total: 0.0 B")
+          invoke(@main, :info)
+        end
+      end
+
       context "when deploy failed" do
         context "and app is in maintenance" do
           it "should display basic information without instruction to show last app logs" do

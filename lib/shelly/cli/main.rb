@@ -120,18 +120,19 @@ module Shelly
         print_wrapped "Repository URL: #{app.git_info["repository_url"]}", :ident => 2
         print_wrapped "Web server IP: #{app.web_server_ip}", :ident => 2
         say_new_line
+
         print_wrapped "Usage:", :ident => 2
-        if app.usage.present?
-          app.usage.each do |usage|
-            print_wrapped "#{usage['kind'].capitalize}:", :ident => 4
-            print_wrapped "Current: #{number_to_human_size(usage['current'])}", :ident => 6
-            print_wrapped "Average: #{number_to_human_size(usage['avg'])}", :ident => 6
-          end
+        app.usage.each do |usage|
+          print_wrapped "#{usage['kind'].capitalize}:", :ident => 4
+          print_wrapped "Current: #{number_to_human_size(usage['current'])}", :ident => 6
+          print_wrapped "Average: #{number_to_human_size(usage['avg'])}", :ident => 6
         end
+
         print_wrapped "Traffic:", :ident => 4
-        print_wrapped "Incoming: #{number_to_human_size(app.traffic['incoming'])}", :ident => 6
-        print_wrapped "Outgoing: #{number_to_human_size(app.traffic['outgoing'])}", :ident => 6
-        print_wrapped "Total: #{number_to_human_size(app.traffic['total'])}", :ident => 6
+        print_wrapped "Incoming: #{number_to_human_size(app.traffic['incoming'].to_i)}", :ident => 6
+        print_wrapped "Outgoing: #{number_to_human_size(app.traffic['outgoing'].to_i)}", :ident => 6
+        print_wrapped "Total: #{number_to_human_size(app.traffic['total'].to_i)}", :ident => 6
+
         say_new_line
         if app.statistics.present?
           print_wrapped "Statistics:", :ident => 2
