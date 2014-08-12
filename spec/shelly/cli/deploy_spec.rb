@@ -115,6 +115,8 @@ describe Shelly::CLI::Deploy do
       $stdout.should_receive(:puts).with("sidekiq workers")
       $stdout.should_receive(:puts).with(green "Starting clockwork")
       $stdout.should_receive(:puts).with("clockwork output")
+      $stdout.should_receive(:puts).with(green "Starting processes")
+      $stdout.should_receive(:puts).with("processes output")
       $stdout.should_receive(:puts).with(green "Starting thin")
       $stdout.should_receive(:puts).with("thins up and running")
       $stdout.should_receive(:puts).with(green "Starting puma")
@@ -130,14 +132,22 @@ describe Shelly::CLI::Deploy do
 
     def response
       {
-        "created_at" => "2011-12-12 at 14:14:59", "bundle_install" => "Installing gems",
-        "whenever" => "Looking up schedule.rb", "thin_restart" => "thins up and running",
-        "puma_restart" => "pumas up and running", "delayed_job" => "delayed jobs",
-        "sidekiq" => "sidekiq workers", "db_migrate" => "rake db:migrate",
-        "after_restart" => "after restart hook", "before_restart" => "before restart hook",
-        "before_symlink" => "before symlink hook", "before_migrate" => "before migrate hook",
-        "after_successful_deploy_hook" => "after successful deploy hook",
-        "on_restart" => "on restart hook", "clockwork" => "clockwork output"
+        "created_at"                    => "2011-12-12 at 14:14:59",
+        "bundle_install"                => "Installing gems",
+        "whenever"                      => "Looking up schedule.rb",
+        "thin_restart"                  => "thins up and running",
+        "puma_restart"                  => "pumas up and running",
+        "delayed_job"                   => "delayed jobs",
+        "sidekiq"                       => "sidekiq workers",
+        "db_migrate"                    => "rake db:migrate",
+        "after_restart"                 => "after restart hook",
+        "before_restart"                => "before restart hook",
+        "before_symlink"                => "before symlink hook",
+        "before_migrate"                => "before migrate hook",
+        "after_successful_deploy_hook"  => "after successful deploy hook",
+        "on_restart"                    => "on restart hook",
+        "clockwork"                     => "clockwork output",
+        "processes"                     => "processes output"
       }
     end
   end

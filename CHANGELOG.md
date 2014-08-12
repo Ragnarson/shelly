@@ -1,3 +1,7 @@
+## master
+
+* [improvement] show custom processes in deployment logs
+
 ## 0.4.35 / 2014-07-14
 
 * [improvement] allow user to turn on/off maintenance mode for cloud
