@@ -1,4 +1,4 @@
-## master
+## 0.4.36 / 2014-08-26
 
 * [improvement] show custom processes in deployment logs
 
