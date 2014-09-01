@@ -109,17 +109,19 @@ describe Shelly::CLI::Maintenance do
       context 'because there is another maintenance in progress' do
         before do
           body = {
-            'message' => 'Validation Failed',
-            'errors' => [['base', 'Maintenance already in progress']]
+            'message' => 'Maintenance is already in progress'
           }
-          exception = Shelly::Client::ValidationException.new(body)
+          exception = Shelly::Client::ConflictException.new(body)
           client.stub(:start_maintenance).and_raise(exception)
         end
 
         it 'should print error message' do
           $stdout.should_receive(:puts).
-            with(red 'Maintenance already in progress')
-          invoke(cli, :start)
+            with(red 'Maintenance is already in progress')
+
+          lambda {
+            invoke(cli, :start)
+          }.should raise_error(SystemExit)
         end
       end
     end
@@ -141,17 +143,19 @@ describe Shelly::CLI::Maintenance do
       context 'because there is no maintenances in progress' do
         before do
           body = {
-            'message' => 'Validation Failed',
-            'errors' => [['base', 'There is no maintenances in progress']]
+            'message' => 'There is no maintenance events in progress'
           }
-          exception = Shelly::Client::ValidationException.new(body)
+          exception = Shelly::Client::ConflictException.new(body)
           client.stub(:finish_maintenance).and_raise(exception)
         end
 
         it 'should print error message' do
           $stdout.should_receive(:puts).
-            with(red 'There is no maintenances in progress')
-          invoke(cli, :finish)
+            with(red 'There is no maintenance events in progress')
+
+          lambda {
+            invoke(cli, :finish)
+          }.should raise_error(SystemExit)
         end
       end
     end

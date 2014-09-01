@@ -46,6 +46,8 @@ module Shelly
         say "Maintenance has been started", :green
       rescue Client::ValidationException => exception
         exception.each_error { |error| say_error error, :with_exit => false }
+      rescue Client::ConflictException => e
+        say_error e[:message]
       end
 
       desc 'finish', 'Finish last maintenance'
@@ -55,6 +57,8 @@ module Shelly
         say "Maintenance has been finished", :green
       rescue Client::ValidationException => exception
         exception.each_error { |error| say_error error, :with_exit => false }
+      rescue Client::ConflictException => e
+        say_error e[:message]
       end
     end
   end
