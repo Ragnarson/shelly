@@ -1,4 +1,4 @@
-## master
+## 0.4.37 / 2014-09-01
 
 * [bugfix] print user-friendly message if user tries to finish maintenance, but
   there is no maintenance events for given cloud
