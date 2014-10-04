@@ -67,14 +67,14 @@ module Shelly
           if content["clockwork"]
             say("Starting clockwork", :green); say(content["clockwork"])
           end
-          if content["processes"]
-            say("Starting processes", :green); say(content["processes"])
-          end
           if content["thin_restart"]
             say("Starting thin", :green); say(content["thin_restart"])
           end
           if content["puma_restart"]
             say("Starting puma", :green); say(content["puma_restart"])
+          end
+          if content["processes"]
+            say("Starting processes", :green); say(content["processes"])
           end
           if content["after_restart"]
             say("After restart hook", :green); say(content["after_restart"])

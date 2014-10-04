@@ -1,3 +1,7 @@
+## master
+
+* [improvement] Deployment logs procesess moved after puma
+
 ## 0.4.37 / 2014-09-01
 
 * [bugfix] print user-friendly message if user tries to finish maintenance, but
