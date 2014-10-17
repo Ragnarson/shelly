@@ -1,6 +1,7 @@
 ## master
 
 * [improvement] Deployment logs procesess moved after puma
+* [improvement] User is able to choose zone while creating new cloud
 
 ## 0.4.37 / 2014-09-01
 

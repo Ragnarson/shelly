@@ -371,7 +371,7 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
         end
 
         it "should use zone from option" do
-          @app.should_receive(:zone_name=).with('eu1')
+          @app.should_receive(:zone=).with('eu1')
           @main.options = {"zone" => "eu1"}
           fake_stdin(["mycodename", ""]) do
             invoke(@main, :add)
@@ -583,6 +583,18 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
 
       expect do
         fake_stdin(["foooo", "none"]) do
+          invoke(@main, :add)
+        end
+      end.to raise_error(SystemExit)
+    end
+
+    it "should show conflict exception" do
+      exception = Shelly::Client::ConflictException.new({'error' => 'message'})
+      @app.should_receive(:create).and_raise(exception)
+      $stdout.should_receive(:puts).with(red "message")
+
+      expect do
+        fake_stdin(["foo", "none"]) do
           invoke(@main, :add)
         end
       end.to raise_error(SystemExit)

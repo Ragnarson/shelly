@@ -14,7 +14,7 @@ module Shelly
 
     attr_accessor :code_name, :databases, :ruby_version, :environment,
       :git_url, :domains, :web_server_ip, :size, :thin,
-      :organization_name, :zone_name, :usage, :traffic
+      :organization_name, :zone, :usage, :traffic
 
     def initialize(code_name = nil)
       self.code_name = code_name
@@ -71,7 +71,7 @@ module Shelly
     def create
       attributes = {:code_name => code_name,
                     :organization_name => organization_name,
-                    :zone_name => zone_name}
+                    :zone => zone}
       response = shelly.create_app(attributes)
       assign_attributes(response)
     end
