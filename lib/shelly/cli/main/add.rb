@@ -28,7 +28,7 @@ module Shelly
         app.databases = options["databases"] || ask_for_databases
         app.size = options["size"] || "small"
         app.organization_name = options["organization"] || ask_for_organization(options)
-        app.zone_name = options["zone"]
+        app.zone = options["zone"]
 
         app.create
         say "Cloud '#{app}' created in '#{app.organization_name}' organization", :green
@@ -54,6 +54,8 @@ module Shelly
         info_adding_cloudfile_to_repository
         info_deploying_to_shellycloud(git_remote)
 
+      rescue Client::ConflictException => e
+        say_error e[:error]
       rescue Client::ValidationException => e
         e.each_error { |error| say_error error, :with_exit => false }
         say_new_line
