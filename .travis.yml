@@ -1,9 +1,9 @@
 rvm:
-  - "2.1"
-  - 2.0.0
-  - 1.9.3
-  - jruby-19mode
+- '2.1'
+- 2.0.0
+- 1.9.3
+- jruby-19mode
 notifications:
   email: false
-  campfire:
-    secure: 'ZSIx+w/r0QrOtpWu8EfmlypA9+pCRYSNU01Hv0ZvxOBu1EEp1Z/sDif0dCyyLrhv7lUOESdlcfmwVXUx93zEk2f+YMakG0NBnvMUhlkUhBLEsxDdPIgihhTirUIcWLrtPhtUbFA68/eXAP55wlz4Vcou5CHz8kk0+qmUX7QnqlI='
+  slack:
+    secure: D5ohRHtjO58jbSOGxZIGFIBQ0GLGhpgojxgrNFxwebzyvfN4kQK9iDdurWapwuXPpsDukLz8gnnlaboJ0wjmqjp4MEtXoAO+3PdYHChPOiL/bSpOAtuE5o/Gh2LVu6RXI+//cuxjfREE2bSbdFJnFzlb3lccuoU4x1c3JB5YbS4=
