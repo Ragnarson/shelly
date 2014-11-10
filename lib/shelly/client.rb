@@ -18,7 +18,7 @@ module Shelly
     require 'shelly/client/ssh_keys'
     require 'shelly/client/organizations'
     require 'shelly/client/auth'
-    require 'shelly/client/cert'
+    require 'shelly/client/endpoint'
     require 'shelly/client/maintenance'
 
     def api_url

@@ -215,16 +215,24 @@ module Shelly
       configs.any? { |config| config["path"] == path }
     end
 
-    def cert
-      shelly.cert(code_name)
+    def endpoints
+      shelly.endpoints(code_name)
     end
 
-    def create_cert(content, key)
-      shelly.create_cert(code_name, content, key)
+    def endpoint(uuid)
+      shelly.endpoint(code_name, uuid)
     end
 
-    def update_cert(content, key)
-      shelly.update_cert(code_name, content, key)
+    def create_endpoint(certificate, key, sni)
+      shelly.create_endpoint(code_name, certificate, key, sni)
+    end
+
+    def update_endpoint(uuid, certificate, key)
+      shelly.update_endpoint(code_name, uuid, certificate, key)
+    end
+
+    def delete_endpoint(uuid)
+      shelly.delete_endpoint(code_name, uuid)
     end
 
     def rake(task)

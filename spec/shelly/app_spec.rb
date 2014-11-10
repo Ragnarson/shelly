@@ -541,20 +541,39 @@ describe Shelly::App do
     end
   end
 
-  context "certificate" do
-    it "#show_cert should query api" do
-      @client.should_receive(:cert).with(@app.code_name)
-      @app.cert
+  describe "#endpoints" do
+    it "should use api" do
+      @client.should_receive(:endpoints).with(@app.code_name)
+      @app.endpoints
     end
+  end
 
-    it "#create_cert should query api" do
-      @client.should_receive(:create_cert).with(@app.code_name, 'crt', 'key')
-      @app.create_cert("crt", "key")
+  describe "#show_endpoint" do
+    it "should use api" do
+      @client.should_receive(:endpoint).with(@app.code_name, 'uuid')
+      @app.endpoint('uuid')
     end
+  end
 
-    it "#update_cert should query api" do
-      @client.should_receive(:update_cert).with(@app.code_name, 'crt', 'key')
-      @app.update_cert("crt", "key")
+  describe "#create_cert" do
+    it "should use api" do
+      @client.should_receive(:create_endpoint).with(@app.code_name, 'crt', 'key', true)
+      @app.create_endpoint("crt", "key", true)
+    end
+  end
+
+  describe "#update_cert" do
+    it "should use api" do
+      @client.should_receive(:update_endpoint).with(@app.code_name, 'uuid',
+        "crt", "key")
+      @app.update_endpoint("uuid", "crt", "key")
+    end
+  end
+
+  describe "#delete_endpoint" do
+    it "should use api" do
+      @client.should_receive(:delete_endpoint).with(@app.code_name, "uuid")
+      @app.delete_endpoint("uuid")
     end
   end
 

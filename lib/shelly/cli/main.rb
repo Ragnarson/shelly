@@ -7,7 +7,7 @@ require "shelly/cli/config"
 require "shelly/cli/file"
 require "shelly/cli/organization"
 require "shelly/cli/logs"
-require "shelly/cli/cert"
+require "shelly/cli/endpoint"
 require "shelly/cli/maintenance"
 
 require "shelly/cli/main/add"
@@ -26,7 +26,7 @@ module Shelly
       register_subcommand(File, "file", "file <command>", "Upload and download files to and from persistent storage")
       register_subcommand(Organization, "organization", "organization <command>", "View organizations")
       register_subcommand(Logs, "log", "logs <command>", "View application logs")
-      register_subcommand(Cert, "cert", "cert <command>", "Mange application certificates")
+      register_subcommand(Endpoint, "endpoint", "cert <command>", "Mange application HTTP(S) endpoints")
       register_subcommand(Maintenance, "maintenance", "maintenance <command>", "Mange application maintenance events")
 
       check_unknown_options!(:except => :rake)
@@ -118,7 +118,7 @@ module Shelly
         print_wrapped "Deployed by: #{app.git_info["deployed_push_author"]}", :ident => 2
         say_new_line
         print_wrapped "Repository URL: #{app.git_info["repository_url"]}", :ident => 2
-        print_wrapped "Web server IP: #{app.web_server_ip}", :ident => 2
+        print_wrapped "Web server IP: #{app.web_server_ip.join(', ')}", :ident => 2
         say_new_line
 
         print_wrapped "Usage:", :ident => 2

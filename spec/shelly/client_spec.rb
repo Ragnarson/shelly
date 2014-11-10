@@ -432,22 +432,32 @@ describe Shelly::Client do
     end
   end
 
-  context "certificate" do
-    it "#cert should perform a get request" do
-      @client.should_receive(:get).with("/apps/staging-foo/cert")
-      @client.cert("staging-foo")
+  context "endpoints" do
+    it "#endpoints should perform a get request" do
+      @client.should_receive(:get).with("/apps/staging-foo/endpoints")
+      @client.endpoints("staging-foo")
     end
 
-    it "#create_cert should perform a post request" do
-      @client.should_receive(:post).with("/apps/staging-foo/cert",
-        :cert => {:content => 'crt', :key => 'key'})
-      @client.create_cert("staging-foo", "crt", "key")
+    it "#endpoint should perform a get request" do
+      @client.should_receive(:get).with("/apps/staging-foo/endpoints/uuid")
+      @client.endpoint("staging-foo", 'uuid')
     end
 
-    it "#update_cert should perform a put request" do
-      @client.should_receive(:put).with("/apps/staging-foo/cert",
-        :cert => {:content => 'crt', :key => 'key'})
-      @client.update_cert("staging-foo", "crt", "key")
+    it "#create_endpoint should perform a post request" do
+      @client.should_receive(:post).with("/apps/staging-foo/endpoints",
+        :endpoint => {:certificate => 'crt', :key => 'key', :sni => true})
+      @client.create_endpoint("staging-foo", 'crt', 'key', true)
+    end
+
+    it "#update_endpoint should perform a put request" do
+      @client.should_receive(:put).with("/apps/staging-foo/endpoints/uuid",
+        :endpoint => {:certificate => 'crt', :key => 'key'})
+      @client.update_endpoint("staging-foo", 'uuid', 'crt', 'key')
+    end
+
+    it "#delete_endpoint should perform a delete request" do
+      @client.should_receive(:delete).with("/apps/staging-foo/endpoints/uuid")
+      @client.delete_endpoint('staging-foo', 'uuid')
     end
   end
 
