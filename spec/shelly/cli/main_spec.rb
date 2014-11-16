@@ -1176,7 +1176,7 @@ Wait until cloud is in 'turned off' state and try again.")
             }
           }
         },
-        "web_server_ip" => "22.22.22.22"}.merge(options)
+        "web_server_ip" => ["22.22.22.22"]}.merge(options)
     end
   end
 
