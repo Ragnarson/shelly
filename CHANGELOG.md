@@ -1,7 +1,9 @@
-## 0.4.38 / 2014-10-20
+## 0.4.39 / 2014-11-17
 
 * [improvement] API changed to support multiple certificates and IP addresses,
   resource name changed from Cert to Endpoint
+
+## 0.4.38 / 2014-10-20
 
 * [improvement] Deployment logs procesess moved after puma
 * [improvement] User is able to choose zone while creating new cloud
