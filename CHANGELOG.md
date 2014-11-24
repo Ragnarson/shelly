@@ -1,3 +1,7 @@
+## master
+
+* [bugfix] Added UUID for show action in message given by `shelly endpoint help`
+
 ## 0.4.39 / 2014-11-17
 
 * [improvement] API changed to support multiple certificates and IP addresses,

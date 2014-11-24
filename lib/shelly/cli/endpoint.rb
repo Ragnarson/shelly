@@ -40,10 +40,9 @@ module Shelly
         end
       end
 
-      desc "show", "Show detail information about HTTP endpoint"
+      desc "show UUID", "Show detail information about HTTP endpoint"
       def show(uuid)
         app = multiple_clouds(options[:cloud], "endpoint show UUID")
-
         endpoint = app.endpoint(uuid)
 
         say "UUID: #{endpoint['uuid']}"
