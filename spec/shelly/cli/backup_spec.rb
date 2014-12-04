@@ -341,7 +341,7 @@ describe Shelly::CLI::Backup do
     context "file doesn't exist" do
       it "should exit with error" do
         $stdout.should_receive(:puts).with(red "Kind is invalid. You can" \
-          " import backup of: postgresql, mongodb")
+          " import backup of: postgresql, mysql, mongodb")
         lambda {
           invoke(@backup, :import, "wrong_kind", "dump.sql")
         }.should raise_error(SystemExit)
