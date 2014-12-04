@@ -30,7 +30,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency "ruby-progressbar"
   s.add_runtime_dependency "launchy"
   s.add_runtime_dependency "netrc"
-  s.add_runtime_dependency "childprocess"
+  s.add_runtime_dependency "childprocess", "~> 0.5.5"
 
   s.files         = `git ls-files`.split("\n")
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")

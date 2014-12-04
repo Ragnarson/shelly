@@ -1,5 +1,6 @@
 ## master
 
+* [bugfix] Added dependency on childprocess' version
 * [bugfix] Added UUID for show action in message given by `shelly endpoint help`
 
 ## 0.4.39 / 2014-11-17
