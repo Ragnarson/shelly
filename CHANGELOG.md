@@ -1,4 +1,4 @@
-## master
+## 0.4.40 / 2014-12-4
 
 * [feature] MySQL support
 * [bugfix] Added dependency on childprocess' version
