@@ -121,6 +121,7 @@ foo-staging:
       databases:
         - postgresql
         - mongodb
+        # - mysql
         # - redis
 config
 
@@ -152,6 +153,7 @@ foo-staging:
       databases:
         - postgresql
         - mongodb
+        # - mysql
         # - redis
 config
         @cloudfile.generate.should == expected

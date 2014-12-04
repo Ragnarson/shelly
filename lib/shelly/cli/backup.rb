@@ -70,7 +70,8 @@ module Shelly
         app = multiple_clouds(options[:cloud], "backup create [DB_KIND]")
         cloudfile = Cloudfile.new
         unless kind || cloudfile.present?
-          say_error "Cloudfile must be present in current working directory or specify database kind with:", :with_exit => false
+          say_error "Cloudfile must be present in current working directory " \
+            "or specify database kind with:", :with_exit => false
           say_error "`shelly backup create DB_KIND`"
         end
         app.request_backup(kind || app.backup_databases)
@@ -87,7 +88,8 @@ module Shelly
       def restore(filename)
         app = multiple_clouds(options[:cloud], "backup restore FILENAME")
         backup = app.database_backup(filename)
-        say "You are about to restore #{backup.kind} database for cloud #{backup.code_name} to state from #{backup.filename}"
+        say "You are about to restore #{backup.kind} database for cloud" \
+          " #{backup.code_name} to state from #{backup.filename}"
         say_new_line
         ask_to_restore_database
         app.restore_backup(filename)
@@ -114,8 +116,9 @@ module Shelly
         unless ::File.exist?(filename)
           say_error "File #{filename} doesn't exist"
         end
-        unless ['postgresql', 'mongodb'].include?(kind)
-          say_error "Kind is invalid. You can import backup of: postgresql, mongodb"
+        unless ['postgresql', 'mysql', 'mongodb'].include?(kind)
+          say_error "Kind is invalid. You can import backup of: postgresql, " \
+            "mysql, mongodb"
         end
         if options[:reset]
           say_warning "You are about to reset database #{kind} for cloud #{app}"
@@ -124,7 +127,8 @@ module Shelly
           say_new_line
           yes?(question) ? app.reset_database(kind) : say_error("Canceled")
         else
-          say_warning "You are about to import #{kind} database for cloud #{app} to state from file #{filename}"
+          say_warning "You are about to import #{kind} database for cloud " \
+            "#{app} to state from file #{filename}"
           question = "I want to import the database from dump (yes/no):"
           say_new_line
           say_error "Canceled" unless yes?(question)

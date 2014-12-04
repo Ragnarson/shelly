@@ -8,7 +8,7 @@ module Shelly
   class App < Model
     include ::Shellwords
 
-    DATABASE_KINDS = %w(postgresql mongodb redis)
+    DATABASE_KINDS = %w(postgresql mysql mongodb redis)
     DATABASE_CHOICES = DATABASE_KINDS + %w(none)
     SERVER_SIZES = %w(small large)
 

@@ -1,5 +1,6 @@
 ## master
 
+* [feature] MySQL support
 * [bugfix] Added dependency on childprocess' version
 * [bugfix] Added UUID for show action in message given by `shelly endpoint help`
 
