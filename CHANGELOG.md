@@ -1,4 +1,8 @@
-## 0.4.40 / 2014-12-4
+## 0.4.41 / 2014-12-11
+
+* [improvement] Updated mime-types dependency
+
+## 0.4.40 / 2014-12-04
 
 * [feature] MySQL support
 * [bugfix] Added dependency on childprocess' version
