@@ -1442,7 +1442,7 @@ Wait until cloud is in 'turned off' state and try again.")
     end
 
     it "should invoke rake task" do
-      @app.should_receive(:rake).with("db:migrate")
+      @app.should_receive(:rake).with("db:migrate", nil)
       invoke(@main, :rake, "db:migrate")
     end
 
@@ -1450,7 +1450,7 @@ Wait until cloud is in 'turned off' state and try again.")
       before { @main.unstub!(:rake_args) }
 
       it "should return Array of rake arguments (skipping shelly gem arguments)" do
-        argv = %w(rake -T db --cloud foo-production --debug)
+        argv = %w(rake -T db --server app1 --cloud foo-production --debug)
         @main.rake_args(argv).should == %w(-T db)
       end
 
