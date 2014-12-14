@@ -1,4 +1,4 @@
-## master
+## 0.4.42 / 2014-12-14
 
 * [improvement] Added --server / -s option for shelly rake command, so user
   is able to run rake task on given virtual server
