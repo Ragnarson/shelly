@@ -1,3 +1,8 @@
+## master
+
+* [improvement] Added --server / -s option for shelly rake command, so user
+  is able to run rake task on given virtual server
+
 ## 0.4.41 / 2014-12-11
 
 * [improvement] Updated mime-types dependency

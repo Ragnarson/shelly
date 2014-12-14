@@ -235,8 +235,8 @@ module Shelly
       shelly.delete_endpoint(code_name, uuid)
     end
 
-    def rake(task)
-      ssh(:command => "rake_runner \"#{task}\"")
+    def rake(task, server = nil)
+      ssh(:command => "rake_runner \"#{task}\"", :server => server)
     end
 
     def dbconsole

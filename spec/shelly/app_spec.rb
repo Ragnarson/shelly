@@ -421,6 +421,15 @@ describe Shelly::App do
       @app.should_receive(:childprocess).with("ssh -o StrictHostKeyChecking=no -p 40010 -l foo -t -t console.example.com rake_runner \"test\"")
       @app.rake("test")
     end
+
+    context "when server option is present" do
+      it "should run rake task on given server" do
+        @client.should_receive(:tunnel).
+          with("foo-staging", "ssh", "app1").and_return({})
+        @app.should_receive(:childprocess)
+        @app.rake("test", "app1")
+      end
+    end
   end
 
   describe "#dbconsole" do

@@ -289,13 +289,20 @@ Wait until cloud is in 'turned off' state and try again.}
       end
 
       desc "rake TASK", "Run rake task"
-      method_option :cloud, :type => :string, :aliases => "-c", :desc => "Specify cloud"
+      method_option :cloud, :type => :string, :aliases => "-c",
+        :desc => "Specify cloud"
+      method_option :server, :type => :string, :aliases => "-s",
+        :desc => "Specify virtual server, it's random by default"
       def rake(task = nil)
         task = rake_args.join(" ")
         app = multiple_clouds(options[:cloud], "rake #{task}")
-        app.rake(task)
+        app.rake(task, options[:server])
       rescue Client::ConflictException
         say_error "Cloud #{app} is not running. Cannot run rake task."
+      rescue Client::NotFoundException => e
+        raise unless e.resource == :virtual_server
+        say_error "Virtual server '#{options[:server]}' not found or" \
+          " not configured for running rake task."
       end
 
       desc "dbconsole", "Run rails dbconsole"
@@ -393,7 +400,7 @@ Wait until cloud is in 'turned off' state and try again.}
             args.each do |arg|
               case arg
               when "rake", "--debug"
-              when "--cloud", "-c"
+              when "--cloud", "-c", "--server", "-s"
                 skip_next = true
               else
                 out << arg unless skip_next
