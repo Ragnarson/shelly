@@ -122,7 +122,7 @@ describe Shelly::CLI::Config do
     it "should warn that config file already exists in specified path" do
       Shelly::App.stub(:new).and_return(@app)
       @app.stub(:config_exists? => true)
-      $stdout.should_receive(:puts).with(red "File 'new_config' already exists. Use `shelly config edit new_config --cloud ` to update it.")
+      $stdout.should_receive(:puts).with(red "File 'new_config' already exists. Use `shelly config edit new_config --cloud foo-production` to update it.")
       invoke(@config, :create, "new_config")
     end
 

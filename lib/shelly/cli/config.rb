@@ -52,7 +52,7 @@ module Shelly
       def create(path)
         app = multiple_clouds(options[:cloud], "create #{path}")
         if app.config_exists?(path)
-          say "File '#{path}' already exists. Use `shelly config edit #{path} --cloud #{options[:cloud]}` to update it.", :red
+          say "File '#{path}' already exists. Use `shelly config edit #{path} --cloud #{app}` to update it.", :red
         else
           output = open_editor(path)
           app.create_config(path, output)
