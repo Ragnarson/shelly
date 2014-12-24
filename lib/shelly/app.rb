@@ -11,10 +11,11 @@ module Shelly
     DATABASE_KINDS = %w(postgresql mysql mongodb redis)
     DATABASE_CHOICES = DATABASE_KINDS + %w(none)
     SERVER_SIZES = %w(small large)
+    REGIONS = %w(EU NA)
 
     attr_accessor :code_name, :databases, :ruby_version, :environment,
       :git_url, :domains, :web_server_ip, :size, :thin,
-      :organization_name, :zone, :usage, :traffic
+      :organization_name, :zone, :region, :usage, :traffic
 
     def initialize(code_name = nil)
       self.code_name = code_name
@@ -71,7 +72,8 @@ module Shelly
     def create
       attributes = {:code_name => code_name,
                     :organization_name => organization_name,
-                    :zone => zone}
+                    :zone => zone,
+                    :region => region}
       response = shelly.create_app(attributes)
       assign_attributes(response)
     end

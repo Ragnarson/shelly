@@ -1,9 +1,10 @@
 class Shelly::Client
   def create_app(attributes)
     organization = attributes.delete(:organization_name)
+    region = attributes.delete(:region)
     zone = attributes.delete(:zone)
     post("/apps", :app => attributes, :organization_name => organization,
-           :zone => zone)
+           :region => region, :zone => zone)
   end
 
   def delete_app(code_name)

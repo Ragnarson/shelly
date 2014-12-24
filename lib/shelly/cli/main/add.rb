@@ -17,6 +17,8 @@ module Shelly
         :desc => "Skip Shelly Cloud requirements check"
       method_option "zone", :type => :string, :hide => true,
         :desc => "Create cloud in given zone"
+      method_option "region", :type => :string,
+        :desc => "Create cloud in given region"
       desc "add", "Add a new cloud"
       def add
         check_options(options)
@@ -27,7 +29,9 @@ module Shelly
         app.code_name = options["code-name"] || ask_for_code_name
         app.databases = options["databases"] || ask_for_databases
         app.size = options["size"] || "small"
-        app.organization_name = options["organization"] || ask_for_organization(options)
+        app.organization_name = options["organization"] ||
+          ask_for_organization(options)
+        app.region = options["region"] || ask_for_region
         app.zone = options["zone"]
 
         app.create
@@ -60,7 +64,7 @@ module Shelly
         e.each_error { |error| say_error error, :with_exit => false }
         say_new_line
         say_error "Fix erros in the below command and type it again to create your cloud" , :with_exit => false
-        say_error "shelly add --code-name=#{app.code_name.downcase.dasherize} --databases=#{app.databases.join(',')} --organization=#{app.organization_name} --size=#{app.size}"
+        say_error "shelly add --code-name=#{app.code_name.downcase.dasherize} --databases=#{app.databases.join(',')} --organization=#{app.organization_name} --size=#{app.size} --region=#{app.region}"
       rescue Client::ForbiddenException
         say_error "You have to be the owner of '#{app.organization_name}' organization to add clouds"
       rescue Client::NotFoundException => e
@@ -113,6 +117,28 @@ module Shelly
           end
         end
 
+        def ask_for_region
+          regions = Shelly::App::REGIONS
+          say "Select region for this cloud:"
+          say_new_line
+
+          loop do
+            say "available regions:"
+
+            regions.each_with_index do |region, i|
+              print_wrapped "#{i + 1}) #{region}", :ident => 2
+            end
+            say_new_line
+
+            selected = ask("Region:").upcase
+            if regions.include?(selected)
+              return selected
+            else
+              say_new_line
+              say_warning "#{selected} region is not available"
+            end
+          end
+        end
       end
     end
   end

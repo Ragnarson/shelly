@@ -356,7 +356,8 @@ describe Shelly::App do
       attributes = {
         :code_name => "fooo",
         :organization_name => nil,
-        :zone => nil
+        :zone => nil,
+        :region => nil
       }
       @client.should_receive(:create_app).with(attributes).and_return("git_url" => "git@git.shellycloud.com:fooo.git",
         "domains" => %w(fooo.shellyapp.com))

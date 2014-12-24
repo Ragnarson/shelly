@@ -317,6 +317,7 @@ describe Shelly::CLI::Main do
       @app.stub(:git_remote_exist?).and_return(false)
       @main.stub(:check => true)
       @main.stub(:ask_for_organization)
+      @main.stub(:ask_for_region).and_return('EU')
     end
 
     # This spec tests inside_git_repository? hook
@@ -371,8 +372,16 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
         end
 
         it "should use zone from option" do
-          @app.should_receive(:zone=).with('eu1')
-          @main.options = {"zone" => "eu1"}
+          @app.should_receive(:zone=).with('zone')
+          @main.options = {"zone" => "zone"}
+          fake_stdin(["mycodename", ""]) do
+            invoke(@main, :add)
+          end
+        end
+
+        it "should use region from option" do
+          @app.should_receive(:region=).with('eu1')
+          @main.options = {"region" => "eu1"}
           fake_stdin(["mycodename", ""]) do
             invoke(@main, :add)
           end
@@ -476,7 +485,7 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
       @app.should_receive(:create).and_raise(exception)
       $stdout.should_receive(:puts).with(red "Code name has been already taken")
       $stdout.should_receive(:puts).with(red "Fix erros in the below command and type it again to create your cloud")
-      $stdout.should_receive(:puts).with(red "shelly add --code-name=big-letters --databases=postgresql --organization=org-name --size=small")
+      $stdout.should_receive(:puts).with(red "shelly add --code-name=big-letters --databases=postgresql --organization=org-name --size=small --region=EU")
       lambda {
         fake_stdin(["BiG_LETTERS", ""]) do
           invoke(@main, :add)
@@ -676,6 +685,59 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
             invoke(@main, :add)
           end
         end.to raise_error(SystemExit)
+      end
+    end
+
+    context "for region" do
+      before do
+        @main.unstub(:ask_for_region)
+      end
+
+      it "should use the value from the --region option" do
+        @main.options = {"region" => "EU"}
+        @app.should_receive(:region=).with("EU")
+        fake_stdin(["foo", "none"]) do
+          invoke(@main, :add)
+        end
+      end
+
+      it "should ask user to choose the region" do
+        @app.should_receive(:region=).with("NA")
+        $stdout.should_receive(:puts).with("Select region for this cloud:")
+        $stdout.should_receive(:puts).with("available regions:")
+        $stdout.should_receive(:puts).with("  1) EU")
+        $stdout.should_receive(:puts).with("  2) NA")
+        $stdout.should_receive(:print).with("Region: ")
+        fake_stdin(["foo", "none", "NA"]) do
+          invoke(@main, :add)
+        end
+      end
+
+      context "when given region is not available" do
+        it "should print a warning message and ask again" do
+          $stdout.should_receive(:puts).
+            with(yellow "ASIA region is not available")
+          $stdout.should_receive(:puts).with("available regions:").twice
+          fake_stdin(["foo", "none", "ASIA", "NA"]) do
+            invoke(@main, :add)
+          end
+        end
+      end
+
+      context "when given region does not accepts new apps" do
+        it "should show that it is not available" do
+          @main.options = {"region" => "NA"}
+          response = {"error" => "Given region is unavailable"}
+          exception = Shelly::Client::ConflictException.new(response)
+          @app.should_receive(:create).and_raise(exception)
+          $stdout.should_receive(:puts).with(red "Given region is unavailable")
+
+          expect do
+            fake_stdin(["foo", "none", "NA"]) do
+              invoke(@main, :add)
+            end
+          end.to raise_error(SystemExit)
+        end
       end
     end
   end
