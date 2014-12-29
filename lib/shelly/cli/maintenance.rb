@@ -21,10 +21,10 @@ module Shelly
           say_new_line
 
           maintenances.each do |maintenance|
-            started_at = Time.parse(maintenance['created_at']).
+            started_at = Time.parse(maintenance['created_at']).getlocal.
               strftime('%Y-%m-%d %H:%M:%S')
             finished_at = if maintenance['finished']
-              Time.parse(maintenance['updated_at']).
+              Time.parse(maintenance['updated_at']).getlocal.
                 strftime('%Y-%m-%d %H:%M:%S')
             else
               'in progress'
