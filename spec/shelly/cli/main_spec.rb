@@ -617,7 +617,7 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
       it "should use --organization option" do
         @main.options = {"organization" => "foo"}
         @app.should_receive(:organization_name=).with("foo")
-        fake_stdin(["foooo", "none"]) do
+        fake_stdin(["foo", "none"]) do
           invoke(@main, :add)
         end
       end
@@ -627,46 +627,51 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
           @client.stub(:organizations).and_return([{"name" => "aaa"}])
         end
 
-        it "should ask user to choose organization if present and use chosen organization" do
-          @app.should_receive(:organization_name=).with("aaa")
-          $stdout.should_receive(:puts).with("Select organization for this cloud:")
+        it "should ask user to choose organization" do
+          $stdout.should_receive(:puts).
+          with("Select organization for this cloud:")
           $stdout.should_receive(:puts).with("existing organizations:")
           $stdout.should_receive(:puts).with("  1) aaa")
-          $stdout.should_receive(:puts).with("  2) provide name for new organization")
-          $stdout.should_receive(:print).with("Option: ")
-          fake_stdin(["foooo", "none", "1"]) do
+          $stdout.should_receive(:puts).
+          with(green "Or leave empty to create a new organization")
+          $stdout.should_receive(:print).with("Organization: ")
+          fake_stdin(["foo", "none", "aaa"]) do
             invoke(@main, :add)
           end
         end
 
-        it "should ask user to create new organization" do
+        it "should keep asking until user will provide a valid option" do
+          $stdout.should_receive(:print).with("Organization: ").twice
+          fake_stdin(["foo", "none", "bbb", "aaa"]) do
+            invoke(@main, :add)
+          end
+        end
+
+        it "should use choosen organization" do
+          @app.should_receive(:organization_name=).with("aaa")
+          fake_stdin(["foo", "none", "aaa"]) do
+            invoke(@main, :add)
+          end
+        end
+
+        it "should ask user to create a new organization" do
+          @app.should_receive(:organization_name=).with('org-name')
+          @client.should_receive(:create_organization).
+            with({:name => "org-name", :redeem_code => nil})
+          $stdout.should_receive(:print).
+            with("Organization name (foo - default): ")
+          $stdout.should_receive(:puts).
+            with(green "Organization 'org-name' created")
+          fake_stdin(["foo", "none", "", "org-name"]) do
+            invoke(@main, :add)
+          end
+        end
+
+        it "should use --redeem-code option" do
           @main.options = {'redeem-code' => 'discount'}
           @client.should_receive(:create_organization).
             with({:name => "org-name", :redeem_code => 'discount'})
-          @app.should_receive(:organization_name=).with('org-name')
-          $stdout.should_receive(:puts).with("Select organization for this cloud:")
-          $stdout.should_receive(:puts).with("existing organizations:")
-          $stdout.should_receive(:puts).with("  1) aaa")
-          $stdout.should_receive(:puts).with("  2) provide name for new organization")
-          $stdout.should_receive(:print).with("Option: ")
-          $stdout.should_receive(:print).with("Organization name (foo - default): ")
-          $stdout.should_receive(:puts).with(green "Organization 'org-name' created")
-          fake_stdin(["foooo", "none", "2", "org-name"]) do
-            invoke(@main, :add)
-          end
-        end
-
-        it "should use redeem-code option" do
-          @client.should_receive(:create_organization).
-            with({:name => "org-name", :redeem_code => nil})
-          $stdout.should_receive(:puts).with("Select organization for this cloud:")
-          $stdout.should_receive(:puts).with("existing organizations:")
-          $stdout.should_receive(:puts).with("  1) aaa")
-          $stdout.should_receive(:puts).with("  2) provide name for new organization")
-          $stdout.should_receive(:print).with("Option: ")
-          $stdout.should_receive(:print).with("Organization name (foo - default): ")
-          $stdout.should_receive(:puts).with(green "Organization 'org-name' created")
-          fake_stdin(["foooo", "none", "2", "org-name"]) do
+          fake_stdin(["foo", "none", "", "org-name"]) do
             invoke(@main, :add)
           end
         end
@@ -677,8 +682,11 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
         response = {"resource" => "organization"}
         exception = Shelly::Client::NotFoundException.new(response)
         @app.should_receive(:create).and_raise(exception)
-        $stdout.should_receive(:puts).with(red "Organization 'foo' not found")
-        $stdout.should_receive(:puts).with(red "You can list organizations you have access to with `shelly organization list`")
+        $stdout.should_receive(:puts).
+          with(red "Organization 'foo' not found")
+        $stdout.should_receive(:puts).
+          with(red "You can list organizations you have access to with" \
+            " `shelly organization list`")
 
         expect do
           fake_stdin(["foooo", "none"]) do

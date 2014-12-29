@@ -76,33 +76,33 @@ module Shelly
       no_tasks do
         def ask_for_organization(options)
           organizations = Shelly::User.new.organizations
+
           if organizations.blank?
             ask_for_new_organization(options)
           else
-            count = organizations.count
-            option_selected = 0
+            say "Select organization for this cloud:"
+            say_new_line
+
             loop do
-              say "Select organization for this cloud:"
-              say_new_line
               say "existing organizations:"
 
               organizations.each_with_index do |organization, i|
                 print_wrapped "#{i + 1}) #{organization.name}", :ident => 2
               end
+
+              say green "Or leave empty to create a new organization"
               say_new_line
 
-              print_wrapped "#{count + 1}) provide name for new organization", :ident => 2
-
-              option_selected = ask("Option:")
-              break if ('1'..(count + 1).to_s).include?(option_selected)
-            end
-
-            if option_selected.to_i == count + 1
-              return ask_for_new_organization(options)
-            end
-
-            if (1..count).include?(option_selected.to_i)
-              return organizations[option_selected.to_i - 1].name
+              selected = ask("Organization:")
+              if organizations.select { |o| o.name == selected }.present?
+                return selected
+              elsif selected.empty?
+                say_new_line
+                return ask_for_new_organization(options)
+              else
+                say_new_line
+                say_warning "#{selected} organization does not exist"
+              end
             end
           end
         end
