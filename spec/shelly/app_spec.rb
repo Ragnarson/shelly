@@ -153,6 +153,7 @@ describe Shelly::App do
   describe "#attributes" do
     before do
       @response = {"web_server_ip" => "192.0.2.1",
+                   "region" => "EU",
                    "state" => "running",
                    "maintenance" => false,
                    "organization" => {
@@ -187,6 +188,12 @@ describe Shelly::App do
     describe "#web_server_ip" do
       it "should return web server ip address" do
         @app.web_server_ip.should == "192.0.2.1"
+      end
+    end
+
+    describe "#region" do
+      it "should return cloud region" do
+        @app.region.should == "EU"
       end
     end
 

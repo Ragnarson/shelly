@@ -73,7 +73,7 @@ module Shelly
       attributes = {:code_name => code_name,
                     :organization_name => organization_name,
                     :zone => zone,
-                    :region => region}
+                    :region => @region}
       response = shelly.create_app(attributes)
       assign_attributes(response)
     end
@@ -279,6 +279,10 @@ module Shelly
 
     def git_info
       attributes["git_info"]
+    end
+
+    def region
+      attributes['region'] || @region
     end
 
     def state

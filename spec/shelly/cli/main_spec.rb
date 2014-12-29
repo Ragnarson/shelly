@@ -1076,6 +1076,7 @@ Wait until cloud is in 'turned off' state and try again.")
       it "should display basic information about cloud" do
         @main.should_receive(:multiple_clouds).and_return(@app)
         $stdout.should_receive(:puts).with(green "Cloud foo-production:")
+        $stdout.should_receive(:puts).with("  Region: EU")
         $stdout.should_receive(:puts).with("  State: running")
         $stdout.should_receive(:puts).with("  Deployed commit sha: 52e65ed2d085eaae560cdb81b2b56a7d76")
         $stdout.should_receive(:puts).with("  Deployed commit message: Commit message")
@@ -1138,6 +1139,7 @@ Wait until cloud is in 'turned off' state and try again.")
                          "maintenance" => true}))
             @main.should_receive(:multiple_clouds).and_return(@app)
             $stdout.should_receive(:puts).with(red "Cloud foo-production:")
+            $stdout.should_receive(:puts).with("  Region: EU")
             $stdout.should_receive(:puts).with("  State: admin maintenance in progress")
             $stdout.should_receive(:puts).with("  Deployed commit sha: 52e65ed2d085eaae560cdb81b2b56a7d76")
             $stdout.should_receive(:puts).with("  Deployed commit message: Commit message")
@@ -1171,6 +1173,7 @@ Wait until cloud is in 'turned off' state and try again.")
                          "maintenance" => false}))
             @main.should_receive(:multiple_clouds).and_return(@app)
             $stdout.should_receive(:puts).with(red "Cloud foo-production:")
+            $stdout.should_receive(:puts).with("  Region: EU")
             $stdout.should_receive(:puts).with("  State: running (last deployment failed) (deployment log: `shelly deploys show last -c foo-production`)")
             $stdout.should_receive(:puts).with("  Deployed commit sha: 52e65ed2d085eaae560cdb81b2b56a7d76")
             $stdout.should_receive(:puts).with("  Deployed commit message: Commit message")
@@ -1218,6 +1221,7 @@ Wait until cloud is in 'turned off' state and try again.")
 
     def response(options = {})
       { "code_name" => "foo-production",
+        "region" => "EU",
         "state" => "running",
         "state_description" => "running",
         "git_info" => {
