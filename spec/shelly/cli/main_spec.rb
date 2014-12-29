@@ -371,11 +371,23 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
           invoke(@main, :add)
         end
 
-        it "should use zone from option" do
-          @app.should_receive(:zone=).with('zone')
-          @main.options = {"zone" => "zone"}
-          fake_stdin(["mycodename", ""]) do
-            invoke(@main, :add)
+        context "for zone param" do
+          it "should use zone from option" do
+            @app.should_receive(:zone=).with('zone')
+            @main.options = {"zone" => "zone"}
+            fake_stdin(["mycodename", ""]) do
+              invoke(@main, :add)
+            end
+          end
+
+          it "should not ask about the region" do
+            @app.should_not_receive(:region=)
+            $stdout.should_not_receive(:puts).
+              with("Select region for this cloud:")
+            @main.options = {"zone" => "zone"}
+            fake_stdin(["mycodename", ""]) do
+              invoke(@main, :add)
+            end
           end
         end
 

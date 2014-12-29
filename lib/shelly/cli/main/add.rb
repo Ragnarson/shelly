@@ -31,8 +31,11 @@ module Shelly
         app.size = options["size"] || "small"
         app.organization_name = options["organization"] ||
           ask_for_organization(options)
-        app.region = options["region"] || ask_for_region
-        app.zone = options["zone"]
+        if options["zone"].present?
+          app.zone = options["zone"]
+        else
+          app.region = options["region"] || ask_for_region
+        end
 
         app.create
         say "Cloud '#{app}' created in '#{app.organization_name}' organization", :green
