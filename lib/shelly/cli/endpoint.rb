@@ -94,6 +94,8 @@ module Shelly
           say "Private IP address was requested for your cloud."
           say "Support has been notified and will contact you shortly."
         end
+      rescue Client::ConflictException => e
+        say_error e['message']
       rescue Client::ValidationException => e
         e.each_error { |error| say_error error, :with_exit => false }
         exit 1
@@ -127,6 +129,8 @@ module Shelly
       rescue Client::ValidationException => e
         e.each_error { |error| say_error error, :with_exit => false }
         exit 1
+      rescue Client::ConflictException => e
+        say_error e['message']
       rescue Client::NotFoundException => e
         raise unless e.resource == :certificate
         say_error "Endpoint not found"

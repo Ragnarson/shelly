@@ -1,3 +1,7 @@
+## master
+
+* [bugfix] Catch Conflict 409 when creating or updating endpoints
+
 ## 0.4.42 / 2014-12-14
 
 * [improvement] Added --server / -s option for shelly rake command, so user

@@ -134,6 +134,19 @@ describe Shelly::CLI::Endpoint do
         }.should raise_error(SystemExit)
       end
     end
+
+    context "conflict error" do
+      it "should show errors and exit" do
+        exception = Shelly::Client::ConflictException.new("message" =>
+          "That's an error")
+        @app.should_receive(:create_endpoint).and_raise(exception)
+        $stdout.should_receive(:puts).with(red "That's an error")
+
+        lambda {
+          invoke(@cli, :create, "crt_path", "key_path", "bundle_path")
+        }.should raise_error(SystemExit)
+      end
+    end
   end
 
   describe "#update" do
@@ -161,6 +174,19 @@ describe Shelly::CLI::Endpoint do
 
         lambda {
           invoke(@cli, :update, 'uuid', "crt_path", "key_path", "bundle_path")
+        }.should raise_error(SystemExit)
+      end
+    end
+
+    context "conflict error" do
+      it "should show errors and exit" do
+        exception = Shelly::Client::ConflictException.new("message" =>
+          "That's an error")
+        @app.should_receive(:update_endpoint).and_raise(exception)
+        $stdout.should_receive(:puts).with(red "That's an error")
+
+        lambda {
+          invoke(@cli, :update, "crt_path", "key_path", "bundle_path")
         }.should raise_error(SystemExit)
       end
     end
