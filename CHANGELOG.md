@@ -1,4 +1,4 @@
-## master
+## 0.5.0 / 2015-01-02
 
 * [bugfix] Catch Conflict 409 when creating or updating endpoints
 * [improvement] shelly info should print cloud region
