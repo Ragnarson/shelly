@@ -1,6 +1,11 @@
 ## master
 
 * [bugfix] Catch Conflict 409 when creating or updating endpoints
+* [improvement] shelly info should print cloud region
+* [improvement] shelly add should ask about organization name instead of number
+  from the list
+* [improvement] Replaced zone with region
+* [improvement] Allow user to choose region for the new cloud
 
 ## 0.4.42 / 2014-12-14
 

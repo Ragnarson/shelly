@@ -111,6 +111,7 @@ module Shelly
         app = multiple_clouds(options[:cloud], "info")
         msg = info_show_last_deploy_logs(app)
         say "Cloud #{app}:", app.in_deploy_failed_state? ? :red : :green
+        print_wrapped "Region: #{app.region}", :ident => 2
         print_wrapped "State: #{app.state_description}#{msg}", :ident => 2
         say_new_line
         print_wrapped "Deployed commit sha: #{app.git_info["deployed_commit_sha"]}", :ident => 2

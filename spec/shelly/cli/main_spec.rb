@@ -317,6 +317,7 @@ describe Shelly::CLI::Main do
       @app.stub(:git_remote_exist?).and_return(false)
       @main.stub(:check => true)
       @main.stub(:ask_for_organization)
+      @main.stub(:ask_for_region).and_return('EU')
     end
 
     # This spec tests inside_git_repository? hook
@@ -370,9 +371,29 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
           invoke(@main, :add)
         end
 
-        it "should use zone from option" do
-          @app.should_receive(:zone=).with('eu1')
-          @main.options = {"zone" => "eu1"}
+        context "for zone param" do
+          it "should use zone from option" do
+            @app.should_receive(:zone=).with('zone')
+            @main.options = {"zone" => "zone"}
+            fake_stdin(["mycodename", ""]) do
+              invoke(@main, :add)
+            end
+          end
+
+          it "should not ask about the region" do
+            @app.should_not_receive(:region=)
+            $stdout.should_not_receive(:puts).
+              with("Select region for this cloud:")
+            @main.options = {"zone" => "zone"}
+            fake_stdin(["mycodename", ""]) do
+              invoke(@main, :add)
+            end
+          end
+        end
+
+        it "should use region from option" do
+          @app.should_receive(:region=).with('eu1')
+          @main.options = {"region" => "eu1"}
           fake_stdin(["mycodename", ""]) do
             invoke(@main, :add)
           end
@@ -476,7 +497,7 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
       @app.should_receive(:create).and_raise(exception)
       $stdout.should_receive(:puts).with(red "Code name has been already taken")
       $stdout.should_receive(:puts).with(red "Fix erros in the below command and type it again to create your cloud")
-      $stdout.should_receive(:puts).with(red "shelly add --code-name=big-letters --databases=postgresql --organization=org-name --size=small")
+      $stdout.should_receive(:puts).with(red "shelly add --code-name=big-letters --databases=postgresql --organization=org-name --size=small --region=EU")
       lambda {
         fake_stdin(["BiG_LETTERS", ""]) do
           invoke(@main, :add)
@@ -608,7 +629,7 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
       it "should use --organization option" do
         @main.options = {"organization" => "foo"}
         @app.should_receive(:organization_name=).with("foo")
-        fake_stdin(["foooo", "none"]) do
+        fake_stdin(["foo", "none"]) do
           invoke(@main, :add)
         end
       end
@@ -618,46 +639,51 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
           @client.stub(:organizations).and_return([{"name" => "aaa"}])
         end
 
-        it "should ask user to choose organization if present and use chosen organization" do
-          @app.should_receive(:organization_name=).with("aaa")
-          $stdout.should_receive(:puts).with("Select organization for this cloud:")
+        it "should ask user to choose organization" do
+          $stdout.should_receive(:puts).
+          with("Select organization for this cloud:")
           $stdout.should_receive(:puts).with("existing organizations:")
           $stdout.should_receive(:puts).with("  1) aaa")
-          $stdout.should_receive(:puts).with("  2) provide name for new organization")
-          $stdout.should_receive(:print).with("Option: ")
-          fake_stdin(["foooo", "none", "1"]) do
+          $stdout.should_receive(:puts).
+          with(green "Or leave empty to create a new organization")
+          $stdout.should_receive(:print).with("Organization: ")
+          fake_stdin(["foo", "none", "aaa"]) do
             invoke(@main, :add)
           end
         end
 
-        it "should ask user to create new organization" do
+        it "should keep asking until user will provide a valid option" do
+          $stdout.should_receive(:print).with("Organization: ").twice
+          fake_stdin(["foo", "none", "bbb", "aaa"]) do
+            invoke(@main, :add)
+          end
+        end
+
+        it "should use choosen organization" do
+          @app.should_receive(:organization_name=).with("aaa")
+          fake_stdin(["foo", "none", "aaa"]) do
+            invoke(@main, :add)
+          end
+        end
+
+        it "should ask user to create a new organization" do
+          @app.should_receive(:organization_name=).with('org-name')
+          @client.should_receive(:create_organization).
+            with({:name => "org-name", :redeem_code => nil})
+          $stdout.should_receive(:print).
+            with("Organization name (foo - default): ")
+          $stdout.should_receive(:puts).
+            with(green "Organization 'org-name' created")
+          fake_stdin(["foo", "none", "", "org-name"]) do
+            invoke(@main, :add)
+          end
+        end
+
+        it "should use --redeem-code option" do
           @main.options = {'redeem-code' => 'discount'}
           @client.should_receive(:create_organization).
             with({:name => "org-name", :redeem_code => 'discount'})
-          @app.should_receive(:organization_name=).with('org-name')
-          $stdout.should_receive(:puts).with("Select organization for this cloud:")
-          $stdout.should_receive(:puts).with("existing organizations:")
-          $stdout.should_receive(:puts).with("  1) aaa")
-          $stdout.should_receive(:puts).with("  2) provide name for new organization")
-          $stdout.should_receive(:print).with("Option: ")
-          $stdout.should_receive(:print).with("Organization name (foo - default): ")
-          $stdout.should_receive(:puts).with(green "Organization 'org-name' created")
-          fake_stdin(["foooo", "none", "2", "org-name"]) do
-            invoke(@main, :add)
-          end
-        end
-
-        it "should use redeem-code option" do
-          @client.should_receive(:create_organization).
-            with({:name => "org-name", :redeem_code => nil})
-          $stdout.should_receive(:puts).with("Select organization for this cloud:")
-          $stdout.should_receive(:puts).with("existing organizations:")
-          $stdout.should_receive(:puts).with("  1) aaa")
-          $stdout.should_receive(:puts).with("  2) provide name for new organization")
-          $stdout.should_receive(:print).with("Option: ")
-          $stdout.should_receive(:print).with("Organization name (foo - default): ")
-          $stdout.should_receive(:puts).with(green "Organization 'org-name' created")
-          fake_stdin(["foooo", "none", "2", "org-name"]) do
+          fake_stdin(["foo", "none", "", "org-name"]) do
             invoke(@main, :add)
           end
         end
@@ -668,14 +694,70 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
         response = {"resource" => "organization"}
         exception = Shelly::Client::NotFoundException.new(response)
         @app.should_receive(:create).and_raise(exception)
-        $stdout.should_receive(:puts).with(red "Organization 'foo' not found")
-        $stdout.should_receive(:puts).with(red "You can list organizations you have access to with `shelly organization list`")
+        $stdout.should_receive(:puts).
+          with(red "Organization 'foo' not found")
+        $stdout.should_receive(:puts).
+          with(red "You can list organizations you have access to with" \
+            " `shelly organization list`")
 
         expect do
           fake_stdin(["foooo", "none"]) do
             invoke(@main, :add)
           end
         end.to raise_error(SystemExit)
+      end
+    end
+
+    context "for region" do
+      before do
+        @main.unstub(:ask_for_region)
+      end
+
+      it "should use the value from the --region option" do
+        @main.options = {"region" => "EU"}
+        @app.should_receive(:region=).with("EU")
+        fake_stdin(["foo", "none"]) do
+          invoke(@main, :add)
+        end
+      end
+
+      it "should ask user to choose the region" do
+        @app.should_receive(:region=).with("NA")
+        $stdout.should_receive(:puts).with("Select region for this cloud:")
+        $stdout.should_receive(:puts).with("available regions:")
+        $stdout.should_receive(:puts).with("  1) EU")
+        $stdout.should_receive(:puts).with("  2) NA")
+        $stdout.should_receive(:print).with("Region: ")
+        fake_stdin(["foo", "none", "NA"]) do
+          invoke(@main, :add)
+        end
+      end
+
+      context "when given region is not available" do
+        it "should print a warning message and ask again" do
+          $stdout.should_receive(:puts).
+            with(yellow "ASIA region is not available")
+          $stdout.should_receive(:puts).with("available regions:").twice
+          fake_stdin(["foo", "none", "ASIA", "NA"]) do
+            invoke(@main, :add)
+          end
+        end
+      end
+
+      context "when given region does not accepts new apps" do
+        it "should show that it is not available" do
+          @main.options = {"region" => "NA"}
+          response = {"error" => "Given region is unavailable"}
+          exception = Shelly::Client::ConflictException.new(response)
+          @app.should_receive(:create).and_raise(exception)
+          $stdout.should_receive(:puts).with(red "Given region is unavailable")
+
+          expect do
+            fake_stdin(["foo", "none", "NA"]) do
+              invoke(@main, :add)
+            end
+          end.to raise_error(SystemExit)
+        end
       end
     end
   end
@@ -1006,6 +1088,7 @@ Wait until cloud is in 'turned off' state and try again.")
       it "should display basic information about cloud" do
         @main.should_receive(:multiple_clouds).and_return(@app)
         $stdout.should_receive(:puts).with(green "Cloud foo-production:")
+        $stdout.should_receive(:puts).with("  Region: EU")
         $stdout.should_receive(:puts).with("  State: running")
         $stdout.should_receive(:puts).with("  Deployed commit sha: 52e65ed2d085eaae560cdb81b2b56a7d76")
         $stdout.should_receive(:puts).with("  Deployed commit message: Commit message")
@@ -1068,6 +1151,7 @@ Wait until cloud is in 'turned off' state and try again.")
                          "maintenance" => true}))
             @main.should_receive(:multiple_clouds).and_return(@app)
             $stdout.should_receive(:puts).with(red "Cloud foo-production:")
+            $stdout.should_receive(:puts).with("  Region: EU")
             $stdout.should_receive(:puts).with("  State: admin maintenance in progress")
             $stdout.should_receive(:puts).with("  Deployed commit sha: 52e65ed2d085eaae560cdb81b2b56a7d76")
             $stdout.should_receive(:puts).with("  Deployed commit message: Commit message")
@@ -1101,6 +1185,7 @@ Wait until cloud is in 'turned off' state and try again.")
                          "maintenance" => false}))
             @main.should_receive(:multiple_clouds).and_return(@app)
             $stdout.should_receive(:puts).with(red "Cloud foo-production:")
+            $stdout.should_receive(:puts).with("  Region: EU")
             $stdout.should_receive(:puts).with("  State: running (last deployment failed) (deployment log: `shelly deploys show last -c foo-production`)")
             $stdout.should_receive(:puts).with("  Deployed commit sha: 52e65ed2d085eaae560cdb81b2b56a7d76")
             $stdout.should_receive(:puts).with("  Deployed commit message: Commit message")
@@ -1148,6 +1233,7 @@ Wait until cloud is in 'turned off' state and try again.")
 
     def response(options = {})
       { "code_name" => "foo-production",
+        "region" => "EU",
         "state" => "running",
         "state_description" => "running",
         "git_info" => {
