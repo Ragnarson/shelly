@@ -34,7 +34,6 @@ module Shelly
           end
 
           print_table(to_display, :ident => 2)
-
         else
           say "No HTTP endpoints available"
         end
@@ -80,6 +79,18 @@ module Shelly
       def create(cert_path = nil, key_path = nil, bundle_path = nil)
         app = multiple_clouds(options[:cloud],
           "endpoint create [CERT_PATH] [KEY_PATH] [BUNDLE_PATH]")
+
+        say "Every unique IP address assigned to endpoint costs 10€/month"
+        say "It's required for SSL/TLS"
+        if cert_path == nil && key_path == nil
+          say "You didn't provide certificate but it can be added later"
+          say "Assigned IP address can be used to catch all domains pointing to that address, without SSL/TLS enabled"
+          exit(0) unless yes?("Are you sure you want to create endpoint without certificate (yes/no):")
+        elsif app.endpoints.count > 0
+          ask_if_endpoints_were_already_created(app)
+        else
+          exit(0) unless yes?("Are you sure you want to create endpoint? (yes/no):")
+        end
 
         certificate, key = read_certificate_components(cert_path, key_path,
           bundle_path)
@@ -171,6 +182,16 @@ module Shelly
 
             [certificate, key]
           end
+        end
+
+        def ask_if_endpoints_were_already_created(app)
+          cli = Shelly::CLI::Endpoint.new
+          cli.options = {:cloud => app}
+          cli.list
+          say_new_line
+          exit(0) unless yes?("You already have assigned endpoint(s). Are " \
+            "you sure you want to create another one with a new IP address? " \
+            "(yes/no):")
         end
       end
     end
