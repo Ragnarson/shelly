@@ -29,31 +29,6 @@ describe Shelly::CLI::Endpoint do
       invoke(@cli, :list)
     end
 
-    def endpoints_response
-      [
-        {'ip_address' => '10.0.0.1',
-          'sni' => true,
-          'uuid' => 'uuid1', 'info' => {
-            'domain' => 'example.com',
-            'issuer' => 'CA',
-            'subjcet' => 'organization info',
-            'since' => '2012-06-11 23:00:00 UTC',
-            'to' => '2015-06-11 23:00:00 UTC'
-          }
-        },
-        {'ip_address' => '10.0.0.2',
-          'sni' => false,
-          'uuid' => 'uuid2', 'info' => {
-            'domain' => nil,
-            'issuer' => nil,
-            'subjcet' => nil,
-            'since' => nil,
-            'to' => nil
-           }
-        }
-      ]
-    end
-
     context "no endpoints" do
       it "should display information" do
         @app.should_receive(:endpoints).and_return([])
@@ -98,28 +73,86 @@ describe Shelly::CLI::Endpoint do
       File.stub(:read).with('crt_path').and_return('crt')
       File.stub(:read).with('key_path').and_return('key')
       File.stub(:read).with('bundle_path').and_return('bundle')
+      @app.stub(:endpoints).and_return([])
     end
 
-    it "should create endpoint" do
+    it "should create endpoint with provided certificate" do
       @app.should_receive(:create_endpoint).with("crt\n", "key", true).
         and_return(endpoint_response('ip_address' => '10.0.0.1'))
+
+      $stdout.should_receive(:puts).with("Every unique IP address assigned to endpoint costs 10\u20AC/month")
+      $stdout.should_receive(:puts).with("It's required for SSL/TLS")
+      $stdout.should_receive(:print).with("Are you sure you want to create endpoint? (yes/no): ")
 
       $stdout.should_receive(:puts).with(green "Endpoint was created for #{@app.to_s} cloud")
       $stdout.should_receive(:puts).with("Deployed certificate on front end servers.")
       $stdout.should_receive(:puts).with("Point your domain to private IP address: 10.0.0.1")
 
       @cli.options = {"sni" => true}
-      invoke(@cli, :create, "crt_path", "key_path")
+      fake_stdin(["yes"]) do
+        invoke(@cli, :create, "crt_path", "key_path")
+      end
+    end
+
+    context "without certificate" do
+      it "should create endpoint" do
+        @app.should_receive(:create_endpoint).with(nil, nil, true).
+          and_return(endpoint_response('ip_address' => '10.0.0.1'))
+
+        $stdout.should_receive(:puts).with("Every unique IP address assigned to endpoint costs 10\u20AC/month")
+        $stdout.should_receive(:puts).with("It's required for SSL/TLS")
+        $stdout.should_receive(:puts).with("You didn't provide certificate but it can be added later")
+        $stdout.should_receive(:puts).with("Assigned IP address can be used to catch all domains pointing to that address, without SSL/TLS enabled")
+        $stdout.should_receive(:print).with("Are you sure you want to create endpoint without certificate (yes/no): ")
+        $stdout.should_receive(:puts).with(green "Endpoint was created for #{@app.to_s} cloud")
+        $stdout.should_receive(:puts).with("Point your domain to private IP address: 10.0.0.1")
+
+        @cli.options = {"sni" => true}
+        fake_stdin(["yes"]) do
+          invoke(@cli, :create)
+        end
+      end
+    end
+
+    context "multiple endpoints" do
+      it "should create endpoint with provided certificate" do
+        @app.should_receive(:create_endpoint).with("crt\n", "key", nil).
+          and_return(endpoint_response('ip_address' => '10.0.0.1'))
+        @app.stub(:endpoints).and_return(endpoints_response)
+
+        $stdout.should_receive(:puts).with("Every unique IP address assigned to endpoint costs 10\u20AC/month")
+        $stdout.should_receive(:puts).with("It's required for SSL/TLS")
+        $stdout.should_receive(:puts).with(green "Available HTTP endpoints")
+        $stdout.should_receive(:puts).with("\n")
+        $stdout.should_receive(:puts).with("  UUID   |  IP address  |  Certificate  |  SNI")
+        $stdout.should_receive(:puts).with("  uuid1  |  10.0.0.1    |  example.com  |  \u2713")
+        $stdout.should_receive(:puts).with("  uuid2  |  10.0.0.2    |  \u2717            |  \u2717")
+        $stdout.should_receive(:puts).with("\n")
+        $stdout.should_receive(:print).with("You already have assigned endpoint(s). Are you sure you want to create another one with a new IP address? (yes/no): ")
+        $stdout.should_receive(:puts).with(green "Endpoint was created for #{@app.to_s} cloud")
+        $stdout.should_receive(:puts).with("Deployed certificate on front end servers.")
+        $stdout.should_receive(:puts).with("Point your domain to private IP address: 10.0.0.1")
+
+        fake_stdin(["yes"]) do
+          invoke(@cli, :create, "crt_path", "key_path")
+        end
+      end
     end
 
     context "validation errors" do
       it "should show errors and exit" do
         exception = Shelly::Client::ValidationException.new({"errors" => [["key", "is invalid"]]})
         @app.should_receive(:create_endpoint).and_raise(exception)
+
+        $stdout.should_receive(:puts).with("Every unique IP address assigned to endpoint costs 10\u20AC/month")
+        $stdout.should_receive(:puts).with("It's required for SSL/TLS")
+        $stdout.should_receive(:print).with("Are you sure you want to create endpoint? (yes/no): ")
         $stdout.should_receive(:puts).with(red "Key is invalid")
 
         lambda {
-          invoke(@cli, :create, "crt_path", "key_path", "bundle_path")
+          fake_stdin(["yes"]) do
+            invoke(@cli, :create, "crt_path", "key_path", "bundle_path")
+          end
         }.should raise_error(SystemExit)
       end
     end
@@ -127,10 +160,16 @@ describe Shelly::CLI::Endpoint do
     context "providing one only part of certificate" do
       it "should show error and exit" do
         @app.should_not_receive(:create_endpoint)
+
+        $stdout.should_receive(:puts).with("Every unique IP address assigned to endpoint costs 10\u20AC/month")
+        $stdout.should_receive(:puts).with("It's required for SSL/TLS")
+        $stdout.should_receive(:print).with("Are you sure you want to create endpoint? (yes/no): ")
         $stdout.should_receive(:puts).with(red "Provide both certificate and key")
 
         lambda {
-          invoke(@cli, :create, "crt_path")
+          fake_stdin(["yes"]) do
+            invoke(@cli, :create, "crt_path")
+          end
         }.should raise_error(SystemExit)
       end
     end
@@ -140,10 +179,16 @@ describe Shelly::CLI::Endpoint do
         exception = Shelly::Client::ConflictException.new("message" =>
           "That's an error")
         @app.should_receive(:create_endpoint).and_raise(exception)
+
+        $stdout.should_receive(:puts).with("Every unique IP address assigned to endpoint costs 10\u20AC/month")
+        $stdout.should_receive(:puts).with("It's required for SSL/TLS")
+        $stdout.should_receive(:print).with("Are you sure you want to create endpoint? (yes/no): ")
         $stdout.should_receive(:puts).with(red "That's an error")
 
         lambda {
-          invoke(@cli, :create, "crt_path", "key_path", "bundle_path")
+          fake_stdin(["yes"]) do
+            invoke(@cli, :create, "crt_path", "key_path", "bundle_path")
+          end
         }.should raise_error(SystemExit)
       end
     end
@@ -207,6 +252,31 @@ describe Shelly::CLI::Endpoint do
       end
 
     end
+  end
+
+  def endpoints_response
+    [
+      { 'ip_address' => '10.0.0.1',
+        'sni' => true,
+        'uuid' => 'uuid1', 'info' => {
+          'domain' => 'example.com',
+          'issuer' => 'CA',
+          'subjcet' => 'organization info',
+          'since' => '2012-06-11 23:00:00 UTC',
+          'to' => '2015-06-11 23:00:00 UTC'
+        }
+      },
+      { 'ip_address' => '10.0.0.2',
+        'sni' => false,
+        'uuid' => 'uuid2', 'info' => {
+          'domain' => nil,
+          'issuer' => nil,
+          'subjcet' => nil,
+          'since' => nil,
+          'to' => nil
+         }
+      }
+    ]
   end
 
   def endpoint_response(options = {})
