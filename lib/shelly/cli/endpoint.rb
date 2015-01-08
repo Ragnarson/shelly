@@ -143,7 +143,7 @@ module Shelly
       rescue Client::ConflictException => e
         say_error e['message']
       rescue Client::NotFoundException => e
-        raise unless e.resource == :certificate
+        raise unless e.resource == :endpoint
         say_error "Endpoint not found"
       end
 
@@ -160,7 +160,7 @@ module Shelly
           say "Endpoint was deleted"
         end
       rescue Client::NotFoundException => e
-        raise unless e.resource == :certificate
+        raise unless e.resource == :endpoint
         say_error "Endpoint not found"
       end
 

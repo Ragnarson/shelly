@@ -1,3 +1,8 @@
+## master
+
+* [bugfix] Catch 404s when updating and deleting endpoints. API resource
+  certificate changed to endpoint
+
 ## 0.5.0 / 2015-01-02
 
 * [bugfix] Catch Conflict 409 when creating or updating endpoints
