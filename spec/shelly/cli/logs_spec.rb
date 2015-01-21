@@ -124,9 +124,10 @@ describe Shelly::CLI::Logs do
 
     context "on log file not found" do
       it "should display error message" do
-        exception = RestClient::ResourceNotFound.new
+        exception = Shelly::Client::NotFoundException.new
         @client.stub(:download_file).and_raise(exception)
-        $stdout.should_receive(:puts).with(red "Log file not found")
+        @bar.should_receive(:clear)
+        $stdout.should_receive(:puts).with(red "Log file for 2013-05-31 not found")
         invoke(@cli_logs, :get, "2013-05-31")
       end
     end

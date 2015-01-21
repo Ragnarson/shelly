@@ -43,8 +43,9 @@ module Shelly
 
         say_new_line
         say "Log file saved to #{attributes["filename"]}", :green
-      rescue RestClient::ResourceNotFound => e
-        say_error "Log file not found", :with_exit => false
+      rescue Client::NotFoundException => e
+        bar.clear
+        say_error "Log file for #{date} not found", :with_exit => false
       rescue Client::ValidationException => e
         e.each_error { |error| say_error error, :with_exit => false }
       end

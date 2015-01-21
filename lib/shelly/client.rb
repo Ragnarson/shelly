@@ -53,8 +53,10 @@ module Shelly
     def download_file(cloud, filename, url, progress_callback = nil)
       File.open(filename, "wb") do |out|
         process_response = lambda do |response|
+          raise_error_for_400_to_599(response.code.to_i)
 
           total_size = response.to_hash['file-size'].first.to_i if response.to_hash['file-size']
+
           response.read_body do |chunk|
             out.write(chunk)
 
@@ -110,8 +112,14 @@ module Shelly
     def process_response(response)
       body = JSON.parse(response.body) rescue JSON::ParserError && {}
       code = response.code
+      raise_error_for_400_to_599(code, body, response)
+      response.return!
+      body
+    end
+
+    def raise_error_for_400_to_599(code, body = nil, response = nil)
       if (400..599).include?(code)
-        exception_class = case response.code
+        exception_class = case code
         when 401; UnauthorizedException
         when 403; ForbiddenException
         when 404; NotFoundException
@@ -122,10 +130,9 @@ module Shelly
         when 504; GatewayTimeoutException
         else; APIException
         end
-        raise exception_class.new(body, code, response.headers[:x_request_id])
+        request_id = response.headers[:x_request_id] if response.respond_to?(:headers)
+        raise exception_class.new(body, code, request_id)
       end
-      response.return!
-      body
     end
   end
 end
