@@ -1508,6 +1508,17 @@ Wait until cloud is in 'turned off' state and try again.")
       user.ssh_keys.should_receive(:destroy)
       invoke(@main, :logout)
     end
+
+    context "option key" do
+      it "should be removed" do
+        sshkey = mock
+        Shelly::SshKey.should_receive(:new).with('path/sshkey.pub').and_return(sshkey)
+        $stdout.should_receive(:puts).with("Your public SSH key has been removed from Shelly Cloud")
+        sshkey.should_receive(:destroy).and_return(true)
+        @main.options = {:key => "path/sshkey.pub"}
+        invoke(@main, :logout)
+      end
+    end
   end
 
   describe "#rake" do

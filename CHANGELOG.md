@@ -1,5 +1,6 @@
 ## master
 
+* [improvement] shelly logout --key option
 * [bugfix] Show proper error message when log file does not exist
 * [bugfix] Catch 404s when updating and deleting endpoints. API resource
   certificate changed to endpoint

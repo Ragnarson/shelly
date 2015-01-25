@@ -283,9 +283,15 @@ Wait until cloud is in 'turned off' state and try again.}
       end
 
       desc "logout", "Logout from Shelly Cloud"
+      method_option :key, :alias => :k, :desc => "Path to specific SSH key",
+        :default => nil
       def logout
         user = Shelly::User.new
-        say "Your public SSH key has been removed from Shelly Cloud" if user.ssh_keys.destroy
+        key = Shelly::SshKey.new(options[:key]) if options[:key]
+        if (key || user.ssh_keys).destroy
+          say "Your public SSH key has been removed from Shelly Cloud"
+        end
+
         say "You have been successfully logged out" if user.logout
       end
 
