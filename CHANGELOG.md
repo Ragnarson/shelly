@@ -1,4 +1,4 @@
-## master
+## 0.5.1 / 2015-02-01
 
 * [improvement] shelly logout --key option
 * [bugfix] Show proper error message when log file does not exist
