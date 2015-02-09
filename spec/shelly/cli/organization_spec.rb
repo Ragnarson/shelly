@@ -85,6 +85,14 @@ describe Shelly::CLI::Organization do
       end
     end
 
+    it "should accept referral-code option" do
+      @organization.should_receive(:referral_code=).with("test")
+      @cli.options = {"referral-code" => "test"}
+      fake_stdin("org-name") do
+        invoke(@cli, :add)
+      end
+    end
+
     context "on failure" do
       it "should display validation errors" do
         body = {"message" => "Validation Failed", "errors" =>

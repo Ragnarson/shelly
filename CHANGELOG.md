@@ -2,6 +2,7 @@
 
 * [bugfix] Don't ask user about assigning new ip address on creating new
   endpoint with SNI
+* [improvement] User is able to provide referral code for new organization
 
 ## 0.5.2 / 2015-02-11
 

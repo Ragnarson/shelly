@@ -7,8 +7,9 @@ class Shelly::Client
     get("/organizations/#{name}")
   end
 
-  def create_organization(attributes)
-    post("/organizations", :organization => attributes)
+  def create_organization(attributes, referral_code = nil)
+    post("/organizations", :organization => attributes,
+      :referral_code => referral_code)
   end
 
   def members(name)

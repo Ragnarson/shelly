@@ -192,7 +192,7 @@ describe Shelly::Client do
   describe "#create_organization" do
     it "should send post with organization's attributes" do
       @client.should_receive(:post).with("/organizations",
-        :organization => {:name => "new-organization"})
+        {:organization=>{:name=>"new-organization"}, :referral_code=>nil})
       @client.create_organization(:name => "new-organization")
     end
   end

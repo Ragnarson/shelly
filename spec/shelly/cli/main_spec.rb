@@ -668,7 +668,7 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
         it "should ask user to create a new organization" do
           @app.should_receive(:organization_name=).with('org-name')
           @client.should_receive(:create_organization).
-            with({:name => "org-name", :redeem_code => nil})
+            with({:name => "org-name", :redeem_code => nil}, nil)
           $stdout.should_receive(:print).
             with("Organization name (foo - default): ")
           $stdout.should_receive(:puts).
@@ -681,7 +681,16 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
         it "should use --redeem-code option" do
           @main.options = {'redeem-code' => 'discount'}
           @client.should_receive(:create_organization).
-            with({:name => "org-name", :redeem_code => 'discount'})
+            with({:name => "org-name", :redeem_code => 'discount'}, nil)
+          fake_stdin(["foo", "none", "", "org-name"]) do
+            invoke(@main, :add)
+          end
+        end
+
+        it "should use --referral-code option" do
+          @main.options = {'referral-code' => 'test'}
+          @client.should_receive(:create_organization).
+            with({:name => "org-name", :redeem_code=>nil}, 'test')
           fake_stdin(["foo", "none", "", "org-name"]) do
             invoke(@main, :add)
           end
