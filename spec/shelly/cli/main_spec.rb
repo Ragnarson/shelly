@@ -123,7 +123,6 @@ describe Shelly::CLI::Main do
     context "on successful registration" do
       it "should display message about registration and email address confirmation" do
         $stdout.should_receive(:puts).with(green "Successfully registered!")
-        $stdout.should_receive(:puts).with(green "Check you mailbox for email address confirmation")
         fake_stdin(["better@example.com", "secret", "secret", "yes"]) do
           invoke(@main, :register)
         end
