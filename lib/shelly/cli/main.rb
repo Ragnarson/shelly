@@ -52,7 +52,6 @@ module Shelly
         ask_for_acceptance_of_terms
         user.register(email, password)
         say "Successfully registered!", :green
-        say "Check you mailbox for email address confirmation", :green
       rescue Client::ValidationException => e
         e.each_error { |error| say_error "#{error}", :with_exit => false }
         exit 1
