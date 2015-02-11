@@ -1,3 +1,7 @@
+## 0.5.2 / 2015-02-11
+
+* [improvement] Disable email confirmation on registration
+
 ## 0.5.1 / 2015-02-01
 
 * [improvement] shelly logout --key option
