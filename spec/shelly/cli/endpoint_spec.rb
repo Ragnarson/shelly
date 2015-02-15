@@ -76,21 +76,49 @@ describe Shelly::CLI::Endpoint do
       @app.stub(:endpoints).and_return([])
     end
 
-    it "should create endpoint with provided certificate" do
-      @app.should_receive(:create_endpoint).with("crt\n", "key", true).
-        and_return(endpoint_response('ip_address' => '10.0.0.1'))
+    context "with certificate" do
+      it "should create endpoint with provided certificate" do
+        @app.should_receive(:create_endpoint).with("crt\n", "key", nil).
+          and_return(endpoint_response('ip_address' => '10.0.0.1'))
 
-      $stdout.should_receive(:puts).with("Every unique IP address assigned to endpoint costs 10\u20AC/month")
-      $stdout.should_receive(:puts).with("It's required for SSL/TLS")
-      $stdout.should_receive(:print).with("Are you sure you want to create endpoint? (yes/no): ")
+        $stdout.should_receive(:puts).with("Every unique IP address assigned to endpoint costs 10\u20AC/month")
+        $stdout.should_receive(:puts).with("It's required for SSL/TLS")
+        $stdout.should_receive(:print).with("Are you sure you want to create endpoint? (yes/no): ")
 
-      $stdout.should_receive(:puts).with(green "Endpoint was created for #{@app.to_s} cloud")
-      $stdout.should_receive(:puts).with("Deployed certificate on front end servers.")
-      $stdout.should_receive(:puts).with("Point your domain to private IP address: 10.0.0.1")
+        $stdout.should_receive(:puts).with(green "Endpoint was created for #{@app.to_s} cloud")
+        $stdout.should_receive(:puts).with("Deployed certificate on front end servers.")
+        $stdout.should_receive(:puts).with("Point your domain to private IP address: 10.0.0.1")
 
-      @cli.options = {"sni" => true}
-      fake_stdin(["yes"]) do
-        invoke(@cli, :create, "crt_path", "key_path")
+        fake_stdin(["yes"]) do
+          invoke(@cli, :create, "crt_path", "key_path")
+        end
+      end
+
+      context "when sni option is true" do
+        before do
+          @app.stub_chain(:endpoints, :count).and_return(1)
+          @cli.stub(:list)
+        end
+
+        it "should create endpoint with provided certificate" do
+          @app.should_receive(:create_endpoint).with("crt\n", "key", true).
+            and_return(endpoint_response('ip_address' => '10.0.0.1'))
+
+          $stdout.should_receive(:puts).with("Every unique IP address assigned to endpoint costs 10\u20AC/month")
+          $stdout.should_receive(:puts).with("It's required for SSL/TLS")
+          $stdout.should_receive(:puts).with("\n")
+          $stdout.should_receive(:print).with("You already have assigned" \
+            " endpoint(s). Are you sure you want to create another one with" \
+            " SNI? (yes/no): ")
+          $stdout.should_receive(:puts).with(green "Endpoint was created for #{@app.to_s} cloud")
+          $stdout.should_receive(:puts).with("Deployed certificate on front end servers.")
+          $stdout.should_receive(:puts).with("Point your domain to private IP address: 10.0.0.1")
+
+          @cli.options = {"sni" => true}
+          fake_stdin(["yes"]) do
+            invoke(@cli, :create, "crt_path", "key_path")
+          end
+        end
       end
     end
 

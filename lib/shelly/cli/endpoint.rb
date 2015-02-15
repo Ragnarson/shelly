@@ -79,6 +79,7 @@ module Shelly
       def create(cert_path = nil, key_path = nil, bundle_path = nil)
         app = multiple_clouds(options[:cloud],
           "endpoint create [CERT_PATH] [KEY_PATH] [BUNDLE_PATH]")
+        sni = options["sni"]
 
         say "Every unique IP address assigned to endpoint costs 10€/month"
         say "It's required for SSL/TLS"
@@ -87,7 +88,7 @@ module Shelly
           say "Assigned IP address can be used to catch all domains pointing to that address, without SSL/TLS enabled"
           exit(0) unless yes?("Are you sure you want to create endpoint without certificate (yes/no):")
         elsif app.endpoints.count > 0
-          ask_if_endpoints_were_already_created(app)
+          ask_if_endpoints_were_already_created(app, sni)
         else
           exit(0) unless yes?("Are you sure you want to create endpoint? (yes/no):")
         end
@@ -95,7 +96,7 @@ module Shelly
         certificate, key = read_certificate_components(cert_path, key_path,
           bundle_path)
 
-        endpoint = app.create_endpoint(certificate, key, options["sni"])
+        endpoint = app.create_endpoint(certificate, key, sni)
 
         say "Endpoint was created for #{app} cloud", :green
         if endpoint['ip_address']
@@ -184,14 +185,19 @@ module Shelly
           end
         end
 
-        def ask_if_endpoints_were_already_created(app)
+        def ask_if_endpoints_were_already_created(app, sni)
           cli = Shelly::CLI::Endpoint.new
           cli.options = {:cloud => app}
           cli.list
           say_new_line
-          exit(0) unless yes?("You already have assigned endpoint(s). Are " \
-            "you sure you want to create another one with a new IP address? " \
-            "(yes/no):")
+          question = unless sni.nil?
+            "You already have assigned endpoint(s). Are you sure you" \
+            " want to create another one with SNI? (yes/no):"
+          else
+            "You already have assigned endpoint(s). Are you sure you" \
+            " want to create another one with a new IP address? (yes/no):"
+          end
+          exit(0) unless yes?(question)
         end
       end
     end

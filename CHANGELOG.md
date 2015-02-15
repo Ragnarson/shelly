@@ -1,3 +1,8 @@
+## master
+
+* [bugfix] Don't ask user about assigning new ip address on creating new
+  endpoint with SNI
+
 ## 0.5.2 / 2015-02-11
 
 * [improvement] Disable email confirmation on registration
