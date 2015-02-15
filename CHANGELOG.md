@@ -1,4 +1,4 @@
-## master
+## 0.5.3 / 2015-02-15
 
 * [bugfix] Don't ask user about assigning new ip address on creating new
   endpoint with SNI
