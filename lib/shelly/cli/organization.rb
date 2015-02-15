@@ -26,6 +26,8 @@ module Shelly
 
       method_option "redeem-code", :type => :string, :aliases => "-r",
         :desc => "Redeem code for free credits"
+      method_option "referral-code", :type => :string,
+        :desc => "Referral code for additional credit"
       desc "add", "Add a new organization"
       map "create" => :add
       map "new" => :add

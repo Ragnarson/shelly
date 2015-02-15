@@ -1,6 +1,6 @@
 module Shelly
   class Organization < Model
-    attr_accessor :name, :app_code_names, :redeem_code
+    attr_accessor :name, :app_code_names, :redeem_code, :referral_code
 
     def initialize(attributes = {})
       @name           = attributes["name"]
@@ -15,7 +15,7 @@ module Shelly
 
     def create
       attributes = {:name => name, :redeem_code => redeem_code}
-      shelly.create_organization(attributes)
+      shelly.create_organization(attributes, referral_code)
     end
 
     def memberships

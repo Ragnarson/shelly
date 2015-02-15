@@ -11,6 +11,8 @@ module Shelly
         :desc => "Server size [large, small]"
       method_option "redeem-code", :type => :string, :aliases => "-r",
         :desc => "Redeem code for free credits"
+      method_option "referral-code", :type => :string,
+        :desc => "Referral code for additional credit"
       method_option "organization", :type => :string, :aliases => "-o",
         :desc => "Add cloud to existing organization"
       method_option "skip-requirements-check", :type => :boolean,

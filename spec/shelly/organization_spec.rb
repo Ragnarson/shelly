@@ -65,9 +65,10 @@ describe Shelly::Organization do
   describe "#create" do
     it "should create organization via API client" do
       @client.should_receive(:create_organization).with(
-        :name => "new-organization", :redeem_code => "discount")
+        {:name=>"new-organization", :redeem_code=>"discount"}, "test")
       @organization.name = "new-organization"
       @organization.redeem_code = "discount"
+      @organization.referral_code = "test"
       @organization.create
     end
   end

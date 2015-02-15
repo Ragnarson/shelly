@@ -24,6 +24,7 @@ module Shelly
       organization = Shelly::Organization.new
       organization.name = ask_for_organization_name
       organization.redeem_code = options["redeem-code"]
+      organization.referral_code = options["referral-code"]
       organization.create
       say "Organization '#{organization.name}' created", :green
       organization.name
