@@ -190,7 +190,7 @@ module Shelly
           cli.options = {:cloud => app}
           cli.list
           say_new_line
-          question = unless sni.nil?
+          question = if sni
             "You already have assigned endpoint(s). Are you sure you" \
             " want to create another one with SNI? (yes/no):"
           else
