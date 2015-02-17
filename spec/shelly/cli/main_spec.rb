@@ -640,11 +640,10 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
 
         it "should ask user to choose organization" do
           $stdout.should_receive(:puts).
-          with("Select organization for this cloud:")
-          $stdout.should_receive(:puts).with("existing organizations:")
+            with("Select organization for this cloud:")
           $stdout.should_receive(:puts).with("  \u2219 aaa")
           $stdout.should_receive(:puts).
-          with(green "Or leave empty to create a new organization")
+            with(green "Or leave empty to create a new organization")
           $stdout.should_receive(:print).with("Organization: ")
           fake_stdin(["foo", "none", "aaa"]) do
             invoke(@main, :add)
@@ -732,7 +731,6 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
       it "should ask user to choose the region" do
         @app.should_receive(:region=).with("NA")
         $stdout.should_receive(:puts).with("Select region for this cloud:")
-        $stdout.should_receive(:puts).with("available regions:")
         $stdout.should_receive(:puts).with("  \u2219 EU")
         $stdout.should_receive(:puts).with("  \u2219 NA")
         $stdout.should_receive(:print).with("Region (EU - default): ")
@@ -745,7 +743,8 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
         it "should print a warning message and ask again" do
           $stdout.should_receive(:puts).
             with(yellow "ASIA region is not available")
-          $stdout.should_receive(:puts).with("available regions:").twice
+          @app.should_not_receive(:region=).with("ASIA")
+          @app.should_receive(:region=).with("NA")
           fake_stdin(["foo", "none", "ASIA", "NA"]) do
             invoke(@main, :add)
           end

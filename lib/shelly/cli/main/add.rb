@@ -126,16 +126,14 @@ module Shelly
             say "Select organization for this cloud:"
             say_new_line
 
+            organizations.each do |organization|
+              print_wrapped "\u2219 #{organization.name}", :ident => 2
+            end
+
+            say green "Or leave empty to create a new organization"
+            say_new_line
+
             loop do
-              say "existing organizations:"
-
-              organizations.each do |organization|
-                print_wrapped "\u2219 #{organization.name}", :ident => 2
-              end
-
-              say green "Or leave empty to create a new organization"
-              say_new_line
-
               selected = ask("Organization:")
               if organizations.select { |o| o.name == selected }.present?
                 return selected
@@ -143,8 +141,8 @@ module Shelly
                 say_new_line
                 return ask_for_new_organization(options)
               else
-                say_new_line
                 say_warning "#{selected} organization does not exist"
+                say_new_line
               end
             end
           end
@@ -162,25 +160,25 @@ module Shelly
 
         def ask_for_region
           regions = Shelly::App::REGIONS
+          say_new_line
+
           say "Select region for this cloud:"
           say_new_line
 
+          regions.each do |region|
+            print_wrapped "\u2219 #{region}", :ident => 2
+          end
+          say_new_line
+
           loop do
-            say "available regions:"
-
-            regions.each do |region|
-              print_wrapped "\u2219 #{region}", :ident => 2
-            end
-            say_new_line
-
             selected = ask("Region (EU - default):").upcase
             if regions.include?(selected)
               return selected
             elsif selected.empty?
               return "EU"
             else
-              say_new_line
               say_warning "#{selected} region is not available"
+              say_new_line
             end
           end
         end
