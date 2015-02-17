@@ -79,6 +79,44 @@ module Shelly
       end
 
       no_tasks do
+        def ask_for_code_name
+          default_code_name = default_name_from_dir_name
+          code_name = ask("Cloud code name (#{default_code_name} - default):")
+          code_name.blank? ? default_code_name : code_name
+        end
+
+        def ask_for_databases
+          kinds = Shelly::App::DATABASE_CHOICES
+          databases = ask("Which databases do you want to use " \
+                          "#{kinds.join(", ")} (postgresql - default):")
+          begin
+            databases = databases.split(/[\s,]/).reject(&:blank?)
+            valid = valid_databases?(databases)
+            break if valid
+            databases = ask("Unknown database kind. Supported are: #{kinds.join(", ")}:")
+          end while not valid
+
+          databases.empty? ? ["postgresql"] : databases
+        end
+
+        def info_adding_cloudfile_to_repository
+          say_new_line
+          say "Project is now configured for use with Shelly Cloud:", :green
+          say "You can review changes using", :green
+          say "  git status"
+        end
+
+        def info_deploying_to_shellycloud(remote = 'shelly')
+          say_new_line
+          say "When you make sure all settings are correct, add changes to your repository:", :green
+          say "  git add ."
+          say '  git commit -m "Application added to Shelly Cloud"'
+          say_new_line
+          say "Deploy to your cloud using:", :green
+          say "  git push #{remote} master"
+          say_new_line
+        end
+
         def ask_for_organization(options)
           organizations = Shelly::User.new.organizations
 
