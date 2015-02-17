@@ -1,3 +1,7 @@
+## master
+
+* [bugfix] Use unordered list in choosing organization and region
+
 ## 0.5.3 / 2015-02-15
 
 * [bugfix] Don't ask user about assigning new ip address on creating new

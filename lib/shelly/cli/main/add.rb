@@ -91,8 +91,8 @@ module Shelly
             loop do
               say "existing organizations:"
 
-              organizations.each_with_index do |organization, i|
-                print_wrapped "#{i + 1}) #{organization.name}", :ident => 2
+              organizations.each do |organization|
+                print_wrapped "\u2219 #{organization.name}", :ident => 2
               end
 
               say green "Or leave empty to create a new organization"
@@ -130,8 +130,8 @@ module Shelly
           loop do
             say "available regions:"
 
-            regions.each_with_index do |region, i|
-              print_wrapped "#{i + 1}) #{region}", :ident => 2
+            regions.each do |region|
+              print_wrapped "\u2219 #{region}", :ident => 2
             end
             say_new_line
 

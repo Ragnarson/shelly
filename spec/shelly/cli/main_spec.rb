@@ -642,7 +642,7 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
           $stdout.should_receive(:puts).
           with("Select organization for this cloud:")
           $stdout.should_receive(:puts).with("existing organizations:")
-          $stdout.should_receive(:puts).with("  1) aaa")
+          $stdout.should_receive(:puts).with("  \u2219 aaa")
           $stdout.should_receive(:puts).
           with(green "Or leave empty to create a new organization")
           $stdout.should_receive(:print).with("Organization: ")
@@ -733,8 +733,8 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
         @app.should_receive(:region=).with("NA")
         $stdout.should_receive(:puts).with("Select region for this cloud:")
         $stdout.should_receive(:puts).with("available regions:")
-        $stdout.should_receive(:puts).with("  1) EU")
-        $stdout.should_receive(:puts).with("  2) NA")
+        $stdout.should_receive(:puts).with("  \u2219 EU")
+        $stdout.should_receive(:puts).with("  \u2219 NA")
         $stdout.should_receive(:print).with("Region: ")
         fake_stdin(["foo", "none", "NA"]) do
           invoke(@main, :add)
