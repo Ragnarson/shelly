@@ -735,7 +735,7 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
         $stdout.should_receive(:puts).with("available regions:")
         $stdout.should_receive(:puts).with("  \u2219 EU")
         $stdout.should_receive(:puts).with("  \u2219 NA")
-        $stdout.should_receive(:print).with("Region: ")
+        $stdout.should_receive(:print).with("Region (EU - default): ")
         fake_stdin(["foo", "none", "NA"]) do
           invoke(@main, :add)
         end
@@ -748,6 +748,15 @@ More info at http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository\e[0m
           $stdout.should_receive(:puts).with("available regions:").twice
           fake_stdin(["foo", "none", "ASIA", "NA"]) do
             invoke(@main, :add)
+          end
+        end
+
+        context "and empty string was on the input" do
+          it "should assign EU region by default" do
+            @app.should_receive(:region=).with("EU")
+            fake_stdin(["foo", "none", ""]) do
+              invoke(@main, :add)
+            end
           end
         end
       end

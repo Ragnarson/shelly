@@ -135,9 +135,11 @@ module Shelly
             end
             say_new_line
 
-            selected = ask("Region:").upcase
+            selected = ask("Region (EU - default):").upcase
             if regions.include?(selected)
               return selected
+            elsif selected.empty?
+              return "EU"
             else
               say_new_line
               say_warning "#{selected} region is not available"
