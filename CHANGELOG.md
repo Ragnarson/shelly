@@ -1,3 +1,10 @@
+## master
+
+* [improvement] Print organization / region list only one time on creating new
+  cloud
+* [bugfix] Added information about default region while creating new cloud
+* [bugfix] Use unordered list in choosing organization and region
+
 ## 0.5.3 / 2015-02-15
 
 * [bugfix] Don't ask user about assigning new ip address on creating new

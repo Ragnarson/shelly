@@ -79,6 +79,44 @@ module Shelly
       end
 
       no_tasks do
+        def ask_for_code_name
+          default_code_name = default_name_from_dir_name
+          code_name = ask("Cloud code name (#{default_code_name} - default):")
+          code_name.blank? ? default_code_name : code_name
+        end
+
+        def ask_for_databases
+          kinds = Shelly::App::DATABASE_CHOICES
+          databases = ask("Which databases do you want to use " \
+                          "#{kinds.join(", ")} (postgresql - default):")
+          begin
+            databases = databases.split(/[\s,]/).reject(&:blank?)
+            valid = valid_databases?(databases)
+            break if valid
+            databases = ask("Unknown database kind. Supported are: #{kinds.join(", ")}:")
+          end while not valid
+
+          databases.empty? ? ["postgresql"] : databases
+        end
+
+        def info_adding_cloudfile_to_repository
+          say_new_line
+          say "Project is now configured for use with Shelly Cloud:", :green
+          say "You can review changes using", :green
+          say "  git status"
+        end
+
+        def info_deploying_to_shellycloud(remote = 'shelly')
+          say_new_line
+          say "When you make sure all settings are correct, add changes to your repository:", :green
+          say "  git add ."
+          say '  git commit -m "Application added to Shelly Cloud"'
+          say_new_line
+          say "Deploy to your cloud using:", :green
+          say "  git push #{remote} master"
+          say_new_line
+        end
+
         def ask_for_organization(options)
           organizations = Shelly::User.new.organizations
 
@@ -88,16 +126,14 @@ module Shelly
             say "Select organization for this cloud:"
             say_new_line
 
+            organizations.each do |organization|
+              print_wrapped "\u2219 #{organization.name}", :ident => 2
+            end
+
+            say green "Or leave empty to create a new organization"
+            say_new_line
+
             loop do
-              say "existing organizations:"
-
-              organizations.each_with_index do |organization, i|
-                print_wrapped "#{i + 1}) #{organization.name}", :ident => 2
-              end
-
-              say green "Or leave empty to create a new organization"
-              say_new_line
-
               selected = ask("Organization:")
               if organizations.select { |o| o.name == selected }.present?
                 return selected
@@ -105,8 +141,8 @@ module Shelly
                 say_new_line
                 return ask_for_new_organization(options)
               else
-                say_new_line
                 say_warning "#{selected} organization does not exist"
+                say_new_line
               end
             end
           end
@@ -124,23 +160,25 @@ module Shelly
 
         def ask_for_region
           regions = Shelly::App::REGIONS
+          say_new_line
+
           say "Select region for this cloud:"
           say_new_line
 
+          regions.each do |region|
+            print_wrapped "\u2219 #{region}", :ident => 2
+          end
+          say_new_line
+
           loop do
-            say "available regions:"
-
-            regions.each_with_index do |region, i|
-              print_wrapped "#{i + 1}) #{region}", :ident => 2
-            end
-            say_new_line
-
-            selected = ask("Region:").upcase
+            selected = ask("Region (EU - default):").upcase
             if regions.include?(selected)
               return selected
+            elsif selected.empty?
+              return "EU"
             else
-              say_new_line
               say_warning "#{selected} region is not available"
+              say_new_line
             end
           end
         end
