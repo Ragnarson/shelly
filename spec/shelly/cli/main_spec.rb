@@ -39,6 +39,7 @@ describe Shelly::CLI::Main do
       out.should include("shelly dbconsole               # Run rails dbconsole")
       out.should include("shelly delete                  # Delete the cloud")
       out.should include("shelly deploy <command>        # View deploy logs")
+      out.should include("shelly endpoint <command>      # Manage application HTTP(S) endpoints")
       out.should include("shelly file <command>          # Upload and download files to and from persistent storage")
       out.should include("shelly help [TASK]             # Describe available tasks or one specific task")
       out.should include("shelly info                    # Show basic information about cloud")
