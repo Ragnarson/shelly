@@ -1,3 +1,7 @@
+## master
+
+* [improvement] Official support for Ruby 1.9.3 has ended
+
 ## 0.5.4 / 2015-02-19
 
 * [improvement] Print organization / region list only one time on creating new

@@ -1834,7 +1834,7 @@ Wait until cloud is in 'turned off' state and try again.")
       Bundler::Definition.stub_chain(:build, :specs, :map) \
         .and_return(["thin", "pg", "delayed_job", "whenever", "sidekiq"])
         Bundler::Definition.stub_chain(:build, :ruby_version).
-          and_return(mock(:engine => 'ruby', :version => '1.9.3'))
+          and_return(mock(:engine => 'ruby', :version => '2.2.0'))
       Shelly::StructureValidator.any_instance.stub(:repo_paths) \
         .and_return(["config.ru", "Gemfile", "Gemfile.lock", "Rakefile"])
       Shelly::StructureValidator.any_instance.stub(:tasks).and_return(["rake db:migrate"])
@@ -1905,9 +1905,9 @@ Wait until cloud is in 'turned off' state and try again.")
         context "supported version" do
           it "should show checked message" do
             Bundler::Definition.stub_chain(:build, :ruby_version).
-              and_return(mock(:engine => 'ruby', :version => '1.9.3'))
+              and_return(mock(:engine => 'ruby', :version => '2.2.0'))
 
-            $stdout.should_receive(:puts).with("  #{green("✓")} ruby 1.9.3 is supported")
+            $stdout.should_receive(:puts).with("  #{green("✓")} ruby 2.2.0 is supported")
             invoke(@main, :check)
           end
         end

@@ -406,10 +406,10 @@ describe Shelly::App do
 
       it "should return ruby_version from gemfile" do
         Bundler::Definition.stub_chain(:build, :ruby_version).
-          and_return(mock(:engine => 'ruby', :version => '1.9.3'))
+          and_return(mock(:engine => 'ruby', :version => '2.2.0'))
 
         @app.create
-        @app.ruby_version.should == "1.9.3"
+        @app.ruby_version.should == "2.2.0"
       end
     end
   end
@@ -607,9 +607,9 @@ describe Shelly::App do
     end
 
     it "should create cloudfile with app attributes" do
-      @app.ruby_version = "1.9.3"
+      @app.ruby_version = "2.2.0"
       @cloudfile.should_receive(:code_name=).with("foo-staging")
-      @cloudfile.should_receive(:ruby_version=).with("1.9.3")
+      @cloudfile.should_receive(:ruby_version=).with("2.2.0")
       @cloudfile.should_receive(:environment=).with("production")
       @cloudfile.should_receive(:domains=).with(["example.com", "another.example.com"])
       @cloudfile.should_receive(:size=).with("large")
