@@ -14,7 +14,7 @@ describe Shelly::Cloudfile do
     it "should fetch and parse file content" do
       content = <<-config
 foo-staging:
-  ruby_version: 2.2.0
+  ruby_version: 2.2.1
   environment: production
   domains:
     - foo-staging.winniecloud.com
@@ -29,7 +29,7 @@ foo-staging:
 config
       File.open("/projects/foo/Cloudfile", "w") { |f| f << content }
       @cloudfile.content.should == {"foo-staging" => {
-        "ruby_version" => "2.2.0",
+        "ruby_version" => "2.2.1",
         "environment" => "production",
         "domains" => ["foo-staging.winniecloud.com"],
         "servers" => { "app1" =>
@@ -69,7 +69,7 @@ foo-staging:
     it "should create Cloud objects" do
       content = <<-config
 foo-staging:
-  ruby_version: 2.2.0
+  ruby_version: 2.2.1
   servers:
     app1:
       size: small
@@ -92,7 +92,7 @@ config
       @cloudfile.code_name = "foo-staging"
       @cloudfile.domains = ["foo-staging.winniecloud.com", "*.foo.example.com"]
       @cloudfile.databases = ["postgresql", "mongodb"]
-      @cloudfile.ruby_version = "2.2.0"
+      @cloudfile.ruby_version = "2.2.1"
       @cloudfile.environment = "production"
       @cloudfile.size = "large"
       @cloudfile.thin = 4
@@ -104,7 +104,7 @@ config
         FakeFS.deactivate!
         expected = <<-config
 foo-staging:
-  ruby_version: 2.2.0 # 2.1.2, 2.1.1, 2.1.0, 2.0.0, jruby or rbx
+  ruby_version: 2.2.1
   environment: production # RAILS_ENV
   domains:
     - foo-staging.winniecloud.com
@@ -136,7 +136,7 @@ config
         @cloudfile.thin = 2
         expected = <<-config
 foo-staging:
-  ruby_version: 2.2.0 # 2.1.2, 2.1.1, 2.1.0, 2.0.0, jruby or rbx
+  ruby_version: 2.2.1
   environment: production # RAILS_ENV
   domains:
     - foo-staging.winniecloud.com
