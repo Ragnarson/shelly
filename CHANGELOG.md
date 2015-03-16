@@ -1,4 +1,4 @@
-## master
+## 0.5.5 / 2015-03-16
 
 * [improvement] Do not list supported Ruby versions in Cloudfile
 * [improvement] Official support for Ruby 1.9.3 has ended
