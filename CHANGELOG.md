@@ -220,7 +220,7 @@
 
 ## 0.4.7 / 2013-10-18
 
-* [feature] Mange SSL certificate with `shelly cert`
+* [feature] Manage SSL certificate with `shelly cert`
 
 ## 0.4.6 / 2013-10-01
 

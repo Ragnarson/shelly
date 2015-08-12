@@ -27,7 +27,7 @@ module Shelly
       register_subcommand(Organization, "organization", "organization <command>", "View organizations")
       register_subcommand(Logs, "log", "logs <command>", "View application logs")
       register_subcommand(Endpoint, "endpoint", "endpoint <command>", "Manage application HTTP(S) endpoints")
-      register_subcommand(Maintenance, "maintenance", "maintenance <command>", "Mange application maintenance events")
+      register_subcommand(Maintenance, "maintenance", "maintenance <command>", "Manage application maintenance events")
 
       check_unknown_options!(:except => :rake)
 
