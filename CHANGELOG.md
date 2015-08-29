@@ -1,3 +1,7 @@
+## master
+
+* [bugfix] Display proper error for shelly files commands depending on resource
+
 ## 0.5.5 / 2015-03-16
 
 * [improvement] Do not list supported Ruby versions in Cloudfile

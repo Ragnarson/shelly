@@ -41,7 +41,7 @@ describe Shelly::CLI::File do
       it "should display error" do
         @app.stub(:attributes => {"system_user" => "system_user"})
         exception = Shelly::Client::NotFoundException.
-          new({"message" => "Virtual server not found or not configured"})
+          new(not_found_response)
         @client.stub(:tunnel).and_raise(exception)
         $stdout.should_receive(:puts).
           with(red "Virtual server not found or not configured")
@@ -84,7 +84,7 @@ describe Shelly::CLI::File do
     context "when cloud is not deployed" do
       it "should display error" do
         exception = Shelly::Client::NotFoundException.
-          new({"message" => "Virtual server not found or not configured"})
+          new(not_found_response)
         @client.stub(:tunnel).and_raise(exception)
         $stdout.should_receive(:puts).
           with(red "Virtual server not found or not configured")
@@ -126,7 +126,7 @@ describe Shelly::CLI::File do
     context "when cloud is not deployed" do
       it "should display error" do
         exception = Shelly::Client::NotFoundException.
-          new({"message" => "Virtual server not found or not configured"})
+          new(not_found_response)
         @client.stub(:tunnel).and_raise(exception)
         $stdout.should_receive(:puts).
           with(red "Virtual server not found or not configured")
@@ -194,7 +194,7 @@ describe Shelly::CLI::File do
     context "when cloud is not deployed" do
       it "should display error" do
         exception = Shelly::Client::NotFoundException.
-          new({"message" => "Virtual server not found or not configured"})
+          new(not_found_response)
         @app.stub(:delete_file).and_raise(exception)
         $stdout.should_receive(:puts).
           with(red "Virtual server not found or not configured")
@@ -203,5 +203,12 @@ describe Shelly::CLI::File do
         }.should raise_error(SystemExit)
       end
     end
+  end
+
+  def not_found_response
+    {
+      "message" => "Virtual server not found or not configured",
+      "resource" => :virtual_server
+    }
   end
 end
