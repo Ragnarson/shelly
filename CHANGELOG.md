@@ -1,4 +1,4 @@
-## master
+## 0.5.6 / 2015-08-31
 
 * [improvement] shelly rake accepts rake arguments and properly escapes whitespaces
 * [bugfix] Display proper error for shelly files commands depending on resource
