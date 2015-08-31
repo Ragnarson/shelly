@@ -426,7 +426,7 @@ describe Shelly::App do
     it "should return result of rake task" do
       @client.stub(:tunnel).and_return(
         {"host" => "console.example.com", "port" => "40010", "user" => "foo"})
-      @app.should_receive(:childprocess).with("ssh -o StrictHostKeyChecking=no -p 40010 -l foo -t -t console.example.com rake_runner \"test\"")
+      @app.should_receive(:childprocess).with("ssh -o StrictHostKeyChecking=no -p 40010 -l foo -t -t console.example.com rake_runner '\"test\"'")
       @app.rake("test")
     end
 

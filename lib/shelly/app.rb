@@ -238,7 +238,7 @@ module Shelly
     end
 
     def rake(task, server = nil)
-      ssh(:command => "rake_runner \"#{task}\"", :server => server)
+      ssh(:command => "rake_runner '#{task.inspect}'", :server => server)
     end
 
     def dbconsole
