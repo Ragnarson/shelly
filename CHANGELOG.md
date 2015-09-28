@@ -1,3 +1,7 @@
+## master
+
+* [improvement] Handle 403 Forbidden response in database backups get cli 
+
 ## 0.5.6 / 2015-08-31
 
 * [improvement] shelly rake accepts rake arguments and properly escapes whitespaces

@@ -58,6 +58,8 @@ module Shelly
         raise unless e.resource == :backup
         say_error "Backup not found", :with_exit => false
         say "You can list available backups with `shelly backup list` command"
+      rescue Client::ForbiddenException => e
+        say_error e[:message]
       end
 
       desc "create [DB_KIND]", "Create backup of given database"

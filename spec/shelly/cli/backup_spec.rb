@@ -120,12 +120,21 @@ describe Shelly::CLI::Backup do
       end
 
       context "on backup not found" do
-        it "it should display error message" do
+        it "should display error message" do
           exception = Shelly::Client::NotFoundException.new({"resource" => "backup"})
           @client.stub(:database_backup).and_raise(exception)
           $stdout.should_receive(:puts).with(red "Backup not found")
           $stdout.should_receive(:puts).with("You can list available backups with `shelly backup list` command")
           invoke(@backup, :get, "better.tar.gz")
+        end
+      end
+
+      context "on forbidden exception" do
+        it "should display error message" do
+          exception = Shelly::Client::ForbiddenException.new("message" => "error")
+          @client.stub(:database_backup).and_raise(exception)
+          $stdout.should_receive(:puts).with(red "error")
+          lambda { invoke(@backup, :get, "better.tar.gz") }.should raise_error(SystemExit)
         end
       end
 
