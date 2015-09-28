@@ -1,4 +1,4 @@
-## master
+## 0.5.7 / 2015-09-28
 
 * [improvement] Handle 403 Forbidden response in database backups get cli 
 
